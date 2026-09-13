@@ -10,6 +10,7 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 
 @Entity
 @Table(name = "empresa")
@@ -54,13 +55,13 @@ public class Empresa {
         if (this.ativo == null) {
             this.ativo = true;
         }
-        this.criadoEm = OffsetDateTime.now();
+        this.criadoEm = OffsetDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         this.atualizadoEm = this.criadoEm;
     }
 
     @PreUpdate
     protected void aoAtualizar() {
-        this.atualizadoEm = OffsetDateTime.now();
+        this.atualizadoEm = OffsetDateTime.now().truncatedTo(ChronoUnit.SECONDS);
     }
 
     public Integer getId() {

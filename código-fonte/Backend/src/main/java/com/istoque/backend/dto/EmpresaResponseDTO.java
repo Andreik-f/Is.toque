@@ -1,5 +1,6 @@
 package com.istoque.backend.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.istoque.backend.model.Empresa;
 
 import java.time.OffsetDateTime;
@@ -17,7 +18,11 @@ public record EmpresaResponseDTO(
         String telefone,
         Integer diasAlertaValidade,
         Boolean ativo,
+
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
         OffsetDateTime criadoEm,
+
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
         OffsetDateTime atualizadoEm
 
 ) {
