@@ -1,3 +1,22 @@
 # IDEs
 *.swp
 *.swo
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+.factorypath
+
+# Java / Maven (código-fonte/Backend)
+target/
+*.class
+*.log
+
+# Credenciais locais do banco de dados - NUNCA versionar
+application-local.properties
+.env
+
+# Configuração local do Claude Code (ferramenta de IDE, não é parte do projeto)
+.claude/

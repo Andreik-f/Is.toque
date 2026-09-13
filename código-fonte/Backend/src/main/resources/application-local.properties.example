@@ -1,0 +1,9 @@
+# Copie este arquivo para "application-local.properties" (mesma pasta) e preencha
+# com as credenciais reais do banco. O application-local.properties NAO deve ser
+# versionado no Git (ja esta no .gitignore) — combine as credenciais com a equipe
+# por um canal separado (WhatsApp, Discord, etc).
+
+spring.datasource.url=jdbc:postgresql://<host>:<porta>/<banco>?sslmode=require&prepareThreshold=0
+spring.datasource.username=<usuario>
+spring.datasource.password=<senha>
+spring.datasource.driver-class-name=org.postgresql.Driver
