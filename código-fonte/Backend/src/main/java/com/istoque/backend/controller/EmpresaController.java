@@ -2,11 +2,11 @@ package com.istoque.backend.controller;
 
 import com.istoque.backend.dto.EmpresaRequestDTO;
 import com.istoque.backend.dto.EmpresaResponseDTO;
+import com.istoque.backend.dto.MensagemResponse;
 import com.istoque.backend.service.EmpresaService;
 
 import jakarta.validation.Valid;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,9 +56,9 @@ public class EmpresaController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Integer id) {
+    public ResponseEntity<MensagemResponse> deletar(@PathVariable Integer id) {
         empresaService.deletar(id);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return ResponseEntity.ok(new MensagemResponse("Empresa excluída com sucesso"));
     }
 
 }
