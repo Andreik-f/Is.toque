@@ -1,8 +1,8 @@
 # Título do Projeto
 
-`CURSO`
+`ANALISE E DESENVOLVIMENTO DE SISTEMAS`
 
-`DISCIPLINA`
+`Trabalho Interdisciplinar: Desenvolvimento de Aplicação Interativa`
 
 `SEMESTRE`
 
@@ -10,16 +10,14 @@
 
 ## Integrantes
 
-* Nome completo do aluno 1
-* Nome completo do aluno 2
-* Nome completo do aluno 3
-* Nome completo do aluno 4
-* Nome completo do aluno 5
-* Nome completo do aluno 6
+* Amauri Luca Martinez Azevedo
+* Andreik Fernandes Rocha
+* David William da Silva Rocha
+* Eduardo Rezende Machado
 
 ## Orientador
 
-* Nome completo do professor
+* Paulo Henrique Rodrigues
 
 # Documentação
 

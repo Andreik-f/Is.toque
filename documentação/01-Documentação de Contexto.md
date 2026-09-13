@@ -10,8 +10,42 @@ Este link pode ajudar a equipe a entender mais sobre definição do problema: [O
 
 ## Objetivos
 
-[Aqui a equipe deve realizar uma descrição detalhada dos objetivos do trabalho, ressaltando quais as questões principais do problema a serem resolvidas pelo projeto, não é a hora de apresentar requisitos detalhados.]
- 
+### Objetivo Geral
+
+Desenvolver um sistema de gerenciamento de estoque destinado a restaurantes e pequenos negócios, permitindo controlar produtos, insumos, entradas, saídas, receitas e produção de forma organizada e integrada, proporcionando maior controle sobre os recursos disponíveis, redução de perdas e apoio à tomada de decisões relacionadas ao abastecimento e à utilização dos produtos.
+
+### Objetivos Específicos
+
+a) Permitir o cadastro e a organização de empresas, usuários, produtos e insumos utilizados pelo estabelecimento;
+
+b) Permitir o gerenciamento de usuários com diferentes perfis e níveis de acesso;
+
+c) Controlar as entradas e saídas de produtos do estoque;
+
+d) Permitir o acompanhamento da quantidade disponível de cada produto;
+
+e) Permitir o estabelecimento de níveis mínimos e máximos de estoque;
+
+f) Identificar produtos que estejam abaixo do estoque mínimo estabelecido;
+
+g) Registrar o histórico das movimentações realizadas no estoque;
+
+h) Permitir o registro de perdas, descartes e ajustes de estoque;
+
+i) Permitir o cadastro de receitas utilizando produtos previamente registrados no estoque;
+
+j) Calcular a quantidade máxima de receitas que pode ser produzida com base na disponibilidade atual dos produtos;
+
+k) Identificar os produtos que limitam a capacidade de produção de uma determinada receita;
+
+l) Permitir o registro da produção de receitas e realizar automaticamente a baixa dos produtos utilizados;
+
+m) Atualizar a capacidade de produção das receitas após alterações no estoque;
+
+n) Auxiliar o estabelecimento no planejamento de compras e reposição de produtos;
+
+o) Fornecer informações que auxiliem na redução de desperdícios e perdas de estoque.
+
 Este link pode ajudar a equipe a entender mais sobre definição dos objetivos: [Objetivos, Problema de pesquisa e Justificativa.](https://medium.com/@versioparole/objetivos-problema-de-pesquisa-e-justificativa-c98c8233b9c3)
 
 ## Justificativa
@@ -24,9 +58,9 @@ Este link pode ajudar a equipe a formular a justificativa: [Como montar a justif
 
 ## Público-Alvo
 
-[Aqui é necessário descrever os atores envolvidos no problema, destacando os diferentes perfis de usuários. O propósito é apresentar as características, necessidades, conhecimentos prévios e experiência com a tecnologia do público-alvo.
+O sistema será destinado principalmente a restaurantes, lanchonetes, bares, pequenos estabelecimentos alimentícios e outros pequenos negócios que necessitem realizar o controle de produtos, matérias-primas, insumos e produção.
 
-Sugere-se que a equipe utilize questionários e/ou entrevistas a fim de conhecer os atores que compõem o público alvo.]
+O sistema poderá ser utilizado por proprietários, administradores, gerentes e funcionários responsáveis pelo controle, armazenamento, reposição, produção e utilização dos produtos.
 
 Os links abaixo podem ajudar a equipe a conhecer um pouco mais sobre o público-alvo. 
 
