@@ -6,7 +6,7 @@ import java.util.Optional;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     
-    // Ler nome do método e cria comndo no sql
-    Optional<Usuario> findByEmail(String email);
+    
+   Optional<Usuario> findByEmailAndEmpresaCnpj(String email, String cnpj);
     
 }

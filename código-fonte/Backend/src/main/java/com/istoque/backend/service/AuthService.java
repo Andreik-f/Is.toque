@@ -19,7 +19,7 @@ public class AuthService {
 
     public LoginResponseDTO realizarLogin(LoginRequestDTO loginRequest) {
         // 1. Busca o usuário pelo e-mail
-        Optional<Usuario> usuarioOpt = usuarioRepository.findByEmail(loginRequest.email());
+       Optional<Usuario> usuarioOpt = usuarioRepository.findByEmailAndEmpresaCnpj(loginRequest.email(), loginRequest.cnpj());
 
         // 2. Se o usuário existir no banco...
         if (usuarioOpt.isPresent()) {
