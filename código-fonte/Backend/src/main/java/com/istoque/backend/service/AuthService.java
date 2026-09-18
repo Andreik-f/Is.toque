@@ -4,47 +4,43 @@ import com.istoque.backend.dto.LoginRequestDTO;
 import com.istoque.backend.dto.LoginResponseDTO;
 import com.istoque.backend.model.Usuario;
 import com.istoque.backend.repository.UsuarioRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.util.Optional;
 
 @Service
 public class AuthService {
 
     private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthService(UsuarioRepository usuarioRepository) {
+    public AuthService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public LoginResponseDTO realizarLogin(LoginRequestDTO loginRequest) {
-        // 1. Busca o usuário pelo e-mail
-       Optional<Usuario> usuarioOpt = usuarioRepository.findByEmailAndEmpresaCnpj(loginRequest.email(), loginRequest.cnpj());
+        Optional<Usuario> usuarioOpt = usuarioRepository.findByEmailAndEmpresaCnpj(loginRequest.email(), loginRequest.cnpj());
 
-        // 2. Se o usuário existir no banco...
         if (usuarioOpt.isPresent()) {
             Usuario usuario = usuarioOpt.get();
             
-            // 3. Confere se a senha digitada é igual à senha do banco
-            if (usuario.getSenha().equals(loginRequest.senha())) {
-                
-                // Pega o nome da empresa para devolver ao front-end
+            // Compara a senha em texto com a senha criptografada (Hash)
+            if (passwordEncoder.matches(loginRequest.senha(), usuario.getSenha())) {
                 String nomeDaEmpresa = usuario.getEmpresa().getNomeFantasia() != null 
                         ? usuario.getEmpresa().getNomeFantasia() 
                         : usuario.getEmpresa().getRazaoSocial();
 
-                // 4. Retorna o envelope de sucesso com os dados
                 return new LoginResponseDTO(
                         usuario.getId(),
                         usuario.getNome(),
                         usuario.getEmail(),
-                        usuario.getPerfil(),
+                        String.valueOf(usuario.getPerfilId()),
                         usuario.getEmpresa().getId(),
                         nomeDaEmpresa
                 );
             }
         }
-        // Se a senha estiver errada ou o usuário não existir, retorna nulo
         return null; 
     }
 }
