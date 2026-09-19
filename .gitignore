@@ -20,3 +20,4 @@ application-local.properties
 
 # Configuração local do Claude Code (ferramenta de IDE, não é parte do projeto)
 .claude/
+/wiki
