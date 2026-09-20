@@ -1,11 +1,18 @@
 package com.istoque.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 
 @Entity
-@Table(name = "usuario")
+@Table(
+    name = "usuario",
+    uniqueConstraints = @UniqueConstraint(
+        name = "uk_usuario_empresa_email",
+        columnNames = {"empresa_id", "email"}
+    )
+)
 public class Usuario {
 
     @Id
@@ -18,13 +25,13 @@ public class Usuario {
     @Column(nullable = false)
     private String email;
 
-    // ALERTA DE ERRO 500 RESOLVIDO: Aponta para a coluna senha_hash do banco
+    @JsonIgnore
     @Column(name = "senha_hash", nullable = false)
     private String senha;
 
-    // ALERTA DE ERRO 500 RESOLVIDO: Agora usa o perfil_id como um número
-    @Column(name = "perfil_id", nullable = false)
-    private Integer perfilId; 
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "perfil_id", nullable = false)
+    private Perfil perfil;
 
     @ManyToOne
     @JoinColumn(name = "empresa_id", nullable = false)
@@ -39,7 +46,6 @@ public class Usuario {
     @Column(name = "atualizado_em")
     private OffsetDateTime atualizadoEm;
 
-    // --- Colunas de controle adicionadas para bater com o banco ---
     @Column(name = "ultimo_acesso")
     private OffsetDateTime ultimoAcesso;
 
@@ -78,8 +84,8 @@ public class Usuario {
     public void setEmail(String email) { this.email = email; }
     public String getSenha() { return senha; }
     public void setSenha(String senha) { this.senha = senha; }
-    public Integer getPerfilId() { return perfilId; }
-    public void setPerfilId(Integer perfilId) { this.perfilId = perfilId; }
+    public Perfil getPerfil() { return perfil; }
+    public void setPerfil(Perfil perfil) { this.perfil = perfil; }
     public Empresa getEmpresa() { return empresa; }
     public void setEmpresa(Empresa empresa) { this.empresa = empresa; }
     public Boolean getAtivo() { return ativo; }

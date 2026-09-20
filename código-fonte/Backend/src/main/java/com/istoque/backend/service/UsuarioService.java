@@ -1,74 +1,103 @@
 package com.istoque.backend.service;
 
 import com.istoque.backend.dto.UsuarioCreateDTO;
+import com.istoque.backend.dto.UsuarioResponseDTO;
+import com.istoque.backend.exception.EmailJaCadastradoException;
+import com.istoque.backend.exception.EmpresaNaoEncontradaException;
+import com.istoque.backend.exception.PerfilNaoEncontradoException;
+import com.istoque.backend.exception.UsuarioNaoEncontradoException;
 import com.istoque.backend.model.Empresa;
+import com.istoque.backend.model.Perfil;
 import com.istoque.backend.model.Usuario;
 import com.istoque.backend.repository.EmpresaRepository;
+import com.istoque.backend.repository.PerfilRepository;
 import com.istoque.backend.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@Transactional
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final EmpresaRepository empresaRepository;
+    private final PerfilRepository perfilRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UsuarioService(UsuarioRepository usuarioRepository, EmpresaRepository empresaRepository, PasswordEncoder passwordEncoder) {
+    public UsuarioService(UsuarioRepository usuarioRepository,
+                           EmpresaRepository empresaRepository,
+                           PerfilRepository perfilRepository,
+                           PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
         this.empresaRepository = empresaRepository;
+        this.perfilRepository = perfilRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
-    // CREATE
-    public Usuario criarUsuario(UsuarioCreateDTO dto) {
+    public UsuarioResponseDTO criar(UsuarioCreateDTO dto) {
+        Empresa empresa = empresaRepository.findById(dto.empresaId())
+                .orElseThrow(() -> new EmpresaNaoEncontradaException(dto.empresaId()));
+
+        Perfil perfil = perfilRepository.findByIdAndEmpresaId(dto.perfilId(), empresa.getId())
+                .orElseThrow(() -> new PerfilNaoEncontradoException(dto.perfilId()));
+
+        if (usuarioRepository.existsByEmpresaIdAndEmail(empresa.getId(), dto.email())) {
+            throw new EmailJaCadastradoException(dto.email());
+        }
+
         Usuario usuario = new Usuario();
         usuario.setNome(dto.nome());
         usuario.setEmail(dto.email());
-        usuario.setPerfilId(dto.perfilId());
-        
-        Empresa empresa = empresaRepository.findById(dto.empresaId())
-            .orElseThrow(() -> new RuntimeException("Empresa não encontrada"));
         usuario.setEmpresa(empresa);
-        
-        // CRIPTOGRAFANDO A SENHA COM BCRYPT!
+        usuario.setPerfil(perfil);
         usuario.setSenha(passwordEncoder.encode(dto.senha()));
 
-        return usuarioRepository.save(usuario);
+        return UsuarioResponseDTO.fromEntity(usuarioRepository.save(usuario));
     }
 
-    // READ
-    public List<Usuario> listarTodos() {
-        return usuarioRepository.findAll();
-    }
-// UPDATE: Atualizar dados normais do usuário
-    public Usuario atualizarUsuario(Integer id, UsuarioCreateDTO dto) {
+    public UsuarioResponseDTO atualizar(Integer id, UsuarioCreateDTO dto) {
         Usuario usuario = usuarioRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> new UsuarioNaoEncontradoException(id));
+
+        Empresa empresa = empresaRepository.findById(dto.empresaId())
+                .orElseThrow(() -> new EmpresaNaoEncontradaException(dto.empresaId()));
+
+        Perfil perfil = perfilRepository.findByIdAndEmpresaId(dto.perfilId(), empresa.getId())
+                .orElseThrow(() -> new PerfilNaoEncontradoException(dto.perfilId()));
+
+        if (usuarioRepository.existsByEmpresaIdAndEmailAndIdNot(empresa.getId(), dto.email(), id)) {
+            throw new EmailJaCadastradoException(dto.email());
+        }
 
         usuario.setNome(dto.nome());
         usuario.setEmail(dto.email());
-        usuario.setPerfilId(dto.perfilId());
+        usuario.setEmpresa(empresa);
+        usuario.setPerfil(perfil);
 
-        return usuarioRepository.save(usuario);
+        return UsuarioResponseDTO.fromEntity(usuarioRepository.saveAndFlush(usuario));
     }
 
-    // UPDATE: Trocar apenas a senha
+    @Transactional(readOnly = true)
+    public List<UsuarioResponseDTO> listarTodos() {
+        return usuarioRepository.findAll().stream()
+                .map(UsuarioResponseDTO::fromEntity)
+                .toList();
+    }
+
     public void alterarSenha(Integer id, String novaSenha) {
         Usuario usuario = usuarioRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-            
-        usuario.setSenha(passwordEncoder.encode(novaSenha)); // Salva o novo hash!
+                .orElseThrow(() -> new UsuarioNaoEncontradoException(id));
+        usuario.setSenha(passwordEncoder.encode(novaSenha));
         usuarioRepository.save(usuario);
     }
-    // DELETE (Soft Delete: apenas inativa o usuário)
+
     public void inativarUsuario(Integer id) {
-        usuarioRepository.findById(id).ifPresent(usuario -> {
-            usuario.setAtivo(false);
-            usuarioRepository.save(usuario);
-        });
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException(id));
+        usuario.setAtivo(false);
+        usuarioRepository.save(usuario);
     }
 }

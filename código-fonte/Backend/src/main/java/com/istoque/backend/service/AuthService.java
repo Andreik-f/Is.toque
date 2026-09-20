@@ -2,11 +2,14 @@ package com.istoque.backend.service;
 
 import com.istoque.backend.dto.LoginRequestDTO;
 import com.istoque.backend.dto.LoginResponseDTO;
+import com.istoque.backend.exception.CredenciaisInvalidasException;
 import com.istoque.backend.model.Usuario;
 import com.istoque.backend.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.OffsetDateTime;
 
 @Service
 public class AuthService {
@@ -19,28 +22,33 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional
     public LoginResponseDTO realizarLogin(LoginRequestDTO loginRequest) {
-        Optional<Usuario> usuarioOpt = usuarioRepository.findByEmailAndEmpresaCnpj(loginRequest.email(), loginRequest.cnpj());
+        Usuario usuario = usuarioRepository
+                .findByEmailAndEmpresaCnpj(loginRequest.email(), loginRequest.cnpj())
+                .orElseThrow(CredenciaisInvalidasException::new);
 
-        if (usuarioOpt.isPresent()) {
-            Usuario usuario = usuarioOpt.get();
-            
-            // Compara a senha em texto com a senha criptografada (Hash)
-            if (passwordEncoder.matches(loginRequest.senha(), usuario.getSenha())) {
-                String nomeDaEmpresa = usuario.getEmpresa().getNomeFantasia() != null 
-                        ? usuario.getEmpresa().getNomeFantasia() 
-                        : usuario.getEmpresa().getRazaoSocial();
-
-                return new LoginResponseDTO(
-                        usuario.getId(),
-                        usuario.getNome(),
-                        usuario.getEmail(),
-                        String.valueOf(usuario.getPerfilId()),
-                        usuario.getEmpresa().getId(),
-                        nomeDaEmpresa
-                );
-            }
+        if (Boolean.FALSE.equals(usuario.getAtivo())) {
+            throw new CredenciaisInvalidasException();
         }
-        return null; 
+
+        if (!passwordEncoder.matches(loginRequest.senha(), usuario.getSenha())) {
+            throw new CredenciaisInvalidasException();
+        }
+
+        usuario.setUltimoAcesso(OffsetDateTime.now());
+        usuarioRepository.save(usuario);
+
+        String nomeDaEmpresa = usuario.getEmpresa().getNomeFantasia() != null
+                ? usuario.getEmpresa().getNomeFantasia()
+                : usuario.getEmpresa().getRazaoSocial();
+
+        return new LoginResponseDTO(
+                usuario.getId(),
+                usuario.getNome(),
+                usuario.getEmail(),
+                usuario.getPerfil().getNome(),
+                usuario.getEmpresa().getId(),
+                nomeDaEmpresa);
     }
 }

@@ -1,11 +1,13 @@
 package com.istoque.backend.controller;
 
 import com.istoque.backend.dto.UsuarioCreateDTO;
-import com.istoque.backend.model.Usuario;
+import com.istoque.backend.dto.UsuarioResponseDTO;
 import com.istoque.backend.service.UsuarioService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -19,12 +21,17 @@ public class UsuarioController {
     }
 
     @PostMapping
-    public ResponseEntity<Usuario> criar(@RequestBody UsuarioCreateDTO dto) {
-        return ResponseEntity.ok(usuarioService.criarUsuario(dto));
+    public ResponseEntity<UsuarioResponseDTO> criar(@RequestBody @Valid UsuarioCreateDTO dto) {
+        UsuarioResponseDTO criado = usuarioService.criar(dto);
+        return ResponseEntity
+                .created(URI.create("/api/usuarios/" + criado.id()))
+                .body(criado);
     }
+
     @PutMapping("/{id}")
-    public ResponseEntity<Usuario> atualizar(@PathVariable Integer id, @RequestBody UsuarioCreateDTO dto) {
-        return ResponseEntity.ok(usuarioService.atualizarUsuario(id, dto));
+    public ResponseEntity<UsuarioResponseDTO> atualizar(@PathVariable Integer id,
+            @RequestBody @Valid UsuarioCreateDTO dto) {
+        return ResponseEntity.ok(usuarioService.atualizar(id, dto));
     }
 
     @PatchMapping("/{id}/senha")
@@ -32,8 +39,9 @@ public class UsuarioController {
         usuarioService.alterarSenha(id, novaSenha);
         return ResponseEntity.noContent().build();
     }
+
     @GetMapping
-    public ResponseEntity<List<Usuario>> listar() {
+    public ResponseEntity<List<UsuarioResponseDTO>> listar() {
         return ResponseEntity.ok(usuarioService.listarTodos());
     }
 
