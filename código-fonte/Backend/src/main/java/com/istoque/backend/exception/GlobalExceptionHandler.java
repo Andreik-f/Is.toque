@@ -49,6 +49,7 @@ public class GlobalExceptionHandler {
                 .body(ApiErrorResponse.de(HttpStatus.CONFLICT.value(), ex.getMessage()));
     }
 
+    // MANTIVEMOS APENAS ESTE MÉTODO PARA A TUA EXCEÇÃO (HT003)
     @ExceptionHandler(CredenciaisInvalidasException.class)
     public ResponseEntity<ApiErrorResponse> tratarCredenciaisInvalidas(CredenciaisInvalidasException ex) {
         return ResponseEntity
@@ -87,5 +88,4 @@ public class GlobalExceptionHandler {
                         HttpStatus.INTERNAL_SERVER_ERROR.value(),
                         "Ocorreu um erro inesperado. Tente novamente mais tarde."));
     }
-
 }
