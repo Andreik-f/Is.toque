@@ -27,6 +27,14 @@ public class Produto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
     // Relacionamento produto com empresa
     @ManyToOne
     @JoinColumn(name = "empresa_id", nullable = false)
