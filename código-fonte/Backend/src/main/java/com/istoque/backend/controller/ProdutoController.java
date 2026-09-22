@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/produtos")
@@ -34,11 +36,19 @@ public class ProdutoController {
         return produtoService.listarTodos();
     }
 
+    @GetMapping("/ativos")
+    public List<Produto> listarAtivos() {
+        return produtoService.listarAtivos();
+    }
+
     // endpoint de busca pelo ID
     @GetMapping("/{id}")
     public Produto buscarPorId(@PathVariable Integer id) {
         return produtoService.buscarPorId(id)
-                .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Produto não encontrado"
+                ));
     }
 
     // endpoint de atualização

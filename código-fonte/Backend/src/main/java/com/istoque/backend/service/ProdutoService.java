@@ -32,11 +32,12 @@ public class ProdutoService {
 
     //método de atualizar
     public Produto atualizar(Integer id, Produto produto) {
-        if (!produtoRepository.existsById(id)) {
-            throw new RuntimeException("Produto não encontrado");
-        }
+        Produto produtoExistente = produtoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Produto não encontrado"));
 
         produto.setId(id);
+        produto.setCriadoEm(produtoExistente.getCriadoEm());
+
         return produtoRepository.save(produto);
     }
 
