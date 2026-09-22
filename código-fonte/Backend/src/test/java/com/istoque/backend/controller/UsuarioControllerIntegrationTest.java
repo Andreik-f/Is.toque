@@ -2,6 +2,7 @@ package com.istoque.backend.controller;
 
 import com.istoque.backend.model.Empresa;
 import com.istoque.backend.model.Perfil;
+import com.istoque.backend.model.Usuario;
 import com.istoque.backend.repository.EmpresaRepository;
 import com.istoque.backend.repository.PerfilRepository;
 import com.istoque.backend.repository.UsuarioRepository;
@@ -11,17 +12,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Cobre os critérios de aceite de HU001 (#11) e HT006 (#20): cadastro de
- * usuário sem vazar senha, e-mail único por empresa (mas repetível entre
- * empresas diferentes), e 404/400 em vez de 500 para empresa/perfil
- * inexistentes ou de outra empresa.
+ * Cobre os critérios de aceite de HU001 (#11), HT006 (#20) e HT005 (#27):
+ * cadastro de usuário sem vazar senha, e-mail único por empresa (mas
+ * repetível entre empresas diferentes), 404/400 em vez de 500 para
+ * empresa/perfil inexistentes ou de outra empresa, e troca de senha via
+ * TrocaSenhaRequestDTO com validação de campo obrigatório.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -38,6 +42,9 @@ class UsuarioControllerIntegrationTest {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private Empresa empresaA;
     private Empresa empresaB;
@@ -117,6 +124,64 @@ class UsuarioControllerIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    void alterarSenha_comSenhaValida_devolve204EPermiteLoginComNovaSenha() throws Exception {
+        Usuario usuario = criarUsuarioPersistido("Admin A", "trocasenha@empresaa.com", "SenhaAntiga123",
+                perfilAdminEmpresaA, empresaA);
+
+        mockMvc.perform(patch("/api/usuarios/{id}/senha", usuario.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"novaSenha":"SenhaNova456"}
+                                """))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoLogin(usuario.getEmail(), empresaA.getCnpj(), "SenhaNova456")))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoLogin(usuario.getEmail(), empresaA.getCnpj(), "SenhaAntiga123")))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void alterarSenha_comNovaSenhaVazia_devolve400ComMensagemDeValidacao() throws Exception {
+        Usuario usuario = criarUsuarioPersistido("Admin A", "senhavazia@empresaa.com", "SenhaAntiga123",
+                perfilAdminEmpresaA, empresaA);
+
+        mockMvc.perform(patch("/api/usuarios/{id}/senha", usuario.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"novaSenha":""}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.novaSenha").value("A nova senha não pode estar vazia"));
+    }
+
+    @Test
+    void alterarSenha_comCorpoAusente_devolve400() throws Exception {
+        Usuario usuario = criarUsuarioPersistido("Admin A", "corpoausente@empresaa.com", "SenhaAntiga123",
+                perfilAdminEmpresaA, empresaA);
+
+        mockMvc.perform(patch("/api/usuarios/{id}/senha", usuario.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void alterarSenha_comUsuarioInexistente_devolve404() throws Exception {
+        mockMvc.perform(patch("/api/usuarios/{id}/senha", 999999)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"novaSenha":"SenhaNova456"}
+                                """))
+                .andExpect(status().isNotFound());
+    }
+
     private ResultActions criarUsuario(String nome, String email, Integer perfilId, Integer empresaId) throws Exception {
         String corpo = """
                 {"nome":"%s","email":"%s","senha":"SenhaValida123","perfilId":%d,"empresaId":%d}
@@ -124,5 +189,21 @@ class UsuarioControllerIntegrationTest {
         return mockMvc.perform(post("/api/usuarios")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(corpo));
+    }
+
+    private Usuario criarUsuarioPersistido(String nome, String email, String senha, Perfil perfil, Empresa empresa) {
+        Usuario usuario = new Usuario();
+        usuario.setNome(nome);
+        usuario.setEmail(email);
+        usuario.setSenha(passwordEncoder.encode(senha));
+        usuario.setPerfil(perfil);
+        usuario.setEmpresa(empresa);
+        return usuarioRepository.save(usuario);
+    }
+
+    private String corpoLogin(String email, String cnpj, String senha) {
+        return """
+                {"email":"%s","cnpj":"%s","senha":"%s"}
+                """.formatted(email, cnpj, senha);
     }
 }

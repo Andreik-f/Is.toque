@@ -1,5 +1,6 @@
 package com.istoque.backend.controller;
 
+import com.istoque.backend.dto.TrocaSenhaRequestDTO;
 import com.istoque.backend.dto.UsuarioCreateDTO;
 import com.istoque.backend.dto.UsuarioResponseDTO;
 import com.istoque.backend.service.UsuarioService;
@@ -35,10 +36,12 @@ public class UsuarioController {
     }
 
     @PatchMapping("/{id}/senha")
-    public ResponseEntity<Void> alterarSenha(@PathVariable Integer id, @RequestBody String novaSenha) {
-        usuarioService.alterarSenha(id, novaSenha);
+    public ResponseEntity<Void> alterarSenha(
+           @PathVariable Integer id, 
+           @RequestBody @Valid TrocaSenhaRequestDTO dto) {
+       usuarioService.alterarSenha(id, dto.novaSenha());
         return ResponseEntity.noContent().build();
-    }
+     }
 
     @GetMapping
     public ResponseEntity<List<UsuarioResponseDTO>> listar() {
