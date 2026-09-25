@@ -17,7 +17,3 @@ target/
 # Credenciais locais do banco de dados - NUNCA versionar
 application-local.properties
 .env
-
-# Configuração local do Claude Code (ferramenta de IDE, não é parte do projeto)
-.claude/
-/wiki
