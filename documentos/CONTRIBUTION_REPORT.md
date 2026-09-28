@@ -1,6 +1,6 @@
 # 📊 Relatório de Contribuições do Projeto
 
-**Última atualização:** 21/09/2026 00:34
+**Última atualização:** 28/09/2026 00:36
 
 ---
 
@@ -8,19 +8,21 @@
 
 | Aluno               |   Commits |   Linhas+ |   Linhas- |   Arquivos |   Docs Commits |   Docs Arquivos |
 |---------------------|-----------|-----------|-----------|------------|----------------|-----------------|
-| AmauriMartinez      |         4 |       457 |        71 |         14 |              0 |               0 |
-| Andreik Fernandes   |         1 |       310 |         0 |          4 |              0 |               0 |
+| AmauriMartinez      |         8 |       584 |        87 |         18 |              0 |               0 |
+| Andreik Fernandes   |         4 |       958 |         4 |          7 |              0 |               0 |
 | Andreik-f           |         1 |        30 |         0 |          2 |              0 |               0 |
 | David               |         5 |       810 |         2 |         24 |              2 |               1 |
-| Eduardo Rezende     |        13 |      2628 |       241 |         43 |              1 |               1 |
-| github-actions[bot] |         1 |        44 |         0 |          3 |              1 |               1 |
+| Eduardo Rezende     |        25 |      5022 |       721 |        125 |              1 |               1 |
+| github-actions[bot] |         2 |        55 |         5 |          3 |              2 |               1 |
 
 
 ## 📅 Contribuições Semanais (Todo o Semestre)
 
+**2026-09-21**: AmauriMartinez: 4, Andreik Fernandes: 3, Eduardo Rezende: 12
+
 **2026-09-14**: AmauriMartinez: 4, Andreik Fernandes: 1, Andreik-f: 1, David: 1, Eduardo Rezende: 8, github-actions[bot]: 1
 
-**2026-09-07**: David: 4, Eduardo Rezende: 5
+**2026-09-07**: David: 4, Eduardo Rezende: 5, github-actions[bot]: 1
 
 
 
