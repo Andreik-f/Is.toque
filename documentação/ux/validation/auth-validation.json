@@ -1,0 +1,254 @@
+{
+  "date": "2026-09-28",
+  "implementation": "React + CSS, original mascot and texture only",
+  "screens": [
+    {
+      "route": "#login",
+      "viewport": [
+        1440,
+        900
+      ],
+      "overflow": false,
+      "fields": [
+        {
+          "name": "email",
+          "label": "E-mail do usuário",
+          "font": "15px"
+        },
+        {
+          "name": "senha",
+          "label": "Senha",
+          "font": "15px"
+        }
+      ],
+      "card": {
+        "x": 297,
+        "y": 216,
+        "width": 846,
+        "height": 468
+      },
+      "noAnnotations": true,
+      "nativeTitle": "Login",
+      "images": [
+        {
+          "loaded": true,
+          "width": 541,
+          "height": 462
+        }
+      ]
+    },
+    {
+      "route": "#cadastro",
+      "viewport": [
+        1440,
+        894
+      ],
+      "overflow": false,
+      "fields": [
+        {
+          "name": "razao_social",
+          "label": "Razão social",
+          "font": "15px"
+        },
+        {
+          "name": "nome",
+          "label": "Nome do responsável",
+          "font": "15px"
+        },
+        {
+          "name": "email",
+          "label": "E-mail do usuário",
+          "font": "15px"
+        },
+        {
+          "name": "senha",
+          "label": "Senha",
+          "font": "15px"
+        },
+        {
+          "name": "confirmacao",
+          "label": "Confirmar senha",
+          "font": "15px"
+        }
+      ],
+      "card": {
+        "x": 297,
+        "y": 133.09375,
+        "width": 846,
+        "height": 627.796875
+      },
+      "noAnnotations": true,
+      "nativeTitle": "Cadastro",
+      "images": [
+        {
+          "loaded": true,
+          "width": 541,
+          "height": 462
+        }
+      ]
+    },
+    {
+      "route": "#login",
+      "viewport": [
+        375,
+        812
+      ],
+      "overflow": false,
+      "fields": [
+        {
+          "name": "email",
+          "label": "E-mail do usuário",
+          "font": "16px"
+        },
+        {
+          "name": "senha",
+          "label": "Senha",
+          "font": "16px"
+        }
+      ],
+      "card": {
+        "x": 0,
+        "y": 0,
+        "width": 375,
+        "height": 812
+      },
+      "noAnnotations": true,
+      "nativeTitle": "Login",
+      "images": [
+        {
+          "loaded": true,
+          "width": 541,
+          "height": 462
+        }
+      ]
+    },
+    {
+      "route": "#cadastro",
+      "viewport": [
+        375,
+        812
+      ],
+      "overflow": false,
+      "fields": [
+        {
+          "name": "razao_social",
+          "label": "Razão social",
+          "font": "16px"
+        },
+        {
+          "name": "nome",
+          "label": "Nome do responsável",
+          "font": "16px"
+        },
+        {
+          "name": "email",
+          "label": "E-mail do usuário",
+          "font": "16px"
+        },
+        {
+          "name": "senha",
+          "label": "Senha",
+          "font": "16px"
+        },
+        {
+          "name": "confirmacao",
+          "label": "Confirmar senha",
+          "font": "16px"
+        }
+      ],
+      "card": {
+        "x": 0,
+        "y": 0,
+        "width": 375,
+        "height": 812
+      },
+      "noAnnotations": true,
+      "nativeTitle": "Cadastro",
+      "images": [
+        {
+          "loaded": true,
+          "width": 541,
+          "height": 462
+        }
+      ]
+    }
+  ],
+  "widths": [
+    {
+      "width": 320,
+      "route": "#login",
+      "overflow": false,
+      "font": "16px"
+    },
+    {
+      "width": 320,
+      "route": "#cadastro",
+      "overflow": false,
+      "font": "16px"
+    },
+    {
+      "width": 390,
+      "route": "#login",
+      "overflow": false,
+      "font": "16px"
+    },
+    {
+      "width": 390,
+      "route": "#cadastro",
+      "overflow": false,
+      "font": "16px"
+    },
+    {
+      "width": 768,
+      "route": "#login",
+      "overflow": false,
+      "font": "15px"
+    },
+    {
+      "width": 768,
+      "route": "#cadastro",
+      "overflow": false,
+      "font": "15px"
+    },
+    {
+      "width": 1024,
+      "route": "#login",
+      "overflow": false,
+      "font": "15px"
+    },
+    {
+      "width": 1024,
+      "route": "#cadastro",
+      "overflow": false,
+      "font": "15px"
+    },
+    {
+      "width": 1920,
+      "route": "#login",
+      "overflow": false,
+      "font": "15px"
+    },
+    {
+      "width": 1920,
+      "route": "#cadastro",
+      "overflow": false,
+      "font": "15px"
+    }
+  ],
+  "checks": [
+    "Cadastro vazio bloqueado",
+    "Campos básicos preenchidos",
+    "Senhas divergentes bloqueadas com foco no campo",
+    "Cadastro demonstrativo válido abre dashboard",
+    "Login demonstrativo válido abre dashboard",
+    "Recuperação abre modal e Escape fecha",
+    "Sem erros JavaScript",
+    "Sem anotações de dimensões",
+    "Rótulos acessíveis associados aos cinco inputs",
+    "Rótulo e placeholder somem ao preencher; rótulo retorna ao apagar, sem deslocar o campo, em login e cadastro",
+    "Mostrar e ocultar senha sem perda do valor ou submissão",
+    "E-mail inválido com erro abaixo do campo",
+    "Foco único no controle de 48 px; sem outline duplicado no input"
+  ],
+  "errors": []
+}
