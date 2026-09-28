@@ -1,6 +1,6 @@
-# ISTOQUE — protótipo React + Vite
+# ISTOQUE — front-end React + Vite
 
-Proposta de UI para gestão de estoque de restaurantes. Dados fictícios em memória; recarregar reinicia a demonstração.
+Interface de gestão de estoque para restaurantes. Com login, usa a API do backend (`codigo-fonte/Backend/istoque`). Sem login, funciona como demonstração, com dados fictícios em memória: recarregar reinicia a demonstração.
 
 ## Executar
 
@@ -17,6 +17,20 @@ npm test
 
 Use uma versão recente do Node compatível com Vite 8 (a entrega foi validada em Node 24). As dependências estão fixadas em `package-lock.json`.
 
+## Conectar à API
+
+Em desenvolvimento, suba o backend na porta 8080 e rode `npm run dev`. O Vite repassa as chamadas a `/api` para `http://localhost:8080`, sem configuração extra. Para usar outra API (por exemplo, a publicada), crie um `.env.local` com `API_PROXY=https://endereco-da-api`.
+
+No build de produção, o endereço da API vem da variável `VITE_API_URL`, lida no momento do build:
+
+```bash
+VITE_API_URL=https://endereco-da-api/api npm run build
+```
+
+A API só aceita chamadas do navegador vindas dos endereços listados na variável de ambiente `CORS_ORIGENS` do backend (separados por vírgula). Em produção, ela precisa conter o endereço do front publicado.
+
+Com login, produtos, categorias e unidades de medida vêm da API e são gravados nela. Receitas, movimentações, produção, relatórios e equipe ainda não têm rota na API: com login, começam vazios, e o que se registra neles vale até recarregar a página (a tela avisa). A importação de nota continua só na demonstração. A API ainda não usa token (HT001) nem separa as empresas no servidor (HT002): a sessão guarda no navegador os dados do usuário logado, e o front envia o `empresaId` dele.
+
 ## Organização
 
 O código segue a estrutura por features ([bulletproof-react](https://github.com/alan2207/bulletproof-react/blob/master/docs/project-structure.md)). O fluxo de dependências é num só sentido: código compartilhado → features → app. Uma feature não importa outra; quem junta as features são as telas em `app/`.
@@ -24,12 +38,13 @@ O código segue a estrutura por features ([bulletproof-react](https://github.com
 ```
 src/
 ├── main.jsx, index.css  → entrada da aplicação e estilos globais
-├── app/                 → rotas (uma tela por arquivo), roteador, providers e modais
+├── app/                 → rotas (uma tela por arquivo), roteador, providers, modais e carga dos dados da empresa
 ├── components/          → componentes compartilhados (ui/ e layouts/)
 ├── config/              → rotas do menu e data de referência da demonstração
-├── features/            → auth, products, stock, recipes, production, users, reports, imports
+├── features/            → auth, products, stock, recipes, production, users, reports, imports (cada uma com api/ quando chama a API)
 ├── hooks/               → navegação por hash (#estoque, #receitas...)
-├── stores/              → estado da demonstração e da interface (modal e aviso)
+├── lib/                 → cliente HTTP da API (com testes)
+├── stores/              → sessão, estado das telas e da interface (modal e aviso)
 ├── testing/mocks/       → dados fictícios
 └── utils/               → formatação, CSV e regras de estoque (com testes)
 ```
@@ -38,7 +53,7 @@ Imports usam o alias `@/` para `src/` (ex.: `@/components/ui/button.jsx`).
 
 Rotas de revisão: `#dashboard`, `#estoque`, `#produto`, `#movimentacoes`, `#receitas`, `#receita`, `#reposicao`, `#relatorios`, `#equipe`, `#importacao`, `#fluxos`, `#login`, `#cadastro`, `#recuperar`.
 
-Este projeto não contém autenticação real, isolamento multiempresa, banco de dados nem upload/processamento de notas. A importação usa uma nota fictícia. Não coloque credenciais reais no protótipo. As fontes Inter e Poppins são distribuídas com suas licenças OFL em `public/fonts/`.
+A importação usa uma nota fictícia; não há upload nem processamento de notas. As fontes Inter e Poppins são distribuídas com suas licenças OFL em `public/fonts/`.
 
 O guia funcional completo, o mapa de fluxos e as capturas das telas estão em `documentação/ux/`, na raiz do repositório.
 
@@ -48,13 +63,13 @@ O cadastro e a edição aceitam uma foto opcional JPEG/JPG, PNG ou WebP até 5 M
 
 ## Acesso e cadastro básico
 
-Login: e-mail do usuário e senha. Cadastro: razão social, nome do responsável, e-mail, senha e confirmação. Campos definidos pela modelagem de dados do projeto; confirmação serve somente à interface. CNPJ, nome fantasia, telefone e contato da empresa ficaram para uma etapa posterior do cadastro.
+Login: e-mail do usuário e senha. Cadastro: razão social, CNPJ, nome do responsável, e-mail, senha e confirmação. Os campos seguem a modelagem de dados e o contrato da API (`POST /api/auth/login` e `POST /api/auth/cadastro`), e as regras de validação ficam em `features/auth/utils/validation.js`; confirmação serve somente à interface. Nome fantasia, telefone e contato da empresa ficaram para uma etapa posterior do cadastro.
 
 Em `features/auth/components/`, `auth-screen.jsx` compõe a tela, `access-form.jsx` tem o formulário, `auth-controls.jsx` reúne controles reutilizáveis e `auth.css` define o layout responsivo. Os únicos ativos de imagem são `mascote.png` e `textura.jpg`, as imagens originais do projeto. Não há telas inteiras embutidas como fundo. Textos e botões são HTML. As anotações de dimensão foram removidas.
 
 A interface preserva a paleta e composição do Figma. O painel desktop tem largura máxima de 846 px e cresce conforme os campos e erros; o layout se reorganiza no celular, sem reduzir a tipografia por escala global. A curva lateral é vetorial e decorativa.
 
-A validação verifica obrigatoriedade, e-mail e igualdade das senhas. Senha não é persistida. Submissões válidas só abrem o dashboard demonstrativo. Contratos da API, política de senha, perfil inicial, padrão de dias de alerta, sessão e gravação permanecem pendentes da integração com o backend.
+A validação verifica obrigatoriedade, e-mail, CNPJ, tamanho mínimo e igualdade das senhas antes de enviar. O login chama `POST /api/auth/login`; o cadastro chama `POST /api/auth/cadastro`, que cria a empresa e o administrador, e já entra no sistema. Erros da API aparecem no campo correspondente ou acima do botão. A sessão fica em `stores/session-store.jsx`, e "Sair", no menu lateral, a encerra.
 
 ## Padronização dos campos
 

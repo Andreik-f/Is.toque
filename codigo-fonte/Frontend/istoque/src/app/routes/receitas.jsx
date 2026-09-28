@@ -43,7 +43,9 @@ export function ReceitasRoute() {
             aria-label="Buscar receita"
           />
         </label>
-        <span className="result-count">{recipes.length} fichas técnicas</span>
+        <span className="result-count">
+          {recipes.length} {recipes.length === 1 ? "ficha técnica" : "fichas técnicas"}
+        </span>
       </div>
       {found.length ? (
         <RecipeGrid recipes={found} products={products} onOpen={openRecipe} />

@@ -5,8 +5,29 @@ import { DEMO_TODAY } from "../config/demo.js";
 
 export const isLow = (p) => p.stock <= p.min;
 
+// Quanto comprar para o saldo chegar ao máximo. O máximo é opcional na API:
+// sem ele, a sugestão completa até o mínimo.
+export const purchaseSuggestion = (p) =>
+  round(Math.max(0, (p.max ?? p.min) - p.stock));
+
+// Referência da barra de saldo (100%): o máximo ou, sem ele, o dobro do mínimo.
+export const stockCap = (p) => p.max || Math.max(p.min * 2, p.stock) || 1;
+
 export const isExpiringSoon = (p, today = DEMO_TODAY) =>
   p.expiry && new Date(p.expiry + "T12:00:00-03:00") - today <= 3 * 86400000;
+
+// O produto só diz se controla validade; a data vem de cada entrada (lote).
+// Nos dados de exemplo, quem já tem data controla validade.
+export const controlsExpiry = (p) => p.controlsExpiry ?? Boolean(p.expiry);
+
+// Registra a validade do lote que entrou. O produto mostra a do lote que
+// vence primeiro.
+export function registerLotExpiry(product, date) {
+  if (!date) return product;
+  const expiry =
+    !product.expiry || date < product.expiry ? date : product.expiry;
+  return { ...product, expiry };
+}
 
 export function capacity(recipe, products) {
   return Math.max(

@@ -26,9 +26,9 @@ O diagrama distingue a sequência de telas das validações necessárias no serv
 
 ## 3. Login e cadastro básico
 
-O login solicita e-mail do usuário e senha. O cadastro inicial, em uma etapa, solicita razão social, nome do responsável, e-mail do usuário, senha e confirmação. Os cinco campos são obrigatórios. Nome fantasia, CNPJ, e-mail da empresa e telefone ficam para depois, conforme a definição do cadastro básico. Ver [mapeamento dos campos e limites](cadastro-basico.md).
+O login solicita e-mail do usuário e senha: o e-mail é único no sistema e identifica a conta. O cadastro inicial, em uma etapa, solicita razão social, CNPJ, nome do responsável, e-mail do usuário, senha e confirmação. Os seis campos são obrigatórios. O CNPJ entrou no cadastro porque é obrigatório e único na API. Nome fantasia, e-mail da empresa e telefone ficam para depois. Ver [mapeamento dos campos e limites](cadastro-basico.md).
 
-Campos vazios ou confirmação divergente impedem a submissão. O protótipo apenas abre a demonstração após validação local: não cria contas, não autentica e não envia informações. Os contratos reais dependem do backend. Não há requisito de 2FA na documentação utilizada.
+Campos vazios, CNPJ fora do formato, senha com menos de 8 caracteres ou confirmação divergente impedem a submissão. O protótipo apenas abre a demonstração após validação local: não cria contas, não autentica e não envia informações. Os contratos reais dependem do backend. Não há requisito de 2FA na documentação utilizada.
 
 ![Login React](images/istoque/16-acesso.png)
 
@@ -149,11 +149,11 @@ Produtos com saldo **menor ou igual ao mínimo** geram indicação de reposiçã
 
 ![Lista de reposição](images/istoque/10-reposicao.png)
 
-As validades informadas podem gerar alertas de proximidade e vencimento. A demonstração usa a data fixa de 26/09/2026 e janela de três dias. Ela não implementa lotes nem FEFO. Janela de aviso, fuso horário, política para vencidos e controle por lote precisam seguir o domínio do backend.
+O cadastro do produto só indica se ele controla validade; a data é informada em cada entrada de estoque, como na modelagem de dados, em que a validade pertence ao lote. O produto mostra a validade do lote que vence primeiro, e essas datas podem gerar alertas de proximidade e vencimento. A demonstração usa a data fixa de 26/09/2026 e janela de três dias. Ela não implementa lotes nem FEFO. Janela de aviso, fuso horário, política para vencidos e controle por lote precisam seguir o domínio do backend.
 
 ## 10. Equipe
 
-O administrador consulta usuários, cadastra pessoas e ativa ou desativa seus acessos. Administrador, Gerente e Operador são nomes propostos; mapear para os perfis efetivos da API antes da implementação.
+O administrador consulta usuários, cadastra pessoas e ativa ou desativa seus acessos. Administrador, Gerente e Funcionário são os perfis padrão que a API cria para cada empresa; a lista está disponível em `GET /api/perfis`.
 
 ![Equipe e perfis](images/istoque/12-equipe.png)
 

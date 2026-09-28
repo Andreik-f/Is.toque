@@ -7,11 +7,13 @@ import { routeSubtitle, routeTitle } from "@/config/paths.js";
 import { ProductGrid } from "@/features/products/components/product-grid.jsx";
 import { navigate } from "@/hooks/use-hash-route.js";
 import { useDemoStore } from "@/stores/demo-store.jsx";
+import { useSession } from "@/stores/session-store.jsx";
 import { useUiStore } from "@/stores/ui-store.jsx";
 import { isLow } from "@/utils/inventory.js";
 
 export function EstoqueRoute() {
   const { products, onlyLow, setOnlyLow, openProduct } = useDemoStore();
+  const { session } = useSession();
   const { openModal } = useUiStore();
   const [search, setSearch] = useState(""),
     [category, setCategory] = useState("Todos");
@@ -29,13 +31,16 @@ export function EstoqueRoute() {
         subtitle={routeSubtitle("estoque")}
         actions={
           <>
-            <Button
-              variant="secondary"
-              icon="upload"
-              onClick={() => navigate("importacao")}
-            >
-              Importar nota
-            </Button>
+            {/* a importação é uma simulação com os produtos da demonstração */}
+            {!session && (
+              <Button
+                variant="secondary"
+                icon="upload"
+                onClick={() => navigate("importacao")}
+              >
+                Importar nota
+              </Button>
+            )}
             <Button icon="plus" onClick={() => openModal({ type: "product" })}>
               Novo produto
             </Button>
@@ -61,7 +66,9 @@ export function EstoqueRoute() {
             />
             Somente estoque baixo <b>{low.length}</b>
           </label>
-          <span className="result-count">{visible.length} produtos</span>
+          <span className="result-count">
+            {visible.length} {visible.length === 1 ? "produto" : "produtos"}
+          </span>
         </div>
       </div>
       <div className="tabs">
@@ -77,6 +84,16 @@ export function EstoqueRoute() {
       </div>
       {visible.length ? (
         <ProductGrid products={visible} onOpen={openProduct} />
+      ) : !products.length ? (
+        <Empty
+          title="Nenhum produto cadastrado"
+          text="Cadastre o primeiro produto para começar a controlar o estoque."
+          action={
+            <Button icon="plus" onClick={() => openModal({ type: "product" })}>
+              Novo produto
+            </Button>
+          }
+        />
       ) : (
         <Empty
           action={

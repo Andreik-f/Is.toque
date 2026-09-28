@@ -53,7 +53,7 @@ A estrutura adotada no código está descrita no README do app, em `codigo-fonte
 4. Adaptar exclusivamente os campos e suas validações ao contrato do backend.
 5. Comparar screenshots nas dimensões dos frames desktop e mobile.
 
-A implementação atual fica em `src/features/auth/`, com os componentes em `components/` e os dois ativos locais em `assets/`. Títulos, textos e controles são HTML real. O cadastro básico tem cinco campos em uma etapa, definidos pela modelagem fornecida e detalhados em [cadastro-basico.md](cadastro-basico.md). O módulo ainda é demonstrativo e precisa de integração com a API.
+A implementação atual fica em `src/features/auth/`, com os componentes em `components/` e os dois ativos locais em `assets/`. Títulos, textos e controles são HTML real. O cadastro básico tem seis campos em uma etapa, definidos pela modelagem de dados e pelo contrato da API e detalhados em [cadastro-basico.md](cadastro-basico.md). O módulo ainda é demonstrativo e precisa de integração com a API.
 
 ## 4. Componentes de domínio
 

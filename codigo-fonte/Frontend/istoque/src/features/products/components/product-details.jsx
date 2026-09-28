@@ -2,6 +2,8 @@ import React from "react";
 import { ProductVisual } from "@/components/product-visual.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { fmt, formatDate } from "@/utils/format.js";
+import { controlsExpiry } from "@/utils/inventory.js";
+import { productTypeLabel } from "../utils/product-types.js";
 import { StockMeter } from "./stock-meter.jsx";
 import { StockStatus } from "./stock-status.jsx";
 
@@ -15,20 +17,27 @@ export function ProductDetails({ product, onMove, onEdit }) {
         <StockStatus product={product} />
         <h2>{product.name}</h2>
         <p>
-          {product.category} • Unidade de controle: {product.unit}
+          {product.category} • {productTypeLabel(product.type)} • Unidade de
+          controle: {product.unit}
         </p>
         <StockMeter product={product} />
         <dl>
           <div>
             <dt>Estoque máximo</dt>
             <dd>
-              {fmt(product.max)} {product.unit}
+              {product.max == null
+                ? "Não definido"
+                : `${fmt(product.max)} ${product.unit}`}
             </dd>
           </div>
           <div>
-            <dt>Validade informada</dt>
+            <dt>Validade do lote mais próximo</dt>
             <dd>
-              {product.expiry ? formatDate(product.expiry) : "Não se aplica"}
+              {product.expiry
+                ? formatDate(product.expiry)
+                : controlsExpiry(product)
+                  ? "Informada na próxima entrada"
+                  : "Não controla validade"}
             </dd>
           </div>
         </dl>

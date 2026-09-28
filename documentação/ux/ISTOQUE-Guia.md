@@ -17,7 +17,7 @@ Esta proposta organiza a operação de estoque de um restaurante em torno de tr�
 
 Login e cadastro foram reconstruídos com elementos React e CSS responsivo. O mascote PNG e a textura JPG são os dois únicos ativos de imagem; a tela inteira não é utilizada como imagem. Textos, títulos, campos e botões são elementos reais. Foram removidas as anotações de dimensão. O layout mantém a paleta e a composição do Figma, com campos legíveis em telas menores.
 
-Login: e-mail do usuário e senha. Cadastro básico em uma etapa: razão social, nome do responsável, e-mail do usuário, senha e confirmação. Todos obrigatórios. CNPJ, nome fantasia, telefone e e-mail da empresa ficam para depois. A modelagem de dados distingue os dados da empresa das credenciais do usuário. Os contratos reais da API ainda não foram integrados.
+Login: e-mail do usuário e senha. Cadastro básico em uma etapa: razão social, CNPJ, nome do responsável, e-mail do usuário, senha e confirmação. Todos obrigatórios. Nome fantasia, telefone e e-mail da empresa ficam para depois. A modelagem de dados distingue os dados da empresa das credenciais do usuário. Os campos seguem o contrato da API (`POST /api/auth/login` e `POST /api/auth/cadastro`), mas as telas ainda não enviam os dados para ela.
 
 O relatório anterior de igualdade de pixels correspondia à camada SVG pronta e não se aplica à reconstrução atual. A nova versão foi revisada visualmente e testada em desktop e celular. Detalhes e mapeamento: [cadastro-basico.md](cadastro-basico.md).
 
@@ -103,11 +103,11 @@ O fluxo mostra a quantidade, o consumo total por ingrediente e o saldo após a p
 
 O acesso visual leva à demonstração sem verificar credenciais. O formulário de recuperação não envia mensagens. Os usuários criados ou desativados existem apenas na sessão local do protótipo.
 
-| Perfil proposto | Responsabilidade sugerida |
+| Perfil padrão | Responsabilidade sugerida |
 | --- | --- |
 | Administrador | Empresa, usuários, perfis e toda a operação |
 | Gerente | Estoque, ajustes, receitas, produção e relatórios |
-| Operador | Consulta e registros operacionais permitidos |
+| Funcionário | Consulta e registros operacionais permitidos |
 
 A matriz exata precisa ser aprovada com a equipe. No produto real, cada consulta e mutação deve verificar a empresa e a permissão no servidor. Desativar usuário deve impedir novas sessões e invalidar acessos conforme a política definida.
 
@@ -135,7 +135,7 @@ No protótipo, a imagem é lida localmente e permanece na memória até recarreg
 | RF11–RF19 | Entradas, saídas, ajustes, perdas, mínimo e histórico | Regras de quantidade demonstradas; persistência e auditoria dependem do backend |
 | RF20–RF23 | Ficha por porção, capacidade e limitante | Cálculo funcional com dados de demonstração |
 | RF24–RF29 | Produção, consumo, bloqueio e recálculo | Baixa conjunta local; revalidação e transação ficam no servidor |
-| RF30 | Validade no produto e painel de alertas | Uma validade por produto; não há lotes ou FEFO |
+| RF30 | O produto indica se controla validade, a data é informada em cada entrada, e há painel de alertas | O produto mostra só a validade do lote que vence primeiro; não há controle de lotes nem FEFO |
 | RF31–RF32 | Responsável e histórico | Identidade fictícia de David Rocha; não é trilha de auditoria real |
 | RF33 | Lista sugerida de reposição | Fórmula proposta: completar até o máximo |
 | RF34 | Foto opcional no cadastro e edição | Seleção, prévia, troca, remoção e validação locais; armazenamento depende do backend |

@@ -1,7 +1,11 @@
 import React, { useRef, useState } from "react";
+import { errorMessage } from "@/lib/api-client.js";
 import { AuthButton, AuthField } from "./auth-controls.jsx";
+import { formFieldErrors } from "../utils/api-fields.js";
+import { cnpjValido, SENHA_MINIMA } from "../utils/validation.js";
 
-// Field mappings follow the supplied data model. No API contract is assumed.
+// Os campos seguem o contrato da API: POST /api/auth/login (e-mail e senha)
+// e POST /api/auth/cadastro (empresa e administrador juntos).
 const signupFields = [
   {
     name: "razao_social",
@@ -10,6 +14,13 @@ const signupFields = [
     icon: "box",
     autoComplete: "organization",
     maxLength: 150,
+  },
+  {
+    name: "cnpj",
+    label: "CNPJ",
+    placeholder: "00.000.000/0000-00",
+    icon: "box",
+    maxLength: 18,
   },
   {
     name: "nome",
@@ -65,8 +76,12 @@ const loginFields = [
   },
 ];
 
-export function AccessForm({ signup, onComplete }) {
+// onSubmit recebe os valores do formulário e devolve uma promessa; se ela
+// falhar, o erro da API aparece no campo certo ou acima do botão.
+export function AccessForm({ signup, onSubmit }) {
   const [errors, setErrors] = useState({});
+  const [formError, setFormError] = useState("");
+  const [sending, setSending] = useState(false);
   const formRef = useRef(null);
   const fields = signup ? signupFields : loginFields;
   function fieldError(field, form) {
@@ -78,14 +93,19 @@ export function AccessForm({ signup, onComplete }) {
     ) {
       return {
         razao_social: "Informe a razão social.",
+        cnpj: "Informe o CNPJ.",
         nome: "Informe o nome do responsável.",
         email: "Informe seu e-mail.",
         senha: "Informe sua senha.",
         confirmacao: "Confirme sua senha.",
       }[field.name];
     }
+    if (field.name === "cnpj" && !cnpjValido(value))
+      return "O CNPJ deve ter 14 caracteres, com ou sem máscara.";
     if (field.type === "email" && input.validity.typeMismatch)
       return "Digite um e-mail válido.";
+    if (signup && field.name === "senha" && value.length < SENHA_MINIMA)
+      return `A senha deve ter no mínimo ${SENHA_MINIMA} caracteres.`;
     if (
       field.name === "confirmacao" &&
       value !== form.elements.namedItem("senha").value
@@ -93,22 +113,33 @@ export function AccessForm({ signup, onComplete }) {
       return "As senhas precisam ser iguais.";
     return "";
   }
-  function submit(event) {
+  function showErrors(form, next) {
+    setErrors(next);
+    const first = fields.find((field) => next[field.name]);
+    if (first) form.elements.namedItem(first.name).focus();
+    return Boolean(first);
+  }
+  async function submit(event) {
     event.preventDefault();
+    if (sending) return;
     const form = event.currentTarget;
     const next = Object.fromEntries(
       fields
         .map((field) => [field.name, fieldError(field, form)])
         .filter(([, error]) => error),
     );
-    setErrors(next);
-    const first = fields.find((field) => next[field.name]);
-    if (first) {
-      form.elements.namedItem(first.name).focus();
-      return;
+    setFormError("");
+    if (showErrors(form, next)) return;
+    setSending(true);
+    try {
+      await onSubmit(Object.fromEntries(new FormData(form)));
+    } catch (error) {
+      // erro de um campo da tela vai para o campo; o resto, acima do botão
+      if (!showErrors(form, formFieldErrors(error.fields)))
+        setFormError(errorMessage(error));
+    } finally {
+      setSending(false);
     }
-    // Demo only: do not persist or transmit credentials.
-    onComplete();
   }
   return (
     <section className="access-form-panel">
@@ -150,8 +181,25 @@ export function AccessForm({ signup, onComplete }) {
               Esqueceu a senha?
             </a>
           )}
-          <AuthButton type="submit" className="access-submit" arrow={!signup}>
-            {signup ? "Criar conta" : "Entrar"}
+          {formError && (
+            <p className="access-error" role="alert">
+              {formError}
+            </p>
+          )}
+          <AuthButton
+            type="submit"
+            className="access-submit"
+            arrow={!signup}
+            disabled={sending}
+            aria-busy={sending || undefined}
+          >
+            {sending
+              ? signup
+                ? "Criando conta..."
+                : "Entrando..."
+              : signup
+                ? "Criar conta"
+                : "Entrar"}
           </AuthButton>
         </form>
         <p className="access-mobile-switch">

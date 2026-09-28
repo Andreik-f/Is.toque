@@ -239,7 +239,23 @@ export const usersSeed = [
     id: 3,
     name: "Lucas Lima",
     email: "lucas@restaurante.exemplo",
-    role: "Operador",
+    role: "Funcionário",
     active: true,
   },
+];
+
+// Mesmo formato das respostas de GET /api/categorias e GET /api/unidades-medida,
+// para o formulário de produto já trabalhar com os ids que a API espera.
+export const categoriesSeed = [
+  { id: 1, nome: "Hortifruti" },
+  { id: 2, nome: "Proteínas" },
+  { id: 3, nome: "Padaria" },
+  { id: 4, nome: "Laticínios" },
+  { id: 5, nome: "Mercearia" },
+];
+
+export const unitsSeed = [
+  { id: 1, sigla: "kg", nome: "Quilograma" },
+  { id: 2, sigla: "L", nome: "Litro" },
+  { id: 3, sigla: "un", nome: "Unidade" },
 ];

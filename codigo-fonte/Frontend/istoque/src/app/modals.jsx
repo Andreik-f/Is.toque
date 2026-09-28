@@ -1,11 +1,15 @@
 import React from "react";
+import { Button } from "@/components/ui/button.jsx";
+import { Modal } from "@/components/ui/modal.jsx";
 import { ProductModal } from "@/features/products/components/product-modal.jsx";
 import { ProductionModal } from "@/features/production/components/production-modal.jsx";
 import { RecipeModal } from "@/features/recipes/components/recipe-modal.jsx";
 import { AlertsModal } from "@/features/stock/components/alerts-modal.jsx";
 import { MovementModal } from "@/features/stock/components/movement-modal.jsx";
 import { UserModal } from "@/features/users/components/user-modal.jsx";
+import { navigate } from "@/hooks/use-hash-route.js";
 import { useDemoStore } from "@/stores/demo-store.jsx";
+import { useSession } from "@/stores/session-store.jsx";
 import { useUiStore } from "@/stores/ui-store.jsx";
 import { round } from "@/utils/format.js";
 import {
@@ -13,14 +17,19 @@ import {
   isLow,
   moveStock,
   produce,
+  registerLotExpiry,
 } from "@/utils/inventory.js";
 
 // Modais de operação, abertos de várias telas. Cada um grava o resultado no
-// estado da demonstração e mostra a confirmação.
+// estado das telas (produtos também na API, com login) e mostra a confirmação.
 export function AppModals() {
   const {
+    categories,
+    units,
     products,
     setProducts,
+    saveProduct,
+    createCategory,
     recipes,
     setRecipes,
     users,
@@ -28,8 +37,34 @@ export function AppModals() {
     addHistory,
     openProduct,
   } = useDemoStore();
+  const { session } = useSession();
   const { modal, closeModal, notify } = useUiStore();
   if (!modal) return null;
+
+  // movimentação e ficha técnica precisam de ao menos um produto
+  if (["movement", "recipe"].includes(modal.type) && !products.length)
+    return (
+      <Modal
+        title="Nenhum produto cadastrado"
+        subtitle="Cadastre os produtos do estoque antes de continuar."
+        onClose={closeModal}
+      >
+        <div className="modal-actions">
+          <Button type="button" variant="secondary" onClick={closeModal}>
+            Fechar
+          </Button>
+          <Button
+            type="button"
+            onClick={() => {
+              closeModal();
+              navigate("estoque");
+            }}
+          >
+            Ir para o estoque
+          </Button>
+        </div>
+      </Modal>
+    );
 
   if (modal.type === "production")
     return (
@@ -61,9 +96,9 @@ export function AppModals() {
         products={products}
         selected={modal.product}
         onClose={closeModal}
-        onSave={(id, type, qty, reason) => {
+        onSave={(id, type, qty, reason, expiry) => {
           const p = products.find((p) => p.id === id),
-            updated = moveStock(p, type, qty);
+            updated = registerLotExpiry(moveStock(p, type, qty), expiry);
           setProducts(products.map((p) => (p.id === id ? updated : p)));
           addHistory([{ type, product: p.name, qty, unit: p.unit, reason }]);
           closeModal();
@@ -76,13 +111,12 @@ export function AppModals() {
     return (
       <ProductModal
         product={modal.product}
+        categories={categories}
+        units={units}
         onClose={closeModal}
-        onSave={(p) => {
-          setProducts(
-            modal.product
-              ? products.map((x) => (x.id === p.id ? p : x))
-              : [...products, p],
-          );
+        onCreateCategory={createCategory}
+        onSave={async (p) => {
+          await saveProduct(p);
           closeModal();
           notify(
             modal.product
@@ -118,7 +152,11 @@ export function AppModals() {
         onSave={(u) => {
           setUsers([...users, u]);
           closeModal();
-          notify("Usuário adicionado à demonstração.");
+          notify(
+            session
+              ? "Usuário adicionado nesta página. A equipe ainda não é gravada no servidor."
+              : "Usuário adicionado à demonstração.",
+          );
         }}
       />
     );

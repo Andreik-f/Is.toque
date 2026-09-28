@@ -1564,6 +1564,24 @@ dd {
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
+.check-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.check-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.check-group small {
+  font-size: 9px;
+  line-height: 1.5;
+  color: var(--muted);
+}
 .modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -1759,6 +1777,21 @@ dd {
 }
 .empty p {
   margin: 12px 0 22px;
+}
+/* carregamento e erro dos dados da empresa, antes de abrir as telas */
+.status-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  color: var(--teal);
+  text-align: center;
+}
+.status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
 }
 .auth-page {
   display: grid;

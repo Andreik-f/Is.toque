@@ -3,15 +3,18 @@ import { Button } from "@/components/ui/button.jsx";
 import { Field } from "@/components/ui/field.jsx";
 import { Modal } from "@/components/ui/modal.jsx";
 import { fmt } from "@/utils/format.js";
-import { moveStock } from "@/utils/inventory.js";
+import { controlsExpiry, moveStock } from "@/utils/inventory.js";
 
 export function MovementModal({ products, selected, onClose, onSave }) {
   const [id, setId] = useState(selected?.id || products[0].id),
     [type, setType] = useState("Entrada"),
     [qty, setQty] = useState(""),
     [reason, setReason] = useState(""),
+    [expiry, setExpiry] = useState(""),
     [error, setError] = useState("");
   const p = products.find((p) => p.id === id);
+  // a validade é do lote: pedida só na entrada de produto que controla validade
+  const askExpiry = type === "Entrada" && controlsExpiry(p);
   let after;
   try {
     after = moveStock(p, type, Number(qty)).stock;
@@ -26,7 +29,7 @@ export function MovementModal({ products, selected, onClose, onSave }) {
         onSubmit={(e) => {
           e.preventDefault();
           try {
-            onSave(id, type, Number(qty), reason.trim());
+            onSave(id, type, Number(qty), reason.trim(), askExpiry ? expiry : "");
           } catch (e) {
             setError(e.message);
           }
@@ -80,6 +83,16 @@ export function MovementModal({ products, selected, onClose, onSave }) {
             </strong>
           </div>
         </div>
+        {askExpiry && (
+          <Field
+            label="Validade do lote"
+            type="date"
+            value={expiry}
+            required
+            onChange={(e) => setExpiry(e.target.value)}
+            hint="O produto mostra a validade do lote que vence primeiro."
+          />
+        )}
         <Field
           label="Motivo / observação"
           hint="O motivo ficará visível no histórico."
@@ -111,7 +124,12 @@ export function MovementModal({ products, selected, onClose, onSave }) {
           </Button>
           <Button
             type="submit"
-            disabled={after === undefined || !qty || reason.trim().length < 3}
+            disabled={
+              after === undefined ||
+              !qty ||
+              reason.trim().length < 3 ||
+              (askExpiry && !expiry)
+            }
           >
             Confirmar movimentação
           </Button>

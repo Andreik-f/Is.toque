@@ -46,6 +46,8 @@ export function DashboardRoute() {
             <Button
               variant="accent"
               icon="plus"
+              disabled={!selectedRecipe}
+              title={selectedRecipe ? undefined : "Cadastre uma receita antes"}
               onClick={() =>
                 openModal({ type: "production", recipe: selectedRecipe })
               }
@@ -145,19 +147,34 @@ export function DashboardRoute() {
         </section>
         <section className="production-preview">
           <span className="eyebrow">O QUE DÁ PARA PREPARAR?</span>
-          <FoodArt kind="burger" />
-          <h3>Hambúrguer da casa</h3>
-          <div>
-            <strong>{capacity(recipes[0], products)}</strong>
-            <span>
-              porções
-              <br />
-              disponíveis agora
-            </span>
-          </div>
-          <Button variant="primary" onClick={() => openRecipe(recipes[0])}>
-            Abrir ficha técnica <Icon name="arrow" size={16} />
-          </Button>
+          {recipes[0] ? (
+            <>
+              <FoodArt kind={recipes[0].art} />
+              <h3>{recipes[0].name}</h3>
+              <div>
+                <strong>{capacity(recipes[0], products)}</strong>
+                <span>
+                  porções
+                  <br />
+                  disponíveis agora
+                </span>
+              </div>
+              <Button variant="primary" onClick={() => openRecipe(recipes[0])}>
+                Abrir ficha técnica <Icon name="arrow" size={16} />
+              </Button>
+            </>
+          ) : (
+            <>
+              <FoodArt kind="bowl" />
+              <h3>Nenhuma receita cadastrada</h3>
+              <Button
+                variant="primary"
+                onClick={() => openModal({ type: "recipe" })}
+              >
+                Nova receita <Icon name="arrow" size={16} />
+              </Button>
+            </>
+          )}
         </section>
       </div>
     </>

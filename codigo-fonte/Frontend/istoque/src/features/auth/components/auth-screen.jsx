@@ -1,16 +1,19 @@
+
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button.jsx";
 import { Field } from "@/components/ui/field.jsx";
 import { Icon } from "@/components/ui/icon.jsx";
 import { Modal } from "@/components/ui/modal.jsx";
+import { login, signup as signupRequest } from "../api/auth.js";
 import mascot from "../assets/mascote.png";
 import { AccessForm } from "./access-form.jsx";
 import { AuthCurve, AuthPromo } from "./auth-controls.jsx";
 import "./auth.css";
 
 // Tela de acesso: login, cadastro e recuperação de senha (#login, #cadastro,
-// #recuperar).
-export function AuthScreen({ route, go }) {
+// #recuperar). Login e cadastro chamam a API e entregam a sessão a
+// onAuthenticated.
+export function AuthScreen({ route, go, onAuthenticated }) {
   const signup = route === "cadastro";
   const [sent, setSent] = useState(false);
   useEffect(() => setSent(false), [route]);
@@ -25,13 +28,13 @@ export function AuthScreen({ route, go }) {
         <AccessForm
           key={signup ? "signup" : "login"}
           signup={signup}
-          onComplete={() => go("dashboard")}
+          onSubmit={async (values) =>
+            onAuthenticated(
+              await (signup ? signupRequest(values) : login(values)),
+            )
+          }
         />
       </div>
-      <p className="visually-hidden">
-        Demonstração: use dados fictícios. Nenhuma conta ou sessão real será
-        criada.
-      </p>
       {route === "recuperar" && (
         <Modal
           title="Recuperar acesso"

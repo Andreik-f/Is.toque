@@ -10,8 +10,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
@@ -110,9 +108,10 @@ public class Produto {
         this.descricao = descricao;
     }
 
-    // tipo
+    // tipo: gravado como texto (o Hibernate cria uma restrição com os valores
+    // aceitos). Não usar enum nativo do PostgreSQL: a cada inicialização o
+    // Hibernate recria esse tipo com "drop ... cascade", o que apaga a coluna.
     @Enumerated(EnumType.STRING)
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "tipo", nullable = false)
     private TipoProduto tipo;
 

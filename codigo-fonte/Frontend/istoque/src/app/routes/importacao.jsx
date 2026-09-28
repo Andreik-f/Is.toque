@@ -1,14 +1,17 @@
 import React from "react";
+import { Empty } from "@/components/ui/empty.jsx";
 import { PageHeading } from "@/components/ui/page-heading.jsx";
 import { routeSubtitle, routeTitle } from "@/config/paths.js";
 import { InvoiceImport } from "@/features/imports/components/invoice-import.jsx";
 import { navigate } from "@/hooks/use-hash-route.js";
 import { useDemoStore } from "@/stores/demo-store.jsx";
+import { useSession } from "@/stores/session-store.jsx";
 import { useUiStore } from "@/stores/ui-store.jsx";
 import { round } from "@/utils/format.js";
 
 export function ImportacaoRoute() {
   const { products, setProducts, addHistory } = useDemoStore();
+  const { session } = useSession();
   const { notify } = useUiStore();
   const applyInvoice = (rows) => {
     setProducts(
@@ -37,7 +40,15 @@ export function ImportacaoRoute() {
         title={routeTitle("importacao")}
         subtitle={routeSubtitle("importacao")}
       />
-      <InvoiceImport products={products} onApply={applyInvoice} />
+      {session ? (
+        // a nota de exemplo usa os produtos da demonstração
+        <Empty
+          title="Importação ainda não disponível"
+          text="A importação de nota é uma simulação com os produtos da demonstração."
+        />
+      ) : (
+        <InvoiceImport products={products} onApply={applyInvoice} />
+      )}
     </>
   );
 }

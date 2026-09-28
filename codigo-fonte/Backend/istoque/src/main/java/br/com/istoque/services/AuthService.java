@@ -5,10 +5,10 @@ import br.com.istoque.dto.LoginResponseDTO;
 import br.com.istoque.exception.CredenciaisInvalidasException;
 import br.com.istoque.infrastructure.entity.Usuario;
 import br.com.istoque.infrastructure.repository.UsuarioRepository;
+import br.com.istoque.util.EmailUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import br.com.istoque.util.CnpjUtils;
 
 import java.time.OffsetDateTime;
 
@@ -25,8 +25,10 @@ public class AuthService {
 
     @Transactional
     public LoginResponseDTO realizarLogin(LoginRequestDTO loginRequest) {
+        // o e-mail é único no sistema todo, então ele sozinho identifica a conta;
+        // ele é gravado em minúsculas, então a busca também normaliza o digitado
         Usuario usuario = usuarioRepository
-                .findByEmailAndEmpresaCnpj(loginRequest.email(), CnpjUtils.formatar(loginRequest.cnpj()))
+                .findByEmail(EmailUtils.normalizar(loginRequest.email()))
                 .orElseThrow(CredenciaisInvalidasException::new);
 
         if (Boolean.FALSE.equals(usuario.getAtivo())) {
@@ -37,8 +39,7 @@ public class AuthService {
             throw new CredenciaisInvalidasException();
         }
 
-        usuario.setUltimoAcesso(OffsetDateTime.now());
-        usuarioRepository.save(usuario);
+        usuarioRepository.registrarAcesso(usuario.getId(), OffsetDateTime.now());
 
         String nomeDaEmpresa = usuario.getEmpresa().getNomeFantasia() != null
                 ? usuario.getEmpresa().getNomeFantasia()

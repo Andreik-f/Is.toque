@@ -1,25 +1,45 @@
 import React, { useEffect, useState } from "react";
 import { Icon } from "@/components/ui/icon.jsx";
-import { NAV_ITEMS, routeTitle } from "@/config/paths.js";
+import { LOCAL_ONLY_ROUTES, NAV_ITEMS, routeTitle } from "@/config/paths.js";
 import { navigate } from "@/hooks/use-hash-route.js";
 import { useDemoStore } from "@/stores/demo-store.jsx";
+import { useSession } from "@/stores/session-store.jsx";
 import { useUiStore } from "@/stores/ui-store.jsx";
 import { isLow } from "@/utils/inventory.js";
 
+const initials = (name) =>
+  name
+    .split(" ")
+    .filter(Boolean)
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
 // Estrutura comum das telas internas: menu lateral, barra do topo, rodapé e
 // menu inferior do celular. O conteúdo da rota entra em `children`; avisos e
-// modais entram em `overlays`.
+// modais entram em `overlays`. Com login, mostra a empresa e o usuário da
+// sessão; sem login, os da demonstração.
 export function AppLayout({ route, children, overlays }) {
   const { products, resetData } = useDemoStore();
+  const { session, signOut } = useSession();
   const { openModal, closeModal, notify } = useUiStore();
   const [mobileMenu, setMobileMenu] = useState(false);
   useEffect(() => setMobileMenu(false), [route]);
   const low = products.filter(isLow);
+  const company = session?.nomeEmpresa ?? "Cozinha da Casa",
+    userName = session?.nome ?? "David Rocha",
+    role = session?.perfil ?? "Administrador";
   const reset = () => {
     resetData();
     closeModal();
     navigate("dashboard");
     notify("Demonstração reiniciada.");
+  };
+  const logout = () => {
+    closeModal();
+    signOut();
+    navigate("login");
   };
   return (
     <div className="app">
@@ -31,10 +51,10 @@ export function AppLayout({ route, children, overlays }) {
           ISTOQUE<span className="logo-dot">.</span>
         </a>
         <div className="workspace">
-          <span className="workspace-icon">C</span>
+          <span className="workspace-icon">{initials(company)[0]}</span>
           <div>
-            <strong>Cozinha da Casa</strong>
-            <small>Restaurante • Demonstração</small>
+            <strong>{company}</strong>
+            <small>{session ? "Sua empresa" : "Restaurante • Demonstração"}</small>
           </div>
         </div>
         <div className="nav-label">PRINCIPAL</div>
@@ -70,19 +90,28 @@ export function AppLayout({ route, children, overlays }) {
             <Icon name="chart" />
             Mapa de fluxos
           </a>
-          <button onClick={reset}>
-            <Icon name="arrows" />
-            Reiniciar demonstração
-          </button>
-          <a href="#login">
-            <Icon name="logout" />
-            Tela de acesso
-          </a>
+          {session ? (
+            <button onClick={logout}>
+              <Icon name="logout" />
+              Sair
+            </button>
+          ) : (
+            <>
+              <button onClick={reset}>
+                <Icon name="arrows" />
+                Reiniciar demonstração
+              </button>
+              <a href="#login">
+                <Icon name="logout" />
+                Tela de acesso
+              </a>
+            </>
+          )}
           <div className="user">
-            <div className="avatar">DR</div>
+            <div className="avatar">{initials(userName)}</div>
             <div>
-              <strong>David Rocha</strong>
-              <small>Administrador</small>
+              <strong>{userName}</strong>
+              <small>{role}</small>
             </div>
             <Icon name="down" size={16} />
           </div>
@@ -111,7 +140,7 @@ export function AppLayout({ route, children, overlays }) {
           <div className="topbar-right">
             <span className="demo-label">
               <i />
-              Protótipo interativo
+              {session ? "Conectado ao servidor" : "Protótipo interativo"}
             </span>
             <button
               className="icon-button notification"
@@ -121,14 +150,27 @@ export function AppLayout({ route, children, overlays }) {
               <Icon name="bell" />
               <i />
             </button>
-            <div className="avatar light">DR</div>
+            <div className="avatar light">{initials(userName)}</div>
           </div>
         </header>
         <main>
+          {session && LOCAL_ONLY_ROUTES.includes(route) && (
+            <div className="notice">
+              <Icon name="alert" />
+              <span>
+                Esta tela ainda não grava no servidor: o que você registrar
+                aqui vale até recarregar a página.
+              </span>
+            </div>
+          )}
           {children}
           <footer className="page-footer">
             <span>ISTOQUE • Feito para a rotina da sua cozinha.</span>
-            <span>Dados fictícios • alterações duram até recarregar</span>
+            <span>
+              {session
+                ? "Produtos salvos no servidor"
+                : "Dados fictícios • alterações duram até recarregar"}
+            </span>
           </footer>
         </main>
         <nav className="mobile-nav">

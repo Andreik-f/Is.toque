@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
@@ -36,15 +37,18 @@ public class ProdutoController {
                 .body(criado);
     }
 
-    // endpoint de listagem
+    // endpoint de listagem: ?empresaId= filtra os produtos da empresa, até o
+    // isolamento por empresa (HT002) passar a usar a empresa do usuário autenticado
     @GetMapping
-    public ResponseEntity<List<ProdutoResponseDTO>> listarTodos() {
-        return ResponseEntity.ok(produtoService.listarTodos());
+    public ResponseEntity<List<ProdutoResponseDTO>> listarTodos(
+            @RequestParam(required = false) Integer empresaId) {
+        return ResponseEntity.ok(produtoService.listarTodos(empresaId));
     }
 
     @GetMapping("/ativos")
-    public ResponseEntity<List<ProdutoResponseDTO>> listarAtivos() {
-        return ResponseEntity.ok(produtoService.listarAtivos());
+    public ResponseEntity<List<ProdutoResponseDTO>> listarAtivos(
+            @RequestParam(required = false) Integer empresaId) {
+        return ResponseEntity.ok(produtoService.listarAtivos(empresaId));
     }
 
     // endpoint de busca pelo ID

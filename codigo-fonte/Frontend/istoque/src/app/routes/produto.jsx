@@ -1,4 +1,5 @@
 import React from "react";
+import { Empty } from "@/components/ui/empty.jsx";
 import { PageHeading } from "@/components/ui/page-heading.jsx";
 import { routeSubtitle, routeTitle } from "@/config/paths.js";
 import { ProductDetails } from "@/features/products/components/product-details.jsx";
@@ -9,9 +10,7 @@ import { useDemoStore } from "@/stores/demo-store.jsx";
 import { useUiStore } from "@/stores/ui-store.jsx";
 
 export function ProdutoRoute() {
-  const { products, recipes, history, selectedProduct, openRecipe } =
-    useDemoStore();
-  const { openModal } = useUiStore();
+  const { selectedProduct } = useDemoStore();
   return (
     <>
       <PageHeading
@@ -21,6 +20,24 @@ export function ProdutoRoute() {
       <button className="back text-button" onClick={() => navigate("estoque")}>
         ← Voltar ao estoque
       </button>
+      {selectedProduct ? (
+        <ProductPanels />
+      ) : (
+        <Empty
+          title="Nenhum produto cadastrado"
+          text="Cadastre o primeiro produto na tela de estoque."
+        />
+      )}
+    </>
+  );
+}
+
+function ProductPanels() {
+  const { products, recipes, history, selectedProduct, openRecipe } =
+    useDemoStore();
+  const { openModal } = useUiStore();
+  return (
+    <>
       <div className="detail-layout">
         <ProductDetails
           product={selectedProduct}

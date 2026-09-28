@@ -21,9 +21,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -38,7 +42,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * ou empresa inexistente, 400 com mensagem por campo para validação,
  * referências inválidas (unidade/categoria) e corpo ou parâmetro mal
  * formatado, e 405/404 para método ou rota inexistente — nenhum desses casos
- * pode cair no 500 genérico.
+ * pode cair no 500 genérico. Também garante que editar um produto não muda o
+ * saldo do estoque (HT014) e que a listagem filtra pela empresa (HT028).
  *
  * Roda com banco H2 em memória e MockMvc, como os demais testes de controller.
  */
@@ -71,6 +76,7 @@ class ProdutoControllerIntegrationTest {
     private EmpresaRepository empresaRepository;
 
     private Empresa empresaA;
+    private Empresa empresaB;
     private UnidadeMedida quilo;
     private Categoria categoriaEmpresaA;
     private Categoria categoriaEmpresaB;
@@ -89,7 +95,7 @@ class ProdutoControllerIntegrationTest {
         empresaA.setCnpj("11111111000101");
         empresaA = empresaRepository.save(empresaA);
 
-        Empresa empresaB = new Empresa();
+        empresaB = new Empresa();
         empresaB.setRazaoSocial("Empresa B LTDA");
         empresaB.setCnpj("22222222000102");
         empresaB = empresaRepository.save(empresaB);
@@ -292,6 +298,46 @@ class ProdutoControllerIntegrationTest {
                 .andExpect(jsonPath("$.ativo").value(false));
     }
 
+    /**
+     * O saldo só muda por movimentação (RE-05): um PUT com outra quantidadeAtual
+     * altera o nome, mas o estoque continua o do cadastro.
+     */
+    @Test
+    void atualizarProduto_comOutraQuantidade_naoAlteraOSaldo() throws Exception {
+        Integer id = criarProdutoValido();
+
+        Map<String, Object> corpo = corpoValido();
+        corpo.put("nome", "Queijo minas padrão");
+        corpo.put("quantidadeAtual", 50);
+
+        mockMvc.perform(put("/api/produtos/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(corpo)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nome").value("Queijo minas padrão"));
+
+        assertSaldo(id, "5");
+    }
+
+    /**
+     * Editar sem enviar quantidadeAtual não pode zerar o estoque: o saldo
+     * continua o do cadastro.
+     */
+    @Test
+    void atualizarProduto_semQuantidade_mantemOSaldo() throws Exception {
+        Integer id = criarProdutoValido();
+
+        Map<String, Object> corpo = corpoValido();
+        corpo.remove("quantidadeAtual");
+
+        mockMvc.perform(put("/api/produtos/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(corpo)))
+                .andExpect(status().isOk());
+
+        assertSaldo(id, "5");
+    }
+
     /** Desativar devolve 200 com ativo = false: o produto não é apagado, só desativado. */
     @Test
     void desativarProduto_existente_devolve200ComAtivoFalse() throws Exception {
@@ -307,6 +353,45 @@ class ProdutoControllerIntegrationTest {
     void desativarProduto_inexistente_devolve404() throws Exception {
         mockMvc.perform(patch("/api/produtos/{id}/desativar", 999999))
                 .andExpect(status().isNotFound());
+    }
+
+    /**
+     * Com ?empresaId=, a listagem traz só os produtos da empresa, em ordem de
+     * nome (HT028): é assim que o estoque do front carrega os produtos.
+     */
+    @Test
+    void listarProdutos_comEmpresaId_devolveSoOsDaEmpresaEmOrdemDeNome() throws Exception {
+        criarProdutosDasDuasEmpresas();
+
+        mockMvc.perform(get("/api/produtos").param("empresaId", empresaA.getId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].nome").value("Manteiga"))
+                .andExpect(jsonPath("$[1].nome").value("Queijo minas"));
+    }
+
+    /** Sem ?empresaId=, a listagem continua trazendo os produtos de todas as empresas. */
+    @Test
+    void listarProdutos_semEmpresaId_devolveTodos() throws Exception {
+        criarProdutosDasDuasEmpresas();
+
+        mockMvc.perform(get("/api/produtos"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(3));
+    }
+
+    /** A listagem de ativos com ?empresaId= não traz os desativados nem os de outra empresa. */
+    @Test
+    void listarAtivos_comEmpresaId_naoTrazDesativadosNemDeOutraEmpresa() throws Exception {
+        criarProdutosDasDuasEmpresas();
+        Integer desativado = criarProdutoValido();
+        mockMvc.perform(patch("/api/produtos/{id}/desativar", desativado))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/produtos/ativos").param("empresaId", empresaA.getId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[*].id", not(hasItem(desativado))));
     }
 
     /**
@@ -359,6 +444,31 @@ class ProdutoControllerIntegrationTest {
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
         return JsonPath.read(resposta, "$.id");
+    }
+
+    /**
+     * Cria dois produtos da empresa A (Queijo minas e Manteiga, fora da ordem
+     * alfabética) e um da empresa B.
+     */
+    private void criarProdutosDasDuasEmpresas() throws Exception {
+        criarProdutoValido();
+
+        Map<String, Object> manteiga = corpoValido();
+        manteiga.put("nome", "Manteiga");
+        criarProduto(manteiga).andExpect(status().isCreated());
+
+        Map<String, Object> daEmpresaB = corpoValido();
+        daEmpresaB.put("empresaId", empresaB.getId());
+        daEmpresaB.put("categoriaId", categoriaEmpresaB.getId());
+        daEmpresaB.put("nome", "Água mineral");
+        criarProduto(daEmpresaB).andExpect(status().isCreated());
+    }
+
+    /** Confere no banco o saldo do produto (compareTo ignora a escala: 5 = 5.000). */
+    private void assertSaldo(Integer id, String esperado) {
+        BigDecimal saldo = produtoRepository.findById(id).orElseThrow().getQuantidadeAtual();
+        assertEquals(0, new BigDecimal(esperado).compareTo(saldo),
+                "Saldo esperado " + esperado + ", mas está " + saldo);
     }
 
     /** Grava uma categoria da empresa informada. */

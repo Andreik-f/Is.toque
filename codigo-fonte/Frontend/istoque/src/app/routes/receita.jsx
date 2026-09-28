@@ -1,4 +1,5 @@
 import React from "react";
+import { Empty } from "@/components/ui/empty.jsx";
 import { PageHeading } from "@/components/ui/page-heading.jsx";
 import { routeSubtitle, routeTitle } from "@/config/paths.js";
 import { RecipeDetails } from "@/features/recipes/components/recipe-details.jsx";
@@ -18,15 +19,22 @@ export function ReceitaRoute() {
       <button className="back text-button" onClick={() => navigate("receitas")}>
         ← Voltar às receitas
       </button>
-      <RecipeDetails
-        recipe={selectedRecipe}
-        products={products}
-        onEdit={() => openModal({ type: "recipe", recipe: selectedRecipe })}
-        onProduce={() =>
-          openModal({ type: "production", recipe: selectedRecipe })
-        }
-        onPlanReplenishment={() => navigate("reposicao")}
-      />
+      {selectedRecipe ? (
+        <RecipeDetails
+          recipe={selectedRecipe}
+          products={products}
+          onEdit={() => openModal({ type: "recipe", recipe: selectedRecipe })}
+          onProduce={() =>
+            openModal({ type: "production", recipe: selectedRecipe })
+          }
+          onPlanReplenishment={() => navigate("reposicao")}
+        />
+      ) : (
+        <Empty
+          title="Nenhuma receita cadastrada"
+          text="Cadastre a primeira ficha técnica na tela de receitas."
+        />
+      )}
     </>
   );
 }

@@ -1,6 +1,6 @@
 import React from "react";
 import { fmt } from "@/utils/format.js";
-import { isLow } from "@/utils/inventory.js";
+import { isLow, stockCap } from "@/utils/inventory.js";
 
 export function StockMeter({ product }) {
   return (
@@ -16,7 +16,8 @@ export function StockMeter({ product }) {
       <div className="meter-track">
         <i
           style={{
-            width: Math.min(100, (product.stock / product.max) * 100) + "%",
+            width:
+              Math.min(100, (product.stock / stockCap(product)) * 100) + "%",
             background: isLow(product) ? "var(--amber)" : "var(--teal)",
           }}
         />

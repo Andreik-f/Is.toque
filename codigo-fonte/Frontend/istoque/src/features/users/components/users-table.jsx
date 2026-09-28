@@ -1,7 +1,8 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge.jsx";
 
-export function UsersTable({ users, onToggle }) {
+// currentUserId: o usuário logado, que não pode desativar a si mesmo.
+export function UsersTable({ users, currentUserId, onToggle }) {
   return (
     <section className="panel">
       <div className="table-scroll">
@@ -39,7 +40,7 @@ export function UsersTable({ users, onToggle }) {
                   </Badge>
                 </td>
                 <td>
-                  {u.id === 1 ? (
+                  {u.id === currentUserId ? (
                     <small>Seu usuário</small>
                   ) : (
                     <button className="text-button" onClick={() => onToggle(u)}>

@@ -2,6 +2,7 @@ package br.com.istoque.services;
 
 import br.com.istoque.dto.UsuarioCreateDTO;
 import br.com.istoque.dto.UsuarioResponseDTO;
+import br.com.istoque.dto.UsuarioUpdateDTO;
 import br.com.istoque.exception.EmailJaCadastradoException;
 import br.com.istoque.exception.EmpresaNaoEncontradaException;
 import br.com.istoque.exception.PerfilNaoEncontradoException;
@@ -12,6 +13,7 @@ import br.com.istoque.infrastructure.entity.Usuario;
 import br.com.istoque.infrastructure.repository.EmpresaRepository;
 import br.com.istoque.infrastructure.repository.PerfilRepository;
 import br.com.istoque.infrastructure.repository.UsuarioRepository;
+import br.com.istoque.util.EmailUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,8 +46,9 @@ public class UsuarioService {
         Perfil perfil = perfilRepository.findByIdAndEmpresaId(dto.perfilId(), empresa.getId())
                 .orElseThrow(() -> new PerfilNaoEncontradoException(dto.perfilId()));
 
-        if (usuarioRepository.existsByEmpresaIdAndEmail(empresa.getId(), dto.email())) {
-            throw new EmailJaCadastradoException(dto.email());
+        String email = EmailUtils.normalizar(dto.email());
+        if (usuarioRepository.existsByEmail(email)) {
+            throw new EmailJaCadastradoException(email);
         }
 
         Usuario usuario = new Usuario();
@@ -58,7 +61,7 @@ public class UsuarioService {
         return UsuarioResponseDTO.fromEntity(usuarioRepository.save(usuario));
     }
 
-    public UsuarioResponseDTO atualizar(Integer id, UsuarioCreateDTO dto) {
+    public UsuarioResponseDTO atualizar(Integer id, UsuarioUpdateDTO dto) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException(id));
 
@@ -68,8 +71,9 @@ public class UsuarioService {
         Perfil perfil = perfilRepository.findByIdAndEmpresaId(dto.perfilId(), empresa.getId())
                 .orElseThrow(() -> new PerfilNaoEncontradoException(dto.perfilId()));
 
-        if (usuarioRepository.existsByEmpresaIdAndEmailAndIdNot(empresa.getId(), dto.email(), id)) {
-            throw new EmailJaCadastradoException(dto.email());
+        String email = EmailUtils.normalizar(dto.email());
+        if (usuarioRepository.existsByEmailAndIdNot(email, id)) {
+            throw new EmailJaCadastradoException(email);
         }
 
         usuario.setNome(dto.nome());

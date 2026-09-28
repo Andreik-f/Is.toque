@@ -4,6 +4,16 @@ export const DEFAULT_ROUTE = "dashboard";
 // Rotas que abrem fora do layout principal (tela de acesso).
 export const AUTH_ROUTES = ["login", "cadastro", "recuperar"];
 
+// Telas que ainda não têm rota na API: com login, o que se registra nelas
+// fica só na página até recarregar.
+export const LOCAL_ONLY_ROUTES = [
+  "movimentacoes",
+  "receitas",
+  "receita",
+  "relatorios",
+  "equipe",
+];
+
 // Itens do menu lateral: [rota, ícone, rótulo].
 export const NAV_ITEMS = [
   ["dashboard", "home", "Visão geral"],

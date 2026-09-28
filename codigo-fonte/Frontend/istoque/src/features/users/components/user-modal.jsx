@@ -27,7 +27,7 @@ export function UserModal({ onClose, onSave }) {
         <Field label="E-mail" name="email" type="email" required />
         <Field label="Perfil">
           <select name="role">
-            <option>Operador</option>
+            <option>Funcionário</option>
             <option>Gerente</option>
             <option>Administrador</option>
           </select>

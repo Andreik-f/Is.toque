@@ -2,7 +2,8 @@ import React from "react";
 import { Button } from "@/components/ui/button.jsx";
 import { Empty } from "@/components/ui/empty.jsx";
 import { downloadCSV } from "@/utils/csv.js";
-import { fmt, round } from "@/utils/format.js";
+import { fmt } from "@/utils/format.js";
+import { purchaseSuggestion } from "@/utils/inventory.js";
 
 // Lista de compras sugerida: completa o saldo de cada produto até o máximo.
 export function ReplenishmentList({ low, onRegisterEntry }) {
@@ -23,8 +24,8 @@ export function ReplenishmentList({ low, onRegisterEntry }) {
                 p.name,
                 p.stock,
                 p.min,
-                p.max,
-                round(p.max - p.stock),
+                p.max ?? "",
+                purchaseSuggestion(p),
                 p.unit,
               ]),
             ])
@@ -59,7 +60,7 @@ export function ReplenishmentList({ low, onRegisterEntry }) {
                 </td>
                 <td>
                   <span className="purchase-qty">
-                    {fmt(round(p.max - p.stock))} {p.unit}
+                    {fmt(purchaseSuggestion(p))} {p.unit}
                   </span>
                 </td>
                 <td>

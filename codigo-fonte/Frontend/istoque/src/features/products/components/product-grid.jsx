@@ -2,6 +2,7 @@ import React from "react";
 import { ProductVisual } from "@/components/product-visual.jsx";
 import { Icon } from "@/components/ui/icon.jsx";
 import { formatDate } from "@/utils/format.js";
+import { controlsExpiry } from "@/utils/inventory.js";
 import { StockMeter } from "./stock-meter.jsx";
 import { StockStatus } from "./stock-status.jsx";
 
@@ -20,7 +21,11 @@ export function ProductGrid({ products, onOpen }) {
             <StockMeter product={p} />
             <div className="product-foot">
               <span>
-                {p.expiry ? "Validade " + formatDate(p.expiry) : "Sem validade"}
+                {p.expiry
+                  ? "Validade " + formatDate(p.expiry)
+                  : controlsExpiry(p)
+                    ? "Validade na próxima entrada"
+                    : "Sem controle de validade"}
               </span>
               <Icon name="arrow" size={18} />
             </div>
