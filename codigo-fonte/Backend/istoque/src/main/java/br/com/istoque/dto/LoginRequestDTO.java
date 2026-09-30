@@ -7,6 +7,7 @@ public record LoginRequestDTO(
     @NotBlank(message = "O e-mail é obrigatório")
     @Email(message = "O e-mail informado é inválido")
     String email,
+    @NotBlank(message = "O CNPJ é obrigatório") String cnpj,
     @NotBlank(message = "A senha é obrigatória")
     String senha
 ) {}

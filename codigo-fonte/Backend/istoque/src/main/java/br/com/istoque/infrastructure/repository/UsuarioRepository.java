@@ -2,24 +2,13 @@ package br.com.istoque.infrastructure.repository;
 
 import br.com.istoque.infrastructure.entity.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-
-import java.time.OffsetDateTime;
 import java.util.Optional;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
-    Optional<Usuario> findByEmail(String email);
+    Optional<Usuario> findByEmailAndEmpresaCnpj(String email, String cnpj);
 
-    boolean existsByEmail(String email);
+    boolean existsByEmpresaIdAndEmail(Integer empresaId, String email);
 
-    boolean existsByEmailAndIdNot(String email, Integer id);
-
-    // update direto, sem passar pelo @PreUpdate: registrar um acesso não é
-    // uma alteração no cadastro, então não pode mudar o atualizadoEm
-    @Modifying
-    @Query("update Usuario u set u.ultimoAcesso = :agora where u.id = :id")
-    void registrarAcesso(@Param("id") Integer id, @Param("agora") OffsetDateTime agora);
+    boolean existsByEmpresaIdAndEmailAndIdNot(Integer empresaId, String email, Integer id);
 }

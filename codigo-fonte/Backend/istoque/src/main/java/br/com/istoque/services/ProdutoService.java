@@ -43,29 +43,20 @@ public class ProdutoService {
     public ProdutoResponseDTO salvar(ProdutoRequestDTO dto) {
         Produto produto = new Produto();
         preencherDados(produto, dto);
-        // o saldo inicial só pode ser informado no cadastro; depois disso ele só
-        // muda por movimentação, para que o histórico explique o estoque (RE-05)
-        produto.setQuantidadeAtual(dto.quantidadeAtual() != null ? dto.quantidadeAtual() : BigDecimal.ZERO);
         return ProdutoResponseDTO.fromEntity(produtoRepository.save(produto));
     }
 
-    // método de listagem: com a empresa, só os produtos dela, em ordem de nome
+    // método de listagem
     @Transactional(readOnly = true)
-    public List<ProdutoResponseDTO> listarTodos(Integer empresaId) {
-        List<Produto> produtos = empresaId == null
-                ? produtoRepository.findAll()
-                : produtoRepository.findByEmpresaIdOrderByNome(empresaId);
-        return produtos.stream()
+    public List<ProdutoResponseDTO> listarTodos() {
+        return produtoRepository.findAll().stream()
                 .map(ProdutoResponseDTO::fromEntity)
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<ProdutoResponseDTO> listarAtivos(Integer empresaId) {
-        List<Produto> produtos = empresaId == null
-                ? produtoRepository.findByAtivoTrue()
-                : produtoRepository.findByEmpresaIdAndAtivoTrueOrderByNome(empresaId);
-        return produtos.stream()
+    public List<ProdutoResponseDTO> listarAtivos() {
+        return produtoRepository.findByAtivoTrue().stream()
                 .map(ProdutoResponseDTO::fromEntity)
                 .toList();
     }
@@ -76,7 +67,7 @@ public class ProdutoService {
         return ProdutoResponseDTO.fromEntity(buscarProduto(id));
     }
 
-    // método de atualizar: a quantidadeAtual enviada é ignorada, o saldo continua o mesmo
+    //método de atualizar
     public ProdutoResponseDTO atualizar(Integer id, ProdutoRequestDTO dto) {
         Produto produto = buscarProduto(id);
         preencherDados(produto, dto);
@@ -95,8 +86,7 @@ public class ProdutoService {
                 .orElseThrow(() -> new ProdutoNaoEncontradoException(id));
     }
 
-    // valida as referências (empresa, unidade e categoria) e copia os dados do DTO para a entidade,
-    // menos o saldo, que só é definido no cadastro
+    // valida as referências (empresa, unidade e categoria) e copia os dados do DTO para a entidade
     private void preencherDados(Produto produto, ProdutoRequestDTO dto) {
         Empresa empresa = empresaRepository.findById(dto.empresaId())
                 .orElseThrow(() -> new EmpresaNaoEncontradaException(dto.empresaId()));
@@ -117,6 +107,7 @@ public class ProdutoService {
         produto.setNome(dto.nome());
         produto.setDescricao(dto.descricao());
         produto.setTipo(dto.tipo());
+        produto.setQuantidadeAtual(dto.quantidadeAtual() != null ? dto.quantidadeAtual() : BigDecimal.ZERO);
         produto.setEstoqueMinimo(dto.estoqueMinimo() != null ? dto.estoqueMinimo() : BigDecimal.ZERO);
         produto.setEstoqueMaximo(dto.estoqueMaximo());
         produto.setControlaValidade(Boolean.TRUE.equals(dto.controlaValidade()));

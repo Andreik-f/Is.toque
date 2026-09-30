@@ -6,8 +6,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.exc.InvalidFormatException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -17,7 +15,6 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -25,8 +22,6 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
-    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(EmpresaNaoEncontradaException.class)
     public ResponseEntity<ApiErrorResponse> tratarEmpresaNaoEncontrada(EmpresaNaoEncontradaException ex) {
@@ -84,7 +79,7 @@ public class GlobalExceptionHandler {
                 .body(ApiErrorResponse.de(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
     }
 
-    // e-mail ou senha errados, ou usuário desativado (HT003): sempre a mesma resposta
+    // MANTIVEMOS APENAS ESTE MÉTODO PARA A TUA EXCEÇÃO (HT003)
     @ExceptionHandler(CredenciaisInvalidasException.class)
     public ResponseEntity<ApiErrorResponse> tratarCredenciaisInvalidas(CredenciaisInvalidasException ex) {
         return ResponseEntity
@@ -144,16 +139,6 @@ public class GlobalExceptionHandler {
                         "Valor inválido para o parâmetro '" + ex.getName() + "': " + ex.getValue()));
     }
 
-    // parâmetro obrigatório ausente na URL (ex.: /api/perfis sem ?empresaId=)
-    @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<ApiErrorResponse> tratarParametroAusente(MissingServletRequestParameterException ex) {
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(ApiErrorResponse.de(
-                        HttpStatus.BAD_REQUEST.value(),
-                        "O parâmetro '" + ex.getParameterName() + "' é obrigatório"));
-    }
-
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ApiErrorResponse> tratarMetodoNaoSuportado(HttpRequestMethodNotSupportedException ex) {
         return ResponseEntity
@@ -172,10 +157,8 @@ public class GlobalExceptionHandler {
                         "Rota não encontrada: /" + ex.getResourcePath()));
     }
 
-    // o cliente recebe a mensagem genérica; a restrição que falhou fica só no log
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiErrorResponse> tratarIntegridade(DataIntegrityViolationException ex) {
-        log.warn("Violação de integridade dos dados: {}", ex.getMostSpecificCause().getMessage());
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(ApiErrorResponse.de(
@@ -183,10 +166,8 @@ public class GlobalExceptionHandler {
                         "A operação viola uma restrição de integridade dos dados"));
     }
 
-    // o cliente recebe a mensagem genérica; a exceção completa fica só no log
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> tratarErroGenerico(Exception ex) {
-        log.error("Erro inesperado ao processar a requisição", ex);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiErrorResponse.de(

@@ -3,7 +3,6 @@ package br.com.istoque.controller;
 import br.com.istoque.dto.TrocaSenhaRequestDTO;
 import br.com.istoque.dto.UsuarioCreateDTO;
 import br.com.istoque.dto.UsuarioResponseDTO;
-import br.com.istoque.dto.UsuarioUpdateDTO;
 import br.com.istoque.services.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +31,7 @@ public class UsuarioController {
 
     @PutMapping("/{id}")
     public ResponseEntity<UsuarioResponseDTO> atualizar(@PathVariable Integer id,
-            @RequestBody @Valid UsuarioUpdateDTO dto) {
+            @RequestBody @Valid UsuarioCreateDTO dto) {
         return ResponseEntity.ok(usuarioService.atualizar(id, dto));
     }
 

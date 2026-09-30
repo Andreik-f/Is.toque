@@ -12,24 +12,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * Testes de integração do login (POST /api/auth/login).
  *
- * Cobre os critérios de aceite de HU002 (#12), HT021 (#46), HT016 (#40) e
- * HT017 (#41): o login é feito só com e-mail e senha, o e-mail não
- * diferencia maiúsculas e minúsculas, o login não conta como alteração do
- * cadastro, e login com sucesso, senha errada, e-mail inexistente e usuário
- * desativado devem se comportar como descrito na tabela de testes validada
- * manualmente.
+ * Cobre os critérios de aceite de HU002 (#12): login com sucesso, senha
+ * errada, e-mail inexistente, CNPJ errado e usuário desativado devem se
+ * comportar como descrito na tabela de testes validada manualmente. Também
+ * garante que o CNPJ pode ser digitado com ou sem máscara.
  *
  * Cada teste sobe a aplicação inteira com um banco H2 em memória (configurado
  * em src/test/resources/application.properties) e simula as requisições HTTP
@@ -57,14 +52,13 @@ class AuthControllerIntegrationTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private Empresa empresa;
 
     /**
-     * Antes de cada teste, limpa o banco e monta o cenário base: uma empresa,
-     * um perfil Administrador e um usuário ativo com a senha SENHA_CORRETA.
-     * Assim cada teste começa do zero e não depende da ordem em que os outros
-     * rodam.
+     * Antes de cada teste, limpa o banco e monta o cenário base: uma empresa
+     * (o CNPJ fica gravado como 11.222.333/0001-81), um perfil Administrador e
+     * um usuário ativo com a senha SENHA_CORRETA. Assim cada teste começa do
+     * zero e não depende da ordem em que os outros rodam.
      */
     @BeforeEach
     void setUp() {
@@ -72,7 +66,7 @@ class AuthControllerIntegrationTest {
         perfilRepository.deleteAll();
         empresaRepository.deleteAll();
 
-        Empresa empresa = new Empresa();
+        empresa = new Empresa();
         empresa.setRazaoSocial("Empresa Teste LTDA");
         empresa.setCnpj("11222333000181");
         empresa = empresaRepository.save(empresa);
@@ -89,15 +83,14 @@ class AuthControllerIntegrationTest {
     }
 
     /**
-     * Caminho feliz: e-mail e senha corretos devolvem 200 com os dados que o
-     * front-end usa depois do login (e-mail, perfil e nome da empresa). A
-     * empresa vem do próprio usuário, sem precisar informar o CNPJ.
+     * Caminho feliz: e-mail, CNPJ e senha corretos devolvem 200 com os dados
+     * que o front-end usa depois do login (e-mail, perfil e nome da empresa).
      */
     @Test
     void loginComCredenciaisCorretas_devolve200ComDadosDoUsuario() throws Exception {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(corpoLogin("usuario@teste.com", SENHA_CORRETA)))
+                        .content(corpoLogin("usuario@teste.com", empresa.getCnpj(), SENHA_CORRETA)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("usuario@teste.com"))
                 .andExpect(jsonPath("$.perfil").value("Administrador"))
@@ -105,36 +98,17 @@ class AuthControllerIntegrationTest {
     }
 
     /**
-     * O e-mail não diferencia maiúsculas e minúsculas: quem se cadastrou como
-     * usuario@teste.com também entra digitando USUARIO@Teste.com.
+     * O CNPJ fica gravado com máscara, mas a pessoa pode digitar só os
+     * números. Garante que o AuthService formata o CNPJ recebido antes de
+     * procurar a empresa, senão a busca por texto exato não encontraria nada.
      */
     @Test
-    void loginComEmailEmMaiusculas_devolve200() throws Exception {
+    void loginComCnpjSemMascara_devolve200() throws Exception {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(corpoLogin("USUARIO@Teste.com", SENHA_CORRETA)))
+                        .content(corpoLogin("usuario@teste.com", "11222333000181", SENHA_CORRETA)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("usuario@teste.com"));
-    }
-
-    /**
-     * O login grava o último acesso, mas não é uma alteração no cadastro: o
-     * atualizadoEm do usuário não pode mudar. O teste apaga as duas datas
-     * direto no banco e confere que, depois do login, só o último acesso foi
-     * preenchido.
-     */
-    @Test
-    void login_registraUltimoAcessoSemAlterarAtualizadoEm() throws Exception {
-        jdbcTemplate.update("update usuario set atualizado_em = null, ultimo_acesso = null");
-
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(corpoLogin("usuario@teste.com", SENHA_CORRETA)))
-                .andExpect(status().isOk());
-
-        Usuario usuario = usuarioRepository.findByEmail("usuario@teste.com").orElseThrow();
-        assertNotNull(usuario.getUltimoAcesso());
-        assertNull(usuario.getAtualizadoEm());
     }
 
     /**
@@ -145,7 +119,7 @@ class AuthControllerIntegrationTest {
     void loginComSenhaErrada_devolve401ComMensagemPadrao() throws Exception {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(corpoLogin("usuario@teste.com", "senhaErrada")))
+                        .content(corpoLogin("usuario@teste.com", empresa.getCnpj(), "senhaErrada")))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value(MENSAGEM_ERRO_PADRAO));
     }
@@ -159,7 +133,21 @@ class AuthControllerIntegrationTest {
     void loginComEmailInexistente_devolve401ComMesmaMensagemDaSenhaErrada() throws Exception {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(corpoLogin("naoexiste@teste.com", "qualquer")))
+                        .content(corpoLogin("naoexiste@teste.com", empresa.getCnpj(), "qualquer")))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value(MENSAGEM_ERRO_PADRAO));
+    }
+
+    /**
+     * O e-mail só vale junto com o CNPJ da empresa dele: o mesmo e-mail e a
+     * mesma senha com outro CNPJ devolvem 401. Isso importa porque o mesmo
+     * e-mail pode estar cadastrado em empresas diferentes.
+     */
+    @Test
+    void loginComCnpjDeOutraEmpresa_devolve401() throws Exception {
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoLogin("usuario@teste.com", "00000000000000", SENHA_CORRETA)))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value(MENSAGEM_ERRO_PADRAO));
     }
@@ -170,21 +158,21 @@ class AuthControllerIntegrationTest {
      */
     @Test
     void loginComUsuarioDesativado_devolve401MesmoComSenhaCerta() throws Exception {
-        Usuario usuario = usuarioRepository.findByEmail("usuario@teste.com").orElseThrow();
+        Usuario usuario = usuarioRepository.findByEmailAndEmpresaCnpj("usuario@teste.com", empresa.getCnpj())
+                .orElseThrow();
         usuario.setAtivo(false);
         usuarioRepository.save(usuario);
 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(corpoLogin("usuario@teste.com", SENHA_CORRETA)))
+                        .content(corpoLogin("usuario@teste.com", empresa.getCnpj(), SENHA_CORRETA)))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value(MENSAGEM_ERRO_PADRAO));
     }
 
     /**
      * Corpo vazio devolve 400 com uma mensagem para cada campo obrigatório
-     * (email e senha), vindas das validações do LoginRequestDTO. O CNPJ não
-     * faz mais parte do login.
+     * (email, cnpj e senha), vindas das validações do LoginRequestDTO.
      */
     @Test
     void loginComCamposFaltando_devolve400ComMensagensDeValidacao() throws Exception {
@@ -193,14 +181,14 @@ class AuthControllerIntegrationTest {
                         .content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.campos.email").exists())
-                .andExpect(jsonPath("$.campos.senha").exists())
-                .andExpect(jsonPath("$.campos.cnpj").doesNotExist());
+                .andExpect(jsonPath("$.campos.cnpj").exists())
+                .andExpect(jsonPath("$.campos.senha").exists());
     }
 
     /** Monta o JSON do corpo da requisição de login. */
-    private String corpoLogin(String email, String senha) {
+    private String corpoLogin(String email, String cnpj, String senha) {
         return """
-                {"email":"%s","senha":"%s"}
-                """.formatted(email, senha);
+                {"email":"%s","cnpj":"%s","senha":"%s"}
+                """.formatted(email, cnpj, senha);
     }
 }

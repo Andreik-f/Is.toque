@@ -1,19 +1,16 @@
 package br.com.istoque.infrastructure.entity;
 
-import br.com.istoque.util.EmailUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 
-// O e-mail é único no sistema todo, porque o login é feito só com e-mail e
-// senha. O nome da restrição é o mesmo que ela já tem no banco.
 @Entity
 @Table(
     name = "usuario",
     uniqueConstraints = @UniqueConstraint(
-        name = "usuarios_email_key",
-        columnNames = "email"
+        name = "uk_usuario_empresa_email",
+        columnNames = {"empresa_id", "email"}
     )
 )
 public class Usuario {
@@ -84,7 +81,7 @@ public class Usuario {
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
     public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = EmailUtils.normalizar(email); } // grava sempre em minúsculas
+    public void setEmail(String email) { this.email = email; }
     public String getSenha() { return senha; }
     public void setSenha(String senha) { this.senha = senha; }
     public Perfil getPerfil() { return perfil; }

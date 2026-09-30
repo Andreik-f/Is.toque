@@ -18,18 +18,15 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Testes de integração do cadastro de usuários (POST /api/usuarios), da
- * edição (PUT /api/usuarios/{id}) e da troca de senha
- * (PATCH /api/usuarios/{id}/senha).
+ * Testes de integração do cadastro de usuários (POST /api/usuarios) e da
+ * troca de senha (PATCH /api/usuarios/{id}/senha).
  *
- * Cobre os critérios de aceite de HU001 (#11), HT006 (#20), HT005 (#27),
- * HT013 (#37), HT016 (#40) e HT018 (#42): cadastro de usuário sem vazar senha,
- * e-mail único no sistema todo (inclusive entre empresas diferentes e sem
- * diferenciar maiúsculas), edição sem senha, 404/400 em vez de 500 para
+ * Cobre os critérios de aceite de HU001 (#11), HT006 (#20) e HT005 (#27):
+ * cadastro de usuário sem vazar senha, e-mail único por empresa (mas
+ * repetível entre empresas diferentes), 404/400 em vez de 500 para
  * empresa/perfil inexistentes ou de outra empresa, e troca de senha via
  * TrocaSenhaRequestDTO com validação de campo obrigatório.
  *
@@ -62,8 +59,8 @@ class UsuarioControllerIntegrationTest {
     /**
      * Antes de cada teste, limpa o banco e cria duas empresas (A e B), cada uma
      * com seu perfil Administrador. Duas empresas permitem testar as regras que
-     * envolvem a empresa: e-mail único mesmo entre empresas, e perfil de uma
-     * empresa não servir para a outra.
+     * dependem da empresa: e-mail único só dentro dela, e perfil de uma empresa
+     * não servir para a outra.
      */
     @BeforeEach
     void setUp() {
@@ -112,87 +109,17 @@ class UsuarioControllerIntegrationTest {
     }
 
     /**
-     * O e-mail é único no sistema todo, mesmo em empresas diferentes: o login
-     * é feito só com e-mail e senha, então o mesmo e-mail em duas empresas
-     * deixaria o login sem saber de quem é a conta. Devolve 409 com a
-     * mensagem de e-mail já cadastrado.
+     * Em empresas diferentes o mesmo e-mail é permitido, porque a regra de
+     * e-mail único vale por empresa (por exemplo, alguém que trabalha em dois
+     * restaurantes).
      */
     @Test
-    void criarUsuario_comEmailJaUsadoEmOutraEmpresa_devolve409() throws Exception {
+    void criarUsuario_comMesmoEmailEmEmpresasDiferentes_devolve201NasDuas() throws Exception {
         criarUsuario("Admin A", "mesmoemail@teste.com", perfilAdminEmpresaA.getId(), empresaA.getId())
                 .andExpect(status().isCreated());
 
         criarUsuario("Admin B", "mesmoemail@teste.com", perfilAdminEmpresaB.getId(), empresaB.getId())
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message")
-                        .value("Já existe um usuário cadastrado com o e-mail mesmoemail@teste.com."));
-    }
-
-    /**
-     * O e-mail é gravado em minúsculas, então "Ana@Loja.com" e "ana@loja.com"
-     * são a mesma conta: o segundo cadastro devolve 409.
-     */
-    @Test
-    void criarUsuario_comEmailEmMaiusculas_gravaEmMinusculasEBloqueiaDuplicado() throws Exception {
-        criarUsuario("Ana", "Ana@Loja.com", perfilAdminEmpresaA.getId(), empresaA.getId())
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.email").value("ana@loja.com"));
-
-        criarUsuario("Outra Ana", "ana@loja.com", perfilAdminEmpresaB.getId(), empresaB.getId())
-                .andExpect(status().isConflict());
-    }
-
-    /**
-     * A regra vale também na edição: trocar o e-mail de um usuário para um
-     * e-mail que já é de outra pessoa, mesmo de outra empresa, devolve 409.
-     */
-    @Test
-    void atualizarUsuario_comEmailDeUsuarioDeOutraEmpresa_devolve409() throws Exception {
-        criarUsuarioPersistido("Admin A", "ocupado@empresaa.com", "SenhaValida123", perfilAdminEmpresaA, empresaA);
-        Usuario usuarioB = criarUsuarioPersistido("Admin B", "livre@empresab.com", "SenhaValida123",
-                perfilAdminEmpresaB, empresaB);
-
-        atualizarUsuario(usuarioB.getId(), "Admin B", "ocupado@empresaa.com",
-                perfilAdminEmpresaB.getId(), empresaB.getId())
-                .andExpect(status().isConflict());
-    }
-
-    /**
-     * A edição não pede senha: nome, e-mail e perfil mudam com um PUT sem o
-     * campo senha, que devolve 200.
-     */
-    @Test
-    void atualizarUsuario_semSenha_devolve200() throws Exception {
-        Usuario usuario = criarUsuarioPersistido("Admin A", "admin@empresaa.com", "SenhaValida123",
-                perfilAdminEmpresaA, empresaA);
-
-        atualizarUsuario(usuario.getId(), "Admin A Editado", "novo@empresaa.com",
-                perfilAdminEmpresaA.getId(), empresaA.getId())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nome").value("Admin A Editado"))
-                .andExpect(jsonPath("$.email").value("novo@empresaa.com"));
-    }
-
-    /**
-     * Uma senha enviada no PUT é ignorada: a senha só muda pelo PATCH
-     * /api/usuarios/{id}/senha. Depois do PUT, a senha antiga continua valendo.
-     */
-    @Test
-    void atualizarUsuario_comSenhaNoCorpo_naoTrocaASenha() throws Exception {
-        Usuario usuario = criarUsuarioPersistido("Admin A", "admin@empresaa.com", "SenhaAntiga123",
-                perfilAdminEmpresaA, empresaA);
-
-        mockMvc.perform(put("/api/usuarios/{id}", usuario.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"nome":"Admin A","email":"admin@empresaa.com","senha":"SenhaNova456","perfilId":%d,"empresaId":%d}
-                                """.formatted(perfilAdminEmpresaA.getId(), empresaA.getId())))
-                .andExpect(status().isOk());
-
-        mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(corpoLogin("admin@empresaa.com", "SenhaAntiga123")))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
     }
 
     /** empresaId que não existe devolve 404, e não um erro 500. */
@@ -247,12 +174,12 @@ class UsuarioControllerIntegrationTest {
 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(corpoLogin(usuario.getEmail(), "SenhaNova456")))
+                        .content(corpoLogin(usuario.getEmail(), empresaA.getCnpj(), "SenhaNova456")))
                 .andExpect(status().isOk());
 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(corpoLogin(usuario.getEmail(), "SenhaAntiga123")))
+                        .content(corpoLogin(usuario.getEmail(), empresaA.getCnpj(), "SenhaAntiga123")))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -307,20 +234,9 @@ class UsuarioControllerIntegrationTest {
                 .content(corpo));
     }
 
-    /** Chama PUT /api/usuarios/{id} com os dados informados (a edição não leva senha). */
-    private ResultActions atualizarUsuario(Integer id, String nome, String email, Integer perfilId, Integer empresaId)
-            throws Exception {
-        String corpo = """
-                {"nome":"%s","email":"%s","perfilId":%d,"empresaId":%d}
-                """.formatted(nome, email, perfilId, empresaId);
-        return mockMvc.perform(put("/api/usuarios/{id}", id)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(corpo));
-    }
-
     /**
      * Grava um usuário direto pelo repositório, sem passar pela API. Serve para
-     * preparar o cenário dos testes de edição e de troca de senha.
+     * preparar o cenário dos testes de troca de senha.
      */
     private Usuario criarUsuarioPersistido(String nome, String email, String senha, Perfil perfil, Empresa empresa) {
         Usuario usuario = new Usuario();
@@ -333,9 +249,9 @@ class UsuarioControllerIntegrationTest {
     }
 
     /** Monta o JSON do corpo da requisição de login. */
-    private String corpoLogin(String email, String senha) {
+    private String corpoLogin(String email, String cnpj, String senha) {
         return """
-                {"email":"%s","senha":"%s"}
-                """.formatted(email, senha);
+                {"email":"%s","cnpj":"%s","senha":"%s"}
+                """.formatted(email, cnpj, senha);
     }
 }

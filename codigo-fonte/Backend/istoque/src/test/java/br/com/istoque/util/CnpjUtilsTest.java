@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  *
  * O CNPJ precisa ficar sempre no mesmo formato (com máscara, ex.:
  * 12.345.678/0001-90), porque o banco compara o texto exato: é disso que
- * depende a checagem de CNPJ duplicado. Como o formatar não usa
+ * dependem a checagem de CNPJ duplicado e o login. Como o formatar não usa
  * Spring nem banco, este é um teste unitário puro e roda em milissegundos.
  */
 class CnpjUtilsTest {
