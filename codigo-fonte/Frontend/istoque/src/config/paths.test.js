@@ -1,0 +1,20 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { DEFAULT_ROUTE, isNavActive, parseHash } from "./paths.js";
+
+test("a URL leva a rota e, nas telas de detalhe, o id do item", () => {
+  assert.deepEqual(parseHash("#produto/12"), { route: "produto", id: "12" });
+  assert.deepEqual(parseHash("#receita/receita-1%2F2"), {
+    route: "receita",
+    id: "receita-1/2",
+  });
+  assert.deepEqual(parseHash("#estoque"), { route: "estoque", id: null });
+  assert.deepEqual(parseHash(""), { route: DEFAULT_ROUTE, id: null });
+});
+
+test("produto e receita deixam marcado o item do menu de onde vieram", () => {
+  assert.equal(isNavActive("estoque", "produto"), true);
+  assert.equal(isNavActive("receitas", "receita"), true);
+  assert.equal(isNavActive("estoque", "estoque"), true);
+  assert.equal(isNavActive("receitas", "produto"), false);
+});

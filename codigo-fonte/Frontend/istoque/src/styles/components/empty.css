@@ -1,0 +1,16 @@
+/* Estado vazio (Empty). */
+.empty {
+  padding: 70px 25px;
+  text-align: center;
+  color: #79968b;
+}
+.empty > svg {
+  margin-bottom: 20px;
+}
+.empty h3 {
+  color: var(--teal);
+  font-size: 18px;
+}
+.empty p {
+  margin: 12px 0 22px;
+}

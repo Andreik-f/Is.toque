@@ -1,0 +1,84 @@
+/* Botões: .button (variações), .icon-button e .text-button. */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  min-height: 44px;
+  padding: 11px 17px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    background 0.15s,
+    transform 0.15s;
+}
+.button span {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.button:active {
+  transform: translateY(1px);
+}
+.button.primary {
+  background: var(--teal);
+  color: white;
+}
+.button.primary:hover {
+  background: var(--teal-hover);
+}
+.button.accent {
+  background: var(--amber);
+  color: var(--ink);
+}
+.button.accent:hover {
+  background: #eba933;
+}
+.button.secondary {
+  background: var(--panel);
+  color: var(--teal);
+  border-color: var(--line);
+}
+.button.secondary:hover {
+  background: var(--soft);
+}
+.button:disabled {
+  background: #e8e1d6;
+  color: #746d67;
+  border-color: transparent;
+  transform: none;
+}
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.icon-button:hover {
+  background: var(--soft);
+}
+.icon-button:disabled {
+  opacity: 0.4;
+}
+.text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 0;
+  color: var(--teal);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 0;
+  min-height: 38px;
+}
+.text-button:hover {
+  text-decoration: underline;
+}

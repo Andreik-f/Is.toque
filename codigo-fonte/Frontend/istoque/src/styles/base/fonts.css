@@ -1,0 +1,20 @@
+/* Fontes da interface (arquivos em public/fonts/). */
+@font-face {
+  font-family: Inter;
+  src: url("/fonts/inter-400.ttf");
+}
+@font-face {
+  font-family: Inter;
+  src: url("/fonts/inter-600.ttf");
+  font-weight: 600;
+}
+@font-face {
+  font-family: Poppins;
+  src: url("/fonts/poppins-600.ttf");
+  font-weight: 600;
+}
+@font-face {
+  font-family: Poppins;
+  src: url("/fonts/poppins-700.ttf");
+  font-weight: 700;
+}

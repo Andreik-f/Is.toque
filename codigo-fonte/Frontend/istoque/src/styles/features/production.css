@@ -1,0 +1,82 @@
+/* Registro de produção. */
+.quantity-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+  align-items: center;
+  background: #f7f3e9;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 22px;
+}
+.quantity-row .field {
+  margin: 0;
+}
+.available {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 9px;
+}
+.available span {
+  font-size: 10px;
+  color: var(--muted);
+}
+.available strong {
+  font-family: Poppins;
+  color: var(--teal);
+  font-size: 20px;
+}
+.success-state {
+  text-align: center;
+}
+.success-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 85px;
+  height: 85px;
+  background: #dff5e9;
+  color: var(--success);
+  border-radius: 50%;
+  margin: 15px 0 24px;
+}
+.success-state h3 {
+  font-size: 19px;
+  margin-bottom: 14px;
+}
+.success-state p {
+  font-size: 12px;
+}
+.success-number {
+  display: block;
+  font-size: 45px;
+  color: var(--teal);
+  font-family: Poppins;
+  margin: 8px 0 22px;
+}
+.success-number small {
+  font-size: 14px;
+  font-weight: 400;
+}
+.success-state .button {
+  margin-top: 24px;
+  min-width: 180px;
+}
+@media (max-width: 700px) {
+  .quantity-row {
+    padding: 15px;
+    gap: 16px;
+  }
+  .available strong {
+    font-size: 15px;
+  }
+  .available span {
+    font-size: 8px;
+  }
+  .success-state h3 {
+    font-size: 17px;
+  }
+  .success-state .notice {
+    text-align: left;
+  }
+}

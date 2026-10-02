@@ -1,0 +1,40 @@
+/* Etiquetas de status (Badge). */
+.badge {
+  font-size: 9px;
+  line-height: 16px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  border-radius: 5px;
+  padding: 3px 7px;
+  background: #f0ede6;
+  color: var(--muted);
+}
+.badge i {
+  height: 4px;
+  width: 4px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: currentColor;
+}
+.badge.success {
+  background: #dff5e9;
+  color: var(--success);
+}
+.badge.warning {
+  background: #fff0ca;
+  color: var(--warning);
+}
+.badge.danger {
+  background: #ffe2dc;
+  color: var(--danger);
+}
+@media (max-width: 700px) {
+  .badge {
+    font-size: 7px;
+    padding: 2px 5px;
+    line-height: 14px;
+  }
+}

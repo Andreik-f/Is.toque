@@ -1,0 +1,23 @@
+/* Cores e medidas compartilhadas. Pontos de quebra usados nos @media:
+   1650px (tela larga), 1200px, 950px e 700px (celular). */
+:root {
+  --teal: #164d4e;
+  --teal-hover: #0d3d3e;
+  --amber: #f5b84f;
+  --paper: #f9f6ef;
+  --panel: #fffdf8;
+  --ink: #1f1813;
+  --muted: #746d67;
+  --line: #e8e1d6;
+  --mint: #72caa9;
+  --coral: #ef735f;
+  --warning: #875800;
+  --danger: #b64232;
+  --success: #277957;
+  --soft: #e4efeb;
+  --radius: 16px;
+  font-family: Inter, Arial, sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+  font-synthesis: none;
+}

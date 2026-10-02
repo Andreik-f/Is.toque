@@ -1,0 +1,150 @@
+/* Painéis, tabelas, listas de definição e listas de links. */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 23px 24px;
+}
+.panel-heading h2 {
+  font-size: 17px;
+}
+.panel-heading p {
+  font-size: 11px;
+  margin-top: 4px;
+}
+.panel-heading .text-button {
+  font-size: 10px;
+}
+.table-scroll {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 11px;
+}
+th {
+  font-size: 9px;
+  font-weight: 500;
+  background: #f8f5ee;
+  color: var(--muted);
+  padding: 13px 22px;
+  white-space: nowrap;
+}
+td {
+  padding: 18px 22px;
+  border-top: 1px solid #eee8df;
+  vertical-align: middle;
+}
+td strong {
+  font-weight: 600;
+  font-size: 11px;
+}
+td small {
+  display: block;
+  color: var(--muted);
+  font-size: 9px;
+  margin-top: 5px;
+  line-height: 1.5;
+}
+td.number {
+  white-space: nowrap;
+  font-weight: 600;
+}
+td:last-child {
+  white-space: nowrap;
+}
+dl {
+  margin: 20px 0;
+}
+dl > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  margin: 15px 0;
+}
+dt {
+  color: var(--muted);
+}
+dd {
+  margin: 0;
+  font-weight: 600;
+}
+.list-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--line);
+  padding: 20px 24px;
+  font-size: 12px;
+}
+.list-link small {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+.list-link svg {
+  flex-shrink: 0;
+}
+.panel-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 0 24px 24px;
+}
+@media (max-width: 1200px) {
+  th,
+  td {
+    padding-inline: 16px;
+  }
+}
+@media (max-width: 700px) {
+  .panel-heading {
+    padding: 20px 17px;
+    gap: 12px;
+  }
+  .panel-heading h2 {
+    font-size: 15px;
+  }
+  .panel-heading p {
+    font-size: 9px;
+  }
+  .panel-heading .text-button {
+    font-size: 8px;
+    white-space: nowrap;
+  }
+  .panel table {
+    min-width: 570px;
+  }
+  th {
+    font-size: 9px;
+  }
+  td {
+    font-size: 10px;
+  }
+  .panel td .button {
+    font-size: 10px;
+  }
+  .list-link {
+    padding: 18px;
+    font-size: 11px;
+  }
+  .list-link .badge {
+    font-size: 8px;
+  }
+}

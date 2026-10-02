@@ -1,0 +1,127 @@
+import React from "react";
+import { ProductVisual } from "@/components/product-visual.jsx";
+import { Badge } from "@/components/ui/badge.jsx";
+import { Button } from "@/components/ui/button.jsx";
+import { FoodArt } from "@/components/ui/food-art.jsx";
+import { Icon } from "@/components/ui/icon.jsx";
+import { fmt, plural } from "@/utils/format.js";
+import {
+  bottleneck,
+  capacity,
+  ingredientProduct,
+  portionsFrom,
+} from "@/utils/inventory.js";
+
+// Ficha técnica: ingredientes por porção e capacidade atual de produção.
+export function RecipeDetails({
+  recipe,
+  products,
+  onEdit,
+  onProduce,
+  onPlanReplenishment,
+}) {
+  const limiting = bottleneck(recipe, products);
+  const portions = capacity(recipe, products);
+  return (
+    <>
+      <div className="recipe-detail-heading">
+        <div className="recipe-detail-art">
+          <FoodArt kind={recipe.art} />
+        </div>
+        <div>
+          <Badge tone="success">Ficha técnica ativa</Badge>
+          <h2>{recipe.name}</h2>
+          <p>
+            {recipe.category} • Rendimento: {recipe.portion}
+          </p>
+          <span className="time-detail">
+            <Icon name="clock" size={16} />
+            {recipe.time} minutos de preparo
+          </span>
+        </div>
+        <Button variant="secondary" icon="edit" onClick={onEdit}>
+          Editar ficha
+        </Button>
+      </div>
+      <div className="recipe-detail-layout">
+        <section className="panel">
+          <div className="panel-heading">
+            <div>
+              <h2>Ingredientes por porção</h2>
+              <p>As quantidades respeitam a unidade de cada produto.</p>
+            </div>
+            <Badge>
+              {plural(recipe.ingredients.length, "ingrediente", "ingredientes")}
+            </Badge>
+          </div>
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ingrediente</th>
+                  <th>Por porção</th>
+                  <th>Em estoque</th>
+                  <th>Capacidade</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recipe.ingredients.map((i) => {
+                  const p = ingredientProduct(i, products);
+                  const limit = limiting.id === i.id;
+                  const yields = portionsFrom(p.stock, i.qty);
+                  return (
+                    <tr key={i.id} className={limit ? "limiting" : ""}>
+                      <td>
+                        <div className="ingredient-name">
+                          <div className="mini-art">
+                            <ProductVisual product={p} />
+                          </div>
+                          <div>
+                            <strong>{p.name}</strong>
+                            {limit && <small>Ingrediente limitante</small>}
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        {fmt(i.qty)} {p.unit}
+                      </td>
+                      <td>
+                        {fmt(p.stock)} {p.unit}
+                      </td>
+                      <td>
+                        <strong>{plural(yields, "porção", "porções")}</strong>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <div className="table-note">
+            <Icon name="shield" size={17} />
+            Salvar esta ficha não altera o estoque.
+          </div>
+        </section>
+        <aside className="capacity-panel">
+          <span className="eyebrow">CAPACIDADE ATUAL</span>
+          <strong className="big-number">{portions}</strong>
+          <h3>{portions === 1 ? "porção disponível" : "porções disponíveis"}</h3>
+          <p>O ingrediente com menor rendimento define o limite da receita.</p>
+          <div className="limiting-note">
+            <Icon name="alert" />
+            <span>
+              Limitante
+              <strong>{limiting.product.name}</strong>
+            </span>
+          </div>
+          <Button variant="accent" icon="plus" onClick={onProduce}>
+            Registrar produção
+          </Button>
+          <button className="text-button" onClick={onPlanReplenishment}>
+            Planejar reposição <Icon name="arrow" size={16} />
+          </button>
+        </aside>
+      </div>
+    </>
+  );
+}
