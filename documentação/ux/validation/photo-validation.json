@@ -1,0 +1,15 @@
+{
+  "errors": [],
+  "checks": [
+    "cadastro sem foto",
+    "cadastro com foto",
+    "foto no cartão e detalhe",
+    "edição preserva saldo",
+    "tipo inválido preserva foto anterior",
+    "limite de 5 MB",
+    "imagem corrompida",
+    "cancelamento não aplica alteração",
+    "substituição salva",
+    "remoção volta à ilustração"
+  ]
+}

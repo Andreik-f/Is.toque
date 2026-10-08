@@ -1,4 +1,4 @@
-# Título do Projeto
+# IS.TOQUE
 
 `ANALISE E DESENVOLVIMENTO DE SISTEMAS`
 
@@ -6,7 +6,8 @@
 
 `SEMESTRE`
 
-[Descrever resumidamente, em um ou dois parágrafos, o projeto desenvolvido.]
+[Um sistema de gerenciamento de estoque para microempresas, focado em entrada única de produto e saida baseada em receitas.
+1.0 - foco em Restaurantes.]
 
 ## Integrantes
 

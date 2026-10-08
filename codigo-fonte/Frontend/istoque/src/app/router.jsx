@@ -1,0 +1,60 @@
+import React from "react";
+import { AppLayout } from "@/components/layouts/app-layout.jsx";
+import { PageHeading } from "@/components/ui/page-heading.jsx";
+import { Toast } from "@/components/ui/toast.jsx";
+import { AUTH_ROUTES, routeSubtitle, routeTitle } from "@/config/paths.js";
+import { useHashRoute } from "@/hooks/use-hash-route.js";
+import { useUiStore } from "@/stores/ui-store.jsx";
+import { AppModals } from "./modals.jsx";
+import { AuthRoute } from "./routes/auth.jsx";
+import { DashboardRoute } from "./routes/dashboard.jsx";
+import { EquipeRoute } from "./routes/equipe.jsx";
+import { EstoqueRoute } from "./routes/estoque.jsx";
+import { FluxosRoute } from "./routes/fluxos.jsx";
+import { ImportacaoRoute } from "./routes/importacao.jsx";
+import { MovimentacoesRoute } from "./routes/movimentacoes.jsx";
+import { ProdutoRoute } from "./routes/produto.jsx";
+import { ReceitaRoute } from "./routes/receita.jsx";
+import { ReceitasRoute } from "./routes/receitas.jsx";
+import { RelatoriosRoute } from "./routes/relatorios.jsx";
+import { ReposicaoRoute } from "./routes/reposicao.jsx";
+
+// Tela de cada rota (#rota na URL). Produto e receita recebem o id da URL
+// (#produto/12) em `id`.
+const pages = {
+  dashboard: DashboardRoute,
+  estoque: EstoqueRoute,
+  produto: ProdutoRoute,
+  movimentacoes: MovimentacoesRoute,
+  receitas: ReceitasRoute,
+  receita: ReceitaRoute,
+  reposicao: ReposicaoRoute,
+  relatorios: RelatoriosRoute,
+  equipe: EquipeRoute,
+  importacao: ImportacaoRoute,
+  fluxos: FluxosRoute,
+};
+
+export function AppRouter() {
+  const { route, id } = useHashRoute();
+  const { toast, dismissToast } = useUiStore();
+  if (AUTH_ROUTES.includes(route)) return <AuthRoute route={route} />;
+  const Page = pages[route];
+  return (
+    <AppLayout
+      route={route}
+      overlays={
+        <>
+          <Toast message={toast} onClose={dismissToast} />
+          <AppModals />
+        </>
+      }
+    >
+      {Page ? (
+        <Page id={id} />
+      ) : (
+        <PageHeading title={routeTitle(route)} subtitle={routeSubtitle(route)} />
+      )}
+    </AppLayout>
+  );
+}

@@ -1,0 +1,66 @@
+/* Avisos (.notice) e cartões informativos. */
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  background: var(--soft);
+  color: var(--teal);
+  border-radius: 9px;
+  padding: 15px 18px;
+  font-size: 11px;
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+.notice svg {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+}
+.notice.danger {
+  background: #ffe2dc;
+  color: var(--danger);
+}
+.info-card {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  background: #eee9dc;
+  padding: 27px 30px;
+  border-radius: 12px;
+  margin-top: 28px;
+  color: var(--teal);
+}
+.info-card p {
+  font-size: 12px;
+  margin-top: 5px;
+}
+.info-card svg {
+  flex-shrink: 0;
+}
+.panel > .notice {
+  margin: 24px;
+}
+@media (max-width: 700px) {
+  .notice {
+    font-size: 10px;
+    padding: 14px;
+    line-height: 1.7;
+    margin-bottom: 21px;
+  }
+  .notice svg {
+    width: 16px;
+    height: 16px;
+  }
+  .info-card {
+    align-items: flex-start;
+    padding: 22px 20px;
+    gap: 14px;
+  }
+  .info-card h3 {
+    font-size: 14px;
+  }
+  .info-card p {
+    font-size: 10px;
+  }
+}

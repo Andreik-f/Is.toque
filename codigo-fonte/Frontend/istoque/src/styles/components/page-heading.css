@@ -1,0 +1,67 @@
+/* Título das telas e botões de ação ao lado. */
+.page-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 30px;
+}
+.page-heading .eyebrow {
+  font-size: 9px;
+  margin-bottom: 8px;
+}
+.page-heading p {
+  margin-top: 8px;
+  font-size: 12px;
+}
+.heading-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+@media (max-width: 1200px) {
+  .page-heading {
+    align-items: flex-start;
+  }
+  .heading-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .heading-actions .button {
+    font-size: 11px;
+    min-height: 40px;
+  }
+}
+@media (max-width: 700px) {
+  .page-heading {
+    display: block;
+    margin-bottom: 24px;
+  }
+  .page-heading .eyebrow {
+    font-size: 8px;
+    margin-bottom: 7px;
+  }
+  .page-heading p {
+    font-size: 11px;
+    line-height: 1.6;
+    max-width: 320px;
+  }
+  .heading-actions {
+    flex-direction: row;
+    margin-top: 20px;
+    gap: 8px;
+  }
+  .heading-actions:empty {
+    display: none;
+  }
+  .heading-actions .button {
+    flex: 1;
+    padding: 10px 8px;
+    font-size: 10px;
+    gap: 5px;
+    min-height: 44px;
+  }
+  .heading-actions .button svg {
+    width: 15px;
+  }
+}

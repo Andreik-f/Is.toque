@@ -1,0 +1,62 @@
+/* Importação de nota. */
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  font-size: 11px;
+  margin: 34px 0;
+  color: var(--muted);
+}
+.stepper i {
+  width: 60px;
+  height: 1px;
+  background: var(--line);
+}
+.stepper .done {
+  font-weight: 600;
+  color: var(--teal);
+}
+.upload-panel {
+  padding: 65px 30px;
+  text-align: center;
+}
+.upload-icon {
+  display: inline-grid;
+  place-items: center;
+  background: var(--soft);
+  color: var(--teal);
+  height: 75px;
+  width: 75px;
+  border-radius: 20px;
+  margin-bottom: 23px;
+}
+.upload-panel p {
+  font-size: 12px;
+  margin: 14px 0 28px;
+}
+.upload-panel small {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 16px;
+}
+@media (max-width: 700px) {
+  .stepper {
+    font-size: 8px;
+    gap: 10px;
+    margin: 25px 0;
+  }
+  .stepper i {
+    width: 20px;
+  }
+  .upload-panel {
+    padding: 40px 22px;
+  }
+  .upload-panel h2 {
+    font-size: 19px;
+  }
+  .upload-panel p {
+    font-size: 11px;
+  }
+}

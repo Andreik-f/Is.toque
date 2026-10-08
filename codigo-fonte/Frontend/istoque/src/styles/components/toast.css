@@ -1,0 +1,40 @@
+/* Mensagem de confirmação (Toast). */
+.toast {
+  position: fixed;
+  bottom: 25px;
+  left: calc(50% + 100px);
+  transform: translateX(-50%);
+  z-index: 100;
+  padding: 17px 21px;
+  border: 1px solid #d0e2d9;
+  border-radius: 12px;
+  background: var(--teal);
+  color: white;
+  box-shadow: 0 8px 25px #164d4e20;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 12px;
+  max-width: calc(100vw - 30px);
+}
+.toast > svg {
+  color: var(--mint);
+  flex-shrink: 0;
+}
+.toast button {
+  border: 0;
+  background: none;
+  color: white;
+  display: flex;
+  margin-left: 15px;
+}
+@media (max-width: 700px) {
+  .toast {
+    bottom: 88px;
+    left: 50%;
+    width: calc(100% - 30px);
+    font-size: 11px;
+    padding: 15px;
+    line-height: 1.5;
+  }
+}

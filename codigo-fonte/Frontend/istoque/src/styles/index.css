@@ -1,0 +1,30 @@
+/* Estilos da aplicação. A ordem dos @import importa: regras com a mesma
+   especificidade valem pela posição, então mantenha esta sequência ao
+   acrescentar arquivos (base, layout, componentes e telas, utilitários por
+   último). Os estilos da tela de acesso ficam em features/auth/components/auth.css. */
+@import "./base/fonts.css";
+@import "./base/tokens.css";
+@import "./base/reset.css";
+@import "./components/button.css";
+@import "./layout/app-layout.css";
+@import "./components/page-heading.css";
+@import "./features/dashboard.css";
+@import "./components/stat.css";
+@import "./features/products.css";
+@import "./components/food-art.css";
+@import "./components/badge.css";
+@import "./components/panel.css";
+@import "./components/filters.css";
+@import "./components/notice.css";
+@import "./features/recipes.css";
+@import "./features/stock.css";
+@import "./features/reports.css";
+@import "./features/users.css";
+@import "./features/imports.css";
+@import "./features/flows.css";
+@import "./components/modal.css";
+@import "./components/field.css";
+@import "./features/production.css";
+@import "./components/toast.css";
+@import "./components/empty.css";
+@import "./utilities.css";

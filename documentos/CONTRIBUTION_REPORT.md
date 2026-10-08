@@ -1,0 +1,54 @@
+# 📊 Relatório de Contribuições do Projeto
+
+**Última atualização:** 05/10/2026 00:37
+
+---
+
+## 📈 Resumo Geral de Contribuições
+
+| Aluno               |   Commits |   Linhas+ |   Linhas- |   Arquivos |   Docs Commits |   Docs Arquivos |
+|---------------------|-----------|-----------|-----------|------------|----------------|-----------------|
+| AmauriMartinez      |         6 |       563 |        81 |         18 |              0 |               0 |
+| Andreik Fernandes   |         4 |       958 |         4 |          7 |              0 |               0 |
+| Andreik-f           |         1 |        30 |         0 |          2 |              0 |               0 |
+| David               |         5 |       810 |         2 |         24 |              2 |               1 |
+| Eduardo Rezende     |        19 |     85768 |     41850 |        372 |              1 |               1 |
+| github-actions[bot] |         8 |        91 |        37 |          3 |              8 |               1 |
+
+
+## 📅 Contribuições Semanais (Todo o Semestre)
+
+**2026-09-28**: Eduardo Rezende: 7, github-actions[bot]: 5
+
+**2026-09-21**: AmauriMartinez: 2, Andreik Fernandes: 3, Eduardo Rezende: 3, github-actions[bot]: 1
+
+**2026-09-14**: AmauriMartinez: 4, Andreik Fernandes: 1, Andreik-f: 1, David: 1, Eduardo Rezende: 4, github-actions[bot]: 1
+
+**2026-09-07**: David: 4, Eduardo Rezende: 5, github-actions[bot]: 1
+
+
+
+## 📊 Visualização Gráfica
+
+![Contribuições Semanais](img/contribution-weekly.png)
+
+
+
+## ℹ️ Observações
+
+- **Commits**: Número total de commits realizados
+
+- **Linhas+**: Linhas de código adicionadas
+
+- **Linhas-**: Linhas de código removidas
+
+- **Arquivos**: Número de arquivos únicos modificados
+
+- **Docs Commits**: Commits em arquivos de documentação
+
+- **Docs Arquivos**: Arquivos de documentação modificados
+
+
+---
+
+*Relatório gerado automaticamente via GitHub Actions*
