@@ -1,4 +1,6 @@
 package br.com.istoque.infrastructure.entity;
+import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
 
 import jakarta.persistence.*;
 
@@ -25,6 +27,16 @@ public class Perfil {
     @ManyToOne(optional = false)
     @JoinColumn(name = "empresa_id", nullable = false)
     private Empresa empresa;
+
+    @Column(name = "criado_em", nullable = false, updatable = false)
+    private OffsetDateTime criadoEm;
+
+    @PrePersist
+    protected void aoCriar(){
+        this.criadoEm = OffsetDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+    }
+
+    public OffsetDateTime getCriadoEm() { return criadoEm; }
 
     public Perfil() {
     }

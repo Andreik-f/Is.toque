@@ -182,3 +182,6 @@ Dessa forma, o sistema terá como principal diferencial a integração entre est
 
 **Prioridade: Alta / Média / Baixa. 
 
+## Modelo de Dados
+
+Os modelos do banco de dados (conceitual, lógico e EER) e as decisões sobre estoque, receitas, produção, fotos e permissões estão na página [Arquitetura da Solução](08-Arquitetura%20da%20Solução.md).

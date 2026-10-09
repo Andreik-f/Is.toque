@@ -1,6 +1,6 @@
 # Referências Bibliográficas
 
-[Inclua todas as referências (livros, artigos, sites, etc) utilizados no desenvolvimento do trabalho.]
+OLIVEIRA, Celso Henrique Poderoso de. **SQL: curso prático**. São Paulo: Novatec, 2002.
 
 > **Links Úteis**:
 > - [Formato ABNT](https://www.normastecnicas.com/abnt/)
