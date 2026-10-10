@@ -437,10 +437,6 @@
   color: inherit;
   cursor: pointer;
 }
-/* Keep the label accessible and its space reserved while the field has text. */
-.access-field:has(input:not(:placeholder-shown)) .access-field-label {
-  opacity: 0;
-}
 .access-control {
   display: flex;
   align-items: center;

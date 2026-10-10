@@ -13,6 +13,10 @@
   flex-direction: column;
   padding: 31px 18px 0;
   z-index: 30;
+  /* em janelas mais baixas que o menu, ele rola em vez de esconder o Sair */
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #ffffff30 transparent;
 }
 .logo {
   font-family: Poppins, sans-serif;
