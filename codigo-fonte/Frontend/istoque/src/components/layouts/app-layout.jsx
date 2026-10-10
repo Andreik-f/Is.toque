@@ -54,7 +54,12 @@ export function AppLayout({ route, children, overlays }) {
   };
   return (
     <div className="app">
-      <aside className={"sidebar " + (mobileMenu ? "open" : "")}>
+      {/* no celular, qualquer link ou botão do menu fecha o menu, mesmo quando
+          leva à tela que já está aberta (aí a rota não muda) */}
+      <aside
+        className={"sidebar " + (mobileMenu ? "open" : "")}
+        onClick={(e) => e.target.closest("a, button") && setMobileMenu(false)}
+      >
         <a className="logo" href="#dashboard">
           <span className="logo-mark">
             <Icon name="box" size={29} />
