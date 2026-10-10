@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="60 975 900 900">
+  <title>Is.toque</title>
+  <g stroke="#22180F" stroke-width="40" stroke-linejoin="round" stroke-linecap="round">
+    <polygon points="105,1230 600,1330 905,1105 410,1005" fill="#47555A"/>
+    <polygon points="105,1230 600,1330 610,1845 110,1735" fill="#E3AC5C"/>
+    <polygon points="600,1330 905,1105 915,1620 610,1845" fill="#EBB86E"/>
+    <path d="M272,1263 L280,1425 L318,1445 L338,1405 L362,1450 L382,1412 L424,1428 L430,1296 Z" fill="#F2D6B3" stroke-width="26"/>
+  </g>
+  <ellipse cx="250" cy="1530" rx="42" ry="68" fill="#22180F"/>
+  <polyline points="470,1500 385,1555 475,1615" fill="none" stroke="#22180F" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
