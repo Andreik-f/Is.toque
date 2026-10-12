@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: Backend/istoque
+        working-directory: codigo-fonte/Backend/istoque
 
     steps:
       - name: Checkout do código
@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: Frontend/istoque
+        working-directory: codigo-fonte/Frontend/istoque
 
     steps:
       - name: Checkout do código
@@ -47,7 +47,7 @@ jobs:
         with:
           node-version: '24'
           cache: 'npm'
-          cache-dependency-path: Frontend/istoque/package-lock.json
+          cache-dependency-path: codigo-fonte/Frontend/istoque/package-lock.json
 
       - name: Instalar dependências (npm ci)
         run: npm ci
