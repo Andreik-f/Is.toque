@@ -29,7 +29,7 @@
 }
 .stat > strong {
   font-family: Poppins;
-  font-size: 30px;
+  font-size: var(--font-30);
   line-height: 36px;
   display: inline-block;
   margin-left: 12px;
@@ -38,18 +38,18 @@
 }
 .stat h3 {
   font-family: Inter;
-  font-size: 12px;
+  font-size: var(--font-12);
   margin: 15px 0 5px;
 }
 .stat p {
-  font-size: 9px;
+  font-size: var(--font-9);
 }
 .stat.warning .stat-icon {
-  background: #fff0ca;
+  background: var(--warning-soft);
   color: var(--warning);
 }
 .stat.danger .stat-icon {
-  background: #ffe2dc;
+  background: var(--danger-soft);
   color: var(--danger);
 }
 .stat-arrow {
@@ -60,7 +60,7 @@
 }
 @media (min-width: 1650px) {
   .stat p {
-    font-size: 11px;
+    font-size: var(--font-11);
   }
 }
 @media (max-width: 1200px) {
@@ -68,14 +68,14 @@
     padding: 16px 13px;
   }
   .stat > strong {
-    font-size: 26px;
+    font-size: var(--font-26);
     margin-left: 9px;
   }
   .stat-arrow {
     display: none;
   }
   .stat p {
-    font-size: 8px;
+    font-size: var(--font-8);
   }
 }
 @media (max-width: 950px) {
@@ -83,7 +83,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .stat p {
-    font-size: 10px;
+    font-size: var(--font-10);
   }
 }
 @media (max-width: 700px) {
@@ -104,15 +104,15 @@
     width: 17px;
   }
   .stat > strong {
-    font-size: 26px;
+    font-size: var(--font-26);
     margin-left: 9px;
   }
   .stat h3 {
-    font-size: 10px;
+    font-size: var(--font-10);
     margin: 13px 0 5px;
   }
   .stat p {
-    font-size: 8px;
+    font-size: var(--font-8);
     line-height: 1.6;
   }
 }

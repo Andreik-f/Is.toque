@@ -1,6 +1,6 @@
 /* Etiquetas de status (Badge). */
 .badge {
-  font-size: 9px;
+  font-size: var(--font-9);
   line-height: 16px;
   font-weight: 600;
   display: inline-flex;
@@ -9,7 +9,7 @@
   white-space: nowrap;
   border-radius: 5px;
   padding: 3px 7px;
-  background: #f0ede6;
+  background: var(--neutral-soft);
   color: var(--muted);
 }
 .badge i {
@@ -20,20 +20,20 @@
   background: currentColor;
 }
 .badge.success {
-  background: #dff5e9;
+  background: var(--success-soft);
   color: var(--success);
 }
 .badge.warning {
-  background: #fff0ca;
+  background: var(--warning-soft);
   color: var(--warning);
 }
 .badge.danger {
-  background: #ffe2dc;
+  background: var(--danger-soft);
   color: var(--danger);
 }
 @media (max-width: 700px) {
   .badge {
-    font-size: 7px;
+    font-size: var(--font-7);
     padding: 2px 5px;
     line-height: 14px;
   }

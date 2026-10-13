@@ -36,7 +36,13 @@ export const NAV_ITEMS = [
 ];
 
 // Itens do menu inferior do celular, na ordem em que aparecem.
-export const MOBILE_NAV = ["dashboard", "estoque", "receitas", "movimentacoes"];
+export const MOBILE_NAV = [
+  "dashboard",
+  "estoque",
+  "receitas",
+  "movimentacoes",
+  "relatorios",
+];
 
 // Telas de detalhe e o item do menu que fica marcado nelas.
 const PARENT_ROUTES = { produto: "estoque", receita: "receitas" };
