@@ -1,6 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { plural } from "./format.js";
+import { initials, plural } from "./format.js";
+
+test("iniciais usam as duas primeiras palavras, em maiúsculas", () => {
+  assert.equal(initials("David Rocha"), "DR");
+  assert.equal(initials("ana  maria  souza"), "AM");
+  assert.equal(initials("Cozinha"), "C");
+});
 
 test("plural usa o singular só para 1", () => {
   assert.equal(plural(1, "porção", "porções"), "1 porção");

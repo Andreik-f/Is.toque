@@ -20,10 +20,8 @@ const paths = {
   upload: "M12 16V3m-5 5 5-5 5 5 M4 15v6h16v-6",
   logout: "M9 3H3v18h6 M8 12h13m-5-5 5 5-5 5",
   clock: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18 M12 7v5l3 2",
-  filter: "M4 5h16l-6 7v7l-4 2v-9Z",
   download: "M12 3v13m-5-5 5 5 5-5 M4 17v4h16v-4",
   shield: "m12 2 8 3v7c0 5-8 10-8 10S4 17 4 12V5Z m-4 10 3 3 5-6",
-  mail: "M3 5h18v14H3Z m0 0 9 7 9-7",
   edit: "m4 16 12-12 4 4L8 20H4Z",
   menu: "M4 6h16 M4 12h16 M4 18h16",
 };

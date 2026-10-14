@@ -3,9 +3,25 @@ import { Badge } from "@/components/ui/badge.jsx";
 import { Modal } from "@/components/ui/modal.jsx";
 import { fmt, formatDate } from "@/utils/format.js";
 
+// Linha clicável: fecha o aviso e abre o produto.
+function ProductLink({ product, onClose, onOpenProduct, children }) {
+  return (
+    <button
+      className="list-link"
+      onClick={() => {
+        onClose();
+        onOpenProduct(product);
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
 // Alertas do sino: validade próxima e estoque baixo. demoDate: a data de
 // referência da demonstração (com login, null).
 export function AlertsModal({ expiring, low, demoDate, onClose, onOpenProduct }) {
+  const link = { onClose, onOpenProduct };
   return (
     <Modal
       title="Sua cozinha pede atenção"
@@ -18,14 +34,7 @@ export function AlertsModal({ expiring, low, demoDate, onClose, onOpenProduct })
     >
       <h3>Validade em até 3 dias</h3>
       {expiring.map((p) => (
-        <button
-          className="list-link"
-          key={p.id}
-          onClick={() => {
-            onClose();
-            onOpenProduct(p);
-          }}
-        >
+        <ProductLink key={p.id} product={p} {...link}>
           <span>
             {p.name}
             <small>
@@ -33,23 +42,16 @@ export function AlertsModal({ expiring, low, demoDate, onClose, onOpenProduct })
             </small>
           </span>
           <Badge tone="warning">{formatDate(p.expiry)}</Badge>
-        </button>
+        </ProductLink>
       ))}
       <h3 className="mt">Estoque baixo</h3>
       {low.map((p) => (
-        <button
-          className="list-link"
-          key={p.id}
-          onClick={() => {
-            onClose();
-            onOpenProduct(p);
-          }}
-        >
+        <ProductLink key={p.id} product={p} {...link}>
           <span>{p.name}</span>
           <strong>
             {fmt(p.stock)} {p.unit}
           </strong>
-        </button>
+        </ProductLink>
       ))}
     </Modal>
   );

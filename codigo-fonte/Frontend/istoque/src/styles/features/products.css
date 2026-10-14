@@ -57,14 +57,14 @@
   border-radius: 5px;
   padding: 4px 7px;
   background: #fffdf8e8;
-  font-size: 8px;
+  font-size: var(--font-8);
   color: #5b574e;
 }
 .product-content {
   padding: 17px 17px 12px;
 }
 .product-content h3 {
-  font-size: 12px;
+  font-size: var(--font-12);
   margin: 10px 0 16px;
   min-height: 18px;
 }
@@ -81,12 +81,12 @@
 }
 .stock-meter strong small {
   font-family: Inter;
-  font-size: 10px;
+  font-size: var(--font-10);
   font-weight: 400;
   color: var(--muted);
 }
 .stock-meter span {
-  font-size: 8px;
+  font-size: var(--font-8);
   color: var(--muted);
 }
 .meter-track {
@@ -107,7 +107,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 9px;
+  font-size: var(--font-9);
   color: var(--muted);
 }
 .product-foot svg {
@@ -143,22 +143,22 @@
   margin: 12px 0 6px;
 }
 .detail-info p {
-  font-size: 11px;
+  font-size: var(--font-11);
 }
 .detail-info .stock-meter {
   margin: 25px 0;
 }
 .detail-info .stock-meter strong {
-  font-size: 30px;
+  font-size: var(--font-30);
 }
 .detail-info .stock-meter span {
-  font-size: 11px;
+  font-size: var(--font-11);
 }
 .detail-info .button {
   margin-top: 10px;
   display: flex;
   width: 100%;
-  font-size: 11px;
+  font-size: var(--font-11);
 }
 .history-panel {
   margin-top: 24px;
@@ -179,7 +179,7 @@
   margin-bottom: 23px;
 }
 .photo-label {
-  font-size: 11px;
+  font-size: var(--font-11);
   font-weight: 600;
   margin-bottom: 11px;
 }
@@ -216,7 +216,7 @@
   min-width: 0;
 }
 .photo-controls > .button {
-  font-size: 11px;
+  font-size: var(--font-11);
   min-height: 40px;
   padding: 9px 12px;
 }
@@ -224,17 +224,17 @@
   display: block;
   margin-top: 9px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: var(--font-9);
   line-height: 1.7;
 }
 .remove-photo {
-  font-size: 10px;
+  font-size: var(--font-10);
   color: var(--danger);
   margin-left: 10px;
   min-height: 34px;
 }
 .photo-error {
-  font-size: 11px;
+  font-size: var(--font-11);
   margin-top: 10px;
 }
 @media (min-width: 1650px) {
@@ -246,10 +246,10 @@
     height: 150px;
   }
   .product-content h3 {
-    font-size: 14px;
+    font-size: var(--font-14);
   }
   .stock-meter span {
-    font-size: 10px;
+    font-size: var(--font-10);
   }
 }
 @media (max-width: 1200px) {
@@ -260,10 +260,10 @@
     padding: 14px 12px;
   }
   .product-content h3 {
-    font-size: 11px;
+    font-size: var(--font-11);
   }
   .stock-meter strong {
-    font-size: 17px;
+    font-size: var(--font-17);
   }
   .product-art {
     height: 126px;
@@ -281,7 +281,7 @@
     gap: 18px;
   }
   .product-content h3 {
-    font-size: 14px;
+    font-size: var(--font-14);
   }
   .product-art {
     height: 163px;
@@ -291,11 +291,11 @@
     width: 210px;
   }
   .stock-meter strong {
-    font-size: 23px;
+    font-size: var(--font-23);
   }
   .stock-meter span,
   .product-foot {
-    font-size: 10px;
+    font-size: var(--font-10);
   }
 }
 @media (max-width: 700px) {
@@ -324,7 +324,7 @@
     padding: 12px 11px;
   }
   .product-content h3 {
-    font-size: 10px;
+    font-size: var(--font-10);
     margin: 9px 0 12px;
     min-height: 30px;
   }
@@ -332,16 +332,16 @@
     font-size: 19px;
   }
   .stock-meter strong small {
-    font-size: 8px;
+    font-size: var(--font-8);
   }
   .stock-meter span {
-    font-size: 7px;
+    font-size: var(--font-7);
   }
   .meter-track {
     height: 4px;
   }
   .product-foot {
-    font-size: 7px;
+    font-size: var(--font-7);
     margin-top: 12px;
     padding-top: 10px;
   }
@@ -358,19 +358,22 @@
   .detail-art {
     height: 180px;
     width: 100%;
-    max-width: none !important;
     margin-bottom: 22px;
     justify-content: center;
+  }
+  /* mesma especificidade da regra de 1200px, que vem antes */
+  .product-detail .detail-art {
+    max-width: none;
   }
   .detail-art > .food-art {
     width: 220px;
     height: 160px;
   }
   .detail-info h2 {
-    font-size: 23px;
+    font-size: var(--font-23);
   }
   .detail-info .stock-meter span {
-    font-size: 11px;
+    font-size: var(--font-11);
   }
   .photo-editor {
     padding: 12px;
@@ -381,11 +384,11 @@
     height: 90px;
   }
   .photo-controls > .button {
-    font-size: 10px;
+    font-size: var(--font-10);
     padding: 8px 9px;
   }
   .photo-controls > small {
-    font-size: 8px;
+    font-size: var(--font-8);
   }
   .remove-photo {
     display: flex;

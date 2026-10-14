@@ -190,13 +190,13 @@
   place-items: center;
   flex-shrink: 0;
   border-radius: 50%;
-  background: #f5b84f;
+  background: var(--amber);
   font-size: var(--font-11);
   font-weight: 700;
   color: var(--teal);
 }
 .avatar.light {
-  background: #e4efeb;
+  background: var(--soft);
   color: var(--teal);
 }
 .user strong {
@@ -216,7 +216,7 @@
 }
 .topbar {
   height: 78px;
-  background: #fffdf8;
+  background: var(--panel);
   border-bottom: 1px solid var(--line);
   display: flex;
   align-items: center;

@@ -9,6 +9,15 @@ import {
   categoriesSeed,
   unitsSeed,
 } from "@/testing/mocks/seed-data.js";
+import { round } from "@/utils/format.js";
+import {
+  MOVEMENT_TYPES,
+  ingredientProduct,
+  isLow,
+  moveStock,
+  produce,
+  registerLotExpiry,
+} from "@/utils/inventory.js";
 
 // Estado das telas, em memória. Sem login, começa com os dados fictícios da
 // demonstração. Com login, app/company-data.jsx entrega em `initial` os dados
@@ -36,10 +45,14 @@ export function DemoStoreProvider({ children, initial = DEMO_DATA, persist }) {
   const [users, setUsers] = useState(initial.users);
   const [categories, setCategories] = useState(initial.categories);
   const [onlyLow, setOnlyLow] = useState(false);
-  // último produto e última receita abertos: valem para #produto e #receita
-  // sem id na URL e para o botão "Registrar produção" do painel
-  const [recipeId, setRecipeId] = useState("burger");
-  const [productId, setProductId] = useState("tomate");
+  // último produto e última receita abertos (o primeiro da lista, até abrir
+  // algum): valem para #produto e #receita sem id na URL e para o botão
+  // "Registrar produção" do painel
+  const [recipeId, setRecipeId] = useState(null);
+  const [productId, setProductId] = useState(null);
+
+  // produtos com saldo no mínimo ou abaixo dele
+  const lowStock = products.filter(isLow);
 
   const selectedRecipe = recipes.find((r) => r.id === recipeId) || recipes[0];
   const selectedProduct =
@@ -88,6 +101,58 @@ export function DemoStoreProvider({ children, initial = DEMO_DATA, persist }) {
     setCategories((list) => [...list, category].sort(byName));
     return category;
   };
+  // Movimentação de um produto. Lança erro, sem alterar nada, se a quantidade
+  // for inválida ou maior que o saldo. `expiry` é a validade do lote que entrou.
+  const registerMovement = (id, type, qty, reason, expiry) => {
+    const p = products.find((p) => p.id === id);
+    const updated = registerLotExpiry(moveStock(p, type, qty), expiry);
+    setProducts(products.map((p) => (p.id === id ? updated : p)));
+    addHistory([
+      { type, productId: p.id, product: p.name, qty, unit: p.unit, reason },
+    ]);
+  };
+  // Baixa todos os ingredientes da receita e registra um histórico de
+  // produção por ingrediente.
+  const registerProduction = (recipe, qty) => {
+    setProducts(produce(recipe, qty, products));
+    addHistory(
+      recipe.ingredients.map((i) => {
+        const p = ingredientProduct(i, products);
+        return {
+          type: MOVEMENT_TYPES.production,
+          productId: p.id,
+          product: p.name,
+          qty: round(i.qty * qty),
+          unit: p.unit,
+          reason: `${qty} × ${recipe.name}`,
+        };
+      }),
+    );
+  };
+  // Entradas em lote ({ id, qty }), como as de uma nota importada.
+  const registerEntries = (rows, reason) => {
+    setProducts(
+      products.map((p) => {
+        const n = rows
+          .filter((r) => r.id === p.id)
+          .reduce((s, r) => s + r.qty, 0);
+        return { ...p, stock: round(p.stock + n) };
+      }),
+    );
+    addHistory(
+      rows.map((r) => {
+        const p = products.find((p) => p.id === r.id);
+        return {
+          type: MOVEMENT_TYPES.entry,
+          productId: p.id,
+          product: p.name,
+          qty: r.qty,
+          unit: p.unit,
+          reason,
+        };
+      }),
+    );
+  };
   const resetData = () => {
     setProducts(initial.products);
     setRecipes(initial.recipes);
@@ -104,6 +169,7 @@ export function DemoStoreProvider({ children, initial = DEMO_DATA, persist }) {
     categories,
     units: initial.units,
     products,
+    lowStock,
     setProducts,
     saveProduct,
     createCategory,
@@ -117,6 +183,9 @@ export function DemoStoreProvider({ children, initial = DEMO_DATA, persist }) {
     selectedRecipe,
     selectedProduct,
     addHistory,
+    registerMovement,
+    registerProduction,
+    registerEntries,
     openRecipe,
     openProduct,
     resetData,

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { cnpjValido } from "./validation.js";
+import { cnpjValido, fieldError } from "./validation.js";
 
 test("CNPJ com ou sem máscara é aceito, inclusive o alfanumérico", () => {
   assert.equal(cnpjValido("11444777000161"), true);
@@ -14,4 +14,42 @@ test("CNPJ com tamanho ou máscara errados é recusado", () => {
   assert.equal(cnpjValido("11.444.777/0001-6"), false);
   assert.equal(cnpjValido("11444777/000161"), false);
   assert.equal(cnpjValido("114447770001AB"), false);
+});
+
+const ctx = { signup: true, senha: "", typeMismatch: false };
+
+test("campo vazio devolve a mensagem de obrigatório do campo", () => {
+  assert.equal(
+    fieldError({ name: "email", type: "email" }, "", ctx),
+    "Informe seu e-mail.",
+  );
+  assert.equal(
+    fieldError({ name: "nome" }, "   ", ctx),
+    "Informe o nome do responsável.",
+  );
+});
+
+test("cada regra de campo devolve a sua mensagem", () => {
+  assert.match(fieldError({ name: "cnpj" }, "123", ctx), /14 caracteres/);
+  assert.equal(fieldError({ name: "cnpj" }, "11444777000161", ctx), "");
+  assert.equal(
+    fieldError({ name: "email", type: "email" }, "x", {
+      ...ctx,
+      typeMismatch: true,
+    }),
+    "Digite um e-mail válido.",
+  );
+  assert.match(fieldError({ name: "senha" }, "1234567", ctx), /mínimo 8/);
+  assert.equal(
+    fieldError({ name: "senha" }, "1234567", { ...ctx, signup: false }),
+    "",
+  );
+  assert.equal(
+    fieldError({ name: "confirmacao" }, "abc", { ...ctx, senha: "abd" }),
+    "As senhas precisam ser iguais.",
+  );
+  assert.equal(
+    fieldError({ name: "confirmacao" }, "abc", { ...ctx, senha: "abc" }),
+    "",
+  );
 });

@@ -1,5 +1,6 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge.jsx";
+import { initials } from "@/utils/format.js";
 
 // currentUserId: o usuário logado, que não pode desativar a si mesmo.
 export function UsersTable({ users, currentUserId, onToggle }) {
@@ -20,13 +21,7 @@ export function UsersTable({ users, currentUserId, onToggle }) {
               <tr key={u.id}>
                 <td>
                   <div className="user-cell">
-                    <span className="avatar light">
-                      {u.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .slice(0, 2)
-                        .join("")}
-                    </span>
+                    <span className="avatar light">{initials(u.name)}</span>
                     <div>
                       <strong>{u.name}</strong>
                       <small>{u.email}</small>

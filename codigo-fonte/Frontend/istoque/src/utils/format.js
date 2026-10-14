@@ -10,5 +10,15 @@ export const formatDate = (s) =>
     month: "short",
   });
 
+// initials("david rocha silva") → "DR": iniciais das duas primeiras palavras.
+export const initials = (name) =>
+  name
+    .split(" ")
+    .filter(Boolean)
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
 // plural(1, "porção", "porções") → "1 porção"; plural(3, ...) → "3 porções".
 export const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;

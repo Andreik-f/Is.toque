@@ -5,7 +5,11 @@ import { Icon } from "@/components/ui/icon.jsx";
 import { Modal } from "@/components/ui/modal.jsx";
 import { errorMessage } from "@/lib/api-client.js";
 import { controlsExpiry } from "@/utils/inventory.js";
-import { NO_CATEGORY } from "../utils/product-api.js";
+import {
+  NO_CATEGORY,
+  productFromForm,
+  stockLimitsError,
+} from "../utils/product-api.js";
 import { PRODUCT_TYPES } from "../utils/product-types.js";
 import { ProductPhotoField } from "./product-photo-field.jsx";
 
@@ -44,8 +48,9 @@ export function ProductModal({
     e.preventDefault();
     if (photoPending || saving) return;
     const d = Object.fromEntries(new FormData(e.target));
-    if (+d.max < +d.min) {
-      setError("O estoque máximo precisa ser maior ou igual ao mínimo.");
+    const limitsError = stockLimitsError(+d.min, +d.max);
+    if (limitsError) {
+      setError(limitsError);
       return;
     }
     // a unidade não muda na edição (o campo fica desabilitado)
@@ -54,7 +59,6 @@ export function ProductModal({
       setError("Não há unidades de medida cadastradas no servidor.");
       return;
     }
-    const controls = d.controlsExpiry === "on";
     setError("");
     setSaving(true);
     try {
@@ -64,23 +68,7 @@ export function ProductModal({
         // se o produto falhar depois, a categoria já existe: o campo fica nela
         setCategoryChoice(String(category.id));
       }
-      await onSave({
-        ...product,
-        id: product?.id,
-        name: d.name.trim(),
-        type: d.type,
-        categoryId: category?.id ?? null,
-        category: category?.nome ?? NO_CATEGORY,
-        unitId: unit.id,
-        unit: unit.sigla,
-        min: +d.min,
-        max: +d.max,
-        controlsExpiry: controls,
-        expiry: controls ? product?.expiry || "" : "",
-        stock: product?.stock || 0,
-        art: product?.art || "jar",
-        photo,
-      });
+      await onSave(productFromForm({ product, form: d, category, unit, photo }));
     } catch (err) {
       setError(errorMessage(err));
     } finally {

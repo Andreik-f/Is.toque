@@ -1,8 +1,8 @@
 /* Native React layout. Values come from ISTOQUE's original Figma frames. */
 .access-page {
-  --access-teal: #164d4e;
-  --access-amber: #f5b84f;
-  --access-paper: #f9f6ef;
+  --access-teal: var(--teal);
+  --access-amber: var(--amber);
+  --access-paper: var(--paper);
   --access-texture: url("../assets/textura.jpg");
   min-height: 100svh;
   padding: 40px 24px;
@@ -151,7 +151,7 @@
   border-radius: 36px;
   background: transparent;
   box-shadow: none;
-  color: #1f1813;
+  color: var(--ink);
   text-align: center;
   font:
     600 14px/normal Inter,
@@ -241,7 +241,7 @@
   background-position: -74px -2px;
 }
 .is-signup .access-form-content h1 {
-  font-size: 28px;
+  font-size: var(--font-28);
   letter-spacing: -0.56px;
 }
 .is-signup .access-form-content form {
@@ -311,7 +311,7 @@
     border-radius: 43px 43px 0 0;
     padding: 100px 24px 25px;
     background: #fff;
-    color: #1f1813;
+    color: var(--ink);
   }
   .access-form-panel::before {
     display: none;
@@ -333,12 +333,12 @@
     gap: 20px;
   }
   .access-field input {
-    font-size: 16px;
+    font-size: var(--font-16);
     font-weight: 400;
   }
   .access-forgot {
     margin: 16px auto 0;
-    font-size: 12px;
+    font-size: var(--font-12);
     font-weight: 400;
   }
   .access-submit,
@@ -543,11 +543,11 @@
   margin-top: 24px;
   border-radius: 10px;
   padding: 12px 20px;
-  font-size: 15px;
+  font-size: var(--font-15);
 }
 .access-forgot {
   margin-top: 14px;
-  font-size: 13px;
+  font-size: var(--font-13);
   line-height: 18px;
 }
 .is-signup .access-form-panel {
@@ -560,7 +560,7 @@
   margin-top: 24px;
 }
 .is-signup .access-field-label {
-  color: #164d4e;
+  color: var(--teal);
 }
 @media (max-width: 760px) {
   .access-form-panel,
@@ -574,7 +574,7 @@
     max-width: 100%;
   }
   .access-field .access-control input {
-    font-size: 16px;
+    font-size: var(--font-16);
   }
   .access-field-label,
   .is-signup .access-field-label {
@@ -598,7 +598,7 @@
   }
   .access-mobile-switch {
     margin: 24px 0 0;
-    font-size: 13px;
+    font-size: var(--font-13);
     line-height: 20px;
   }
 }

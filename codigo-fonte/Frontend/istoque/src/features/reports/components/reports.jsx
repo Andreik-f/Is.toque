@@ -4,6 +4,7 @@ import { Empty } from "@/components/ui/empty.jsx";
 import { Icon } from "@/components/ui/icon.jsx";
 import { Stat } from "@/components/ui/stat.jsx";
 import { downloadCSV } from "@/utils/csv.js";
+import { PERIODS, inPeriod } from "@/utils/filters.js";
 import { fmt } from "@/utils/format.js";
 import { MOVEMENT_TYPES, isLow } from "@/utils/inventory.js";
 
@@ -12,25 +13,17 @@ const { entry, exit, loss, adjustment, production } = MOVEMENT_TYPES;
 // today: o "hoje" dos filtros de período. demoDate: a data de referência da
 // demonstração (com login, null).
 export function Reports({ history, products, today, demoDate }) {
-  const [period, setPeriod] = useState("Todos os registros");
-  const rows = history.filter(
-    (h) =>
-      period === "Todos os registros" ||
-      (period === "Hoje"
-        ? new Date(h.date).toLocaleDateString() === today.toLocaleDateString()
-        : new Date(h.date) >=
-          new Date(
-            today.getTime() - (period === "7 dias" ? 7 : 30) * 86400000,
-          )),
-  );
+  const [period, setPeriod] = useState(PERIODS[0]);
+  const rows = history.filter((h) => inPeriod(h.date, period, today));
   return (
     <>
       <div className="filter-bar">
         <div className="tabs">
-          {["Todos os registros", "Hoje", "7 dias", "30 dias"].map((p) => (
+          {PERIODS.map((p) => (
             <button
               key={p}
               className={period === p ? "selected" : ""}
+              aria-pressed={period === p}
               onClick={() => setPeriod(p)}
             >
               {p}

@@ -100,7 +100,12 @@ export function RecipeModal({ products, recipe, localOnly, onClose, onSave }) {
               onChange={(e) =>
                 setItems(
                   items.map((x, j) =>
-                    j === index ? { ...x, qty: +e.target.value } : x,
+                    j === index
+                      ? {
+                          ...x,
+                          qty: e.target.value === "" ? "" : +e.target.value,
+                        }
+                      : x,
                   ),
                 )
               }

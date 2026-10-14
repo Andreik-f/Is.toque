@@ -1,6 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { NO_CATEGORY, productFromApi, productToApi } from "./product-api.js";
+import {
+  NO_CATEGORY,
+  productFromApi,
+  productFromForm,
+  productToApi,
+  stockLimitsError,
+} from "./product-api.js";
 
 const dto = {
   id: 12,
@@ -56,4 +62,48 @@ test("ida e volta preserva os campos que a tela não edita (código e descriçã
 
 test("o corpo enviado não leva o saldo", () => {
   assert.equal("quantidadeAtual" in productToApi(productFromApi(dto), 7), false);
+});
+
+test("o máximo não pode ser menor que o mínimo", () => {
+  assert.match(stockLimitsError(5, 2), /máximo/);
+  assert.equal(stockLimitsError(2, 2), "");
+  assert.equal(stockLimitsError(2, 10), "");
+});
+
+test("produto do formulário mantém saldo, validade e ilustração na edição", () => {
+  const form = {
+    name: "  Queijo  ",
+    type: "insumo",
+    min: "2",
+    max: "10",
+    controlsExpiry: "on",
+  };
+  const unit = { id: 1, sigla: "kg" };
+  const edited = productFromForm({
+    product: { id: "9", stock: 4, expiry: "2026-10-01", art: "cheese" },
+    form,
+    category: { id: 3, nome: "Laticínios" },
+    unit,
+    photo: "",
+  });
+  assert.equal(edited.name, "Queijo");
+  assert.equal(edited.id, "9");
+  assert.equal(edited.stock, 4);
+  assert.equal(edited.expiry, "2026-10-01");
+  assert.equal(edited.art, "cheese");
+  assert.deepEqual([edited.min, edited.max], [2, 10]);
+
+  const created = productFromForm({
+    product: undefined,
+    form: { ...form, controlsExpiry: undefined },
+    category: undefined,
+    unit,
+    photo: "",
+  });
+  assert.equal(created.stock, 0);
+  assert.equal(created.expiry, "");
+  assert.equal(created.art, "jar");
+  assert.equal(created.category, NO_CATEGORY);
+  assert.equal(created.categoryId, null);
+  assert.equal("id" in created, false);
 });

@@ -27,6 +27,34 @@ export function productFromApi(dto) {
   };
 }
 
+// Mensagem de erro dos limites de estoque do formulário, ou "" se estão certos.
+export const stockLimitsError = (min, max) =>
+  max < min ? "O estoque máximo precisa ser maior ou igual ao mínimo." : "";
+
+// Produto das telas a partir dos campos do formulário de cadastro/edição.
+// `form` traz os valores em texto; `category` e `unit` são os escolhidos. O
+// saldo, a validade do lote e a ilustração não vêm do formulário: ficam os do
+// produto que está sendo editado.
+export function productFromForm({ product, form, category, unit, photo }) {
+  const controls = form.controlsExpiry === "on";
+  return {
+    ...product,
+    name: form.name.trim(),
+    type: form.type,
+    categoryId: category?.id ?? null,
+    category: category?.nome ?? NO_CATEGORY,
+    unitId: unit.id,
+    unit: unit.sigla,
+    min: +form.min,
+    max: +form.max,
+    controlsExpiry: controls,
+    expiry: controls ? product?.expiry || "" : "",
+    stock: product?.stock || 0,
+    art: product?.art || "jar",
+    photo,
+  };
+}
+
 // Corpo do cadastro e da edição. O saldo não vai: no cadastro ele começa em
 // zero e, depois, só muda por movimentação (HT014).
 export function productToApi(product, empresaId) {

@@ -1,6 +1,11 @@
 import React, { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button.jsx";
 import { Icon } from "@/components/ui/icon.jsx";
+import {
+  IMAGE_TYPES,
+  imageFileError,
+  readImageFile,
+} from "../utils/image-file.js";
 
 // Foto opcional do produto (RF-34), lida no navegador. localOnly: com login,
 // avisa que a foto ainda não é gravada no servidor.
@@ -19,48 +24,31 @@ export function ProductPhotoField({ value, localOnly, onChange, onPending }) {
     [],
   );
 
-  function choose(file) {
+  async function choose(file) {
     if (!file) return;
     const current = ++request.current;
     setError("");
     setLoading(false);
     onPending(false);
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      setError("Formato não aceito. Escolha uma imagem JPG, PNG ou WebP.");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setError("A imagem ultrapassa 5 MB. Escolha um arquivo menor.");
+    const invalid = imageFileError(file);
+    if (invalid) {
+      setError(invalid);
       return;
     }
     setLoading(true);
     onPending(true);
-    const finish = (message = "") => {
-      if (current !== request.current) return;
-      setError(message);
-      setLoading(false);
-      onPending(false);
-    };
-    const reader = new FileReader();
-    reader.onerror = () =>
-      finish("Não foi possível ler a imagem. Tente outro arquivo.");
-    reader.onload = () => {
-      if (current !== request.current) return;
-      const photo = new Image();
-      photo.onload = () => {
-        if (current !== request.current) return;
-        if (!photo.naturalWidth || !photo.naturalHeight) {
-          finish("A imagem está inválida. Escolha outro arquivo.");
-          return;
-        }
-        onChange(String(reader.result));
-        finish();
-      };
-      photo.onerror = () =>
-        finish("A imagem está inválida ou corrompida. Escolha outro arquivo.");
-      photo.src = String(reader.result);
-    };
-    reader.readAsDataURL(file);
+    let photo = "";
+    let message = "";
+    try {
+      photo = await readImageFile(file);
+    } catch (e) {
+      message = e.message;
+    }
+    if (current !== request.current) return;
+    if (photo) onChange(photo);
+    setError(message);
+    setLoading(false);
+    onPending(false);
   }
 
   return (
@@ -84,7 +72,7 @@ export function ProductPhotoField({ value, localOnly, onChange, onPending }) {
             tabIndex={-1}
             aria-label="Foto do produto"
             aria-describedby={hintId}
-            accept="image/jpeg,image/png,image/webp"
+            accept={IMAGE_TYPES.join(",")}
             onChange={(event) => {
               choose(event.target.files?.[0]);
               event.target.value = "";

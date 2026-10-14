@@ -12,13 +12,14 @@ import { navigate } from "@/hooks/use-hash-route.js";
 import { useDemoStore } from "@/stores/demo-store.jsx";
 import { useUiStore } from "@/stores/ui-store.jsx";
 import { plural } from "@/utils/format.js";
-import { capacity, isExpiringSoon, isLow } from "@/utils/inventory.js";
+import { capacity, isExpiringSoon } from "@/utils/inventory.js";
 
 export function DashboardRoute() {
   const {
     demo,
     today,
     products,
+    lowStock: low,
     recipes,
     history,
     selectedRecipe,
@@ -27,9 +28,8 @@ export function DashboardRoute() {
     openProduct,
   } = useDemoStore();
   const { openModal } = useUiStore();
-  const low = products.filter(isLow);
   const expiring = products.filter((p) => isExpiringSoon(p, today));
-  const portions = recipes[0] ? capacity(recipes[0], products) : 0;
+  const portions = selectedRecipe ? capacity(selectedRecipe, products) : 0;
   const showLowStock = () => {
     setOnlyLow(true);
     navigate("estoque");
@@ -153,10 +153,10 @@ export function DashboardRoute() {
         </section>
         <section className="production-preview">
           <span className="eyebrow">O QUE DÁ PARA PREPARAR?</span>
-          {recipes[0] ? (
+          {selectedRecipe ? (
             <>
-              <FoodArt kind={recipes[0].art} />
-              <h3>{recipes[0].name}</h3>
+              <FoodArt kind={selectedRecipe.art} />
+              <h3>{selectedRecipe.name}</h3>
               <div>
                 <strong>{portions}</strong>
                 <span>
@@ -165,7 +165,10 @@ export function DashboardRoute() {
                   {portions === 1 ? "disponível agora" : "disponíveis agora"}
                 </span>
               </div>
-              <Button variant="primary" onClick={() => openRecipe(recipes[0])}>
+              <Button
+                variant="primary"
+                onClick={() => openRecipe(selectedRecipe)}
+              >
                 Abrir ficha técnica <Icon name="arrow" size={16} />
               </Button>
             </>

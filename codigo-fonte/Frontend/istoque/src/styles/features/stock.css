@@ -1,6 +1,6 @@
 /* Movimentação e reposição. */
 .purchase-qty {
-  background: #e4efeb;
+  background: var(--soft);
   color: var(--teal);
   padding: 8px 12px;
   border-radius: 7px;
@@ -8,7 +8,7 @@
 }
 .segmented {
   display: flex;
-  background: #f0ede6;
+  background: var(--neutral-soft);
   padding: 4px;
   border-radius: 10px;
   margin-bottom: 25px;
@@ -19,7 +19,7 @@
   border: 0;
   border-radius: 7px;
   padding: 11px 6px;
-  font-size: 11px;
+  font-size: var(--font-11);
 }
 .segmented .selected {
   background: var(--teal);
@@ -31,7 +31,7 @@
 }
 .balance span {
   display: block;
-  font-size: 10px;
+  font-size: var(--font-10);
   color: var(--muted);
   margin-bottom: 7px;
 }
@@ -46,17 +46,17 @@
   background: var(--soft);
   padding: 17px;
   border-radius: 9px;
-  font-size: 11px;
+  font-size: var(--font-11);
   color: var(--teal);
 }
 .new-balance strong {
-  font-size: 16px;
+  font-size: var(--font-16);
 }
 @media (max-width: 700px) {
   .new-balance {
-    font-size: 9px;
+    font-size: var(--font-9);
   }
   .new-balance strong {
-    font-size: 13px;
+    font-size: var(--font-13);
   }
 }

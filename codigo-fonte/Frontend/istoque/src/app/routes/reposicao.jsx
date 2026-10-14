@@ -6,12 +6,10 @@ import { ReplenishmentList } from "@/features/stock/components/replenishment-lis
 import { useDemoStore } from "@/stores/demo-store.jsx";
 import { useUiStore } from "@/stores/ui-store.jsx";
 import { plural } from "@/utils/format.js";
-import { isLow } from "@/utils/inventory.js";
 
 export function ReposicaoRoute() {
-  const { products } = useDemoStore();
+  const { lowStock: low } = useDemoStore();
   const { openModal } = useUiStore();
-  const low = products.filter(isLow);
   return (
     <>
       <PageHeading

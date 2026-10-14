@@ -12,16 +12,7 @@ import { navigate } from "@/hooks/use-hash-route.js";
 import { useDemoStore } from "@/stores/demo-store.jsx";
 import { useSession } from "@/stores/session-store.jsx";
 import { useUiStore } from "@/stores/ui-store.jsx";
-import { round } from "@/utils/format.js";
-import {
-  MOVEMENT_TYPES,
-  ingredientProduct,
-  isExpiringSoon,
-  isLow,
-  moveStock,
-  produce,
-  registerLotExpiry,
-} from "@/utils/inventory.js";
+import { isExpiringSoon } from "@/utils/inventory.js";
 
 // Modais de operação, abertos de várias telas. Cada um grava o resultado no
 // estado das telas (produtos também na API, com login) e mostra a confirmação.
@@ -33,14 +24,15 @@ export function AppModals() {
     categories,
     units,
     products,
-    setProducts,
+    lowStock,
     saveProduct,
     createCategory,
     recipes,
     setRecipes,
     users,
     setUsers,
-    addHistory,
+    registerMovement,
+    registerProduction,
     openProduct,
   } = useDemoStore();
   const { session } = useSession();
@@ -82,22 +74,7 @@ export function AppModals() {
         userName={userName}
         localOnly={localOnly}
         onClose={closeModal}
-        onConfirm={(qty) => {
-          setProducts(produce(modal.recipe, qty, products));
-          addHistory(
-            modal.recipe.ingredients.map((i) => {
-              const p = ingredientProduct(i, products);
-              return {
-                type: MOVEMENT_TYPES.production,
-                productId: p.id,
-                product: p.name,
-                qty: round(i.qty * qty),
-                unit: p.unit,
-                reason: `${qty} × ${modal.recipe.name}`,
-              };
-            }),
-          );
-        }}
+        onConfirm={(qty) => registerProduction(modal.recipe, qty)}
       />
     );
 
@@ -109,12 +86,7 @@ export function AppModals() {
         localOnly={localOnly}
         onClose={closeModal}
         onSave={(id, type, qty, reason, expiry) => {
-          const p = products.find((p) => p.id === id);
-          const updated = registerLotExpiry(moveStock(p, type, qty), expiry);
-          setProducts(products.map((p) => (p.id === id ? updated : p)));
-          addHistory([
-            { type, productId: p.id, product: p.name, qty, unit: p.unit, reason },
-          ]);
+          registerMovement(id, type, qty, reason, expiry);
           closeModal();
           notify(
             localOnly
@@ -192,7 +164,7 @@ export function AppModals() {
     return (
       <AlertsModal
         expiring={products.filter((p) => isExpiringSoon(p, today))}
-        low={products.filter(isLow)}
+        low={lowStock}
         demoDate={demo ? DEMO_TODAY_LABEL : null}
         onClose={closeModal}
         onOpenProduct={openProduct}

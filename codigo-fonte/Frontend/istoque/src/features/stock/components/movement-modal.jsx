@@ -8,6 +8,18 @@ import { MOVEMENT_TYPES, controlsExpiry, moveStock } from "@/utils/inventory.js"
 
 const { entry, exit, loss, adjustment } = MOVEMENT_TYPES;
 
+// Saldo depois da movimentação, ou null se a quantidade (texto do campo) está
+// vazia ou é inválida. Campo vazio não vale como 0: no ajuste, 0 é um saldo
+// válido e apareceria antes de o usuário digitar.
+function balanceAfter(product, type, qty) {
+  if (qty === "") return null;
+  try {
+    return moveStock(product, type, Number(qty)).stock;
+  } catch {
+    return null;
+  }
+}
+
 // localOnly: com login, avisa que a movimentação ainda não vai para a API.
 export function MovementModal({
   products,
@@ -25,10 +37,7 @@ export function MovementModal({
   const p = products.find((p) => p.id === id);
   // a validade é do lote: pedida só na entrada de produto que controla validade
   const askExpiry = type === entry && controlsExpiry(p);
-  let after;
-  try {
-    after = moveStock(p, type, Number(qty)).stock;
-  } catch {}
+  const after = balanceAfter(p, type, qty);
   return (
     <Modal
       title="Movimentar estoque"
@@ -118,7 +127,7 @@ export function MovementModal({
         <div className="new-balance">
           <span>Saldo após a movimentação</span>
           <strong>
-            {after === undefined
+            {after === null
               ? "Quantidade inválida"
               : fmt(after) + " " + p.unit}
           </strong>
@@ -144,7 +153,7 @@ export function MovementModal({
           <Button
             type="submit"
             disabled={
-              after === undefined ||
+              after === null ||
               !qty ||
               reason.trim().length < 3 ||
               (askExpiry && !expiry)

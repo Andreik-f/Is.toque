@@ -9,21 +9,21 @@ import { navigate } from "@/hooks/use-hash-route.js";
 import { useDemoStore } from "@/stores/demo-store.jsx";
 import { useSession } from "@/stores/session-store.jsx";
 import { useUiStore } from "@/stores/ui-store.jsx";
-import { isLow } from "@/utils/inventory.js";
+import { ALL, filterProducts } from "@/utils/filters.js";
 
 export function EstoqueRoute() {
-  const { products, onlyLow, setOnlyLow, openProduct } = useDemoStore();
+  const {
+    products,
+    lowStock: low,
+    onlyLow,
+    setOnlyLow,
+    openProduct,
+  } = useDemoStore();
   const { session } = useSession();
   const { openModal } = useUiStore();
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("Todos");
-  const low = products.filter(isLow);
-  const visible = products.filter(
-    (p) =>
-      (!search || p.name.toLowerCase().includes(search.toLowerCase())) &&
-      (category === "Todos" || p.category === category) &&
-      (!onlyLow || isLow(p)),
-  );
+  const [category, setCategory] = useState(ALL);
+  const visible = filterProducts(products, { search, category, onlyLow });
   return (
     <>
       <PageHeading
@@ -72,10 +72,11 @@ export function EstoqueRoute() {
         </div>
       </div>
       <div className="tabs">
-        {["Todos", ...new Set(products.map((p) => p.category))].map((c) => (
+        {[ALL, ...new Set(products.map((p) => p.category))].map((c) => (
           <button
             key={c}
             className={category === c ? "selected" : ""}
+            aria-pressed={category === c}
             onClick={() => setCategory(c)}
           >
             {c}
@@ -101,7 +102,7 @@ export function EstoqueRoute() {
               variant="secondary"
               onClick={() => {
                 setSearch("");
-                setCategory("Todos");
+                setCategory(ALL);
                 setOnlyLow(false);
               }}
             >

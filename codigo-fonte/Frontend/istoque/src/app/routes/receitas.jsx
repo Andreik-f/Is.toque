@@ -7,14 +7,13 @@ import { routeSubtitle, routeTitle } from "@/config/paths.js";
 import { RecipeGrid } from "@/features/recipes/components/recipe-grid.jsx";
 import { useDemoStore } from "@/stores/demo-store.jsx";
 import { useUiStore } from "@/stores/ui-store.jsx";
+import { matchesSearch } from "@/utils/filters.js";
 
 export function ReceitasRoute() {
   const { products, recipes, openRecipe } = useDemoStore();
   const { openModal } = useUiStore();
   const [search, setSearch] = useState("");
-  const found = recipes.filter((r) =>
-    r.name.toLowerCase().includes(search.toLowerCase()),
-  );
+  const found = recipes.filter((r) => matchesSearch(r.name, search));
   return (
     <>
       <PageHeading
