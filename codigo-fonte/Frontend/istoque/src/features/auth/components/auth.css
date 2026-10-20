@@ -35,7 +35,7 @@
   padding: 115px 10px 80px 25px;
   background: var(--access-amber);
   border-radius: 43px 0 0 43px;
-  color: #fff;
+  color: var(--access-teal);
 }
 .access-promo-copy {
   font:
@@ -56,7 +56,7 @@
   min-height: 41px;
   border: 0;
   border-radius: 99px;
-  color: #fff;
+  color: var(--access-teal);
   background: var(--access-amber);
   font:
     600 14px/17px Inter,
@@ -82,6 +82,7 @@
 .access-promo .access-button {
   margin: 40px 0 0 39px;
   background: var(--access-teal);
+  color: #fff;
 }
 .access-form-panel {
   position: relative;
@@ -101,6 +102,7 @@
   background-image: var(--access-texture);
   background-size: 840px 560px;
   background-position: -79px -7px;
+  background-repeat: no-repeat;
   opacity: 0.18;
   pointer-events: none;
 }
@@ -221,6 +223,7 @@
   padding: 158px 20px 65px 30px;
   border-radius: 0 43px 43px 0;
   background: var(--access-teal);
+  color: #fff;
 }
 .is-signup .access-promo-copy {
   max-width: 275px;
@@ -228,6 +231,7 @@
 .is-signup .access-promo .access-button {
   margin: 40px 0 0 63px;
   background: var(--access-amber);
+  color: var(--access-teal);
 }
 .is-signup .access-form-panel {
   grid-column: 1;
@@ -235,10 +239,18 @@
   padding: 20px 62px 27px 0;
   border-radius: 43px 0 0 43px;
   background: var(--access-amber);
+  color: var(--access-teal);
+}
+.is-signup .access-form-panel .access-button:focus-visible,
+.is-signup .access-form-panel .access-forgot:focus-visible {
+  outline-color: var(--access-teal);
 }
 .is-signup .access-form-panel::before {
-  background-size: 690px 460px;
-  background-position: -74px -2px;
+  background-image: url("../assets/textura-cadastro.svg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.19;
 }
 .is-signup .access-form-content h1 {
   font-size: var(--font-28);
@@ -263,6 +275,7 @@
   margin-top: 30px;
   border-radius: 6px;
   background: var(--access-teal);
+  color: #fff;
 }
 .is-signup .access-mascot {
   left: calc(61.5839% - 110px);
@@ -468,7 +481,7 @@
   box-shadow: none;
 }
 .access-field .access-control input::placeholder {
-  color: #75827e;
+  color: #5f6d69;
   font-weight: 400;
 }
 .access-field .access-control input:focus,
@@ -483,6 +496,9 @@
 .access-control:focus-within {
   border-color: var(--access-amber);
   box-shadow: 0 0 0 3px rgb(245 184 79 / 28%);
+}
+.is-signup .access-control {
+  border-color: var(--access-teal);
 }
 .is-signup .access-control:focus-within {
   border-color: var(--access-teal);

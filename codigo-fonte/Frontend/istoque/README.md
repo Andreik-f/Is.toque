@@ -70,7 +70,7 @@ O cadastro e a edição aceitam uma foto opcional JPEG/JPG, PNG ou WebP até 5 M
 
 Login: e-mail do usuário e senha. Cadastro: razão social, CNPJ, nome do responsável, e-mail, senha e confirmação. Os campos seguem a modelagem de dados e o contrato da API (`POST /api/auth/login` e `POST /api/auth/cadastro`), e as regras de validação ficam em `features/auth/utils/validation.js`; confirmação serve somente à interface. Nome fantasia, telefone e contato da empresa ficaram para uma etapa posterior do cadastro.
 
-Em `features/auth/components/`, `auth-screen.jsx` compõe a tela, `access-form.jsx` tem o formulário, `auth-controls.jsx` reúne controles reutilizáveis e `auth.css` define o layout responsivo. As imagens da tela são `mascote.png` e `textura.jpg`, em `features/auth/assets/`; textos, campos e botões são HTML.
+Em `features/auth/components/`, `auth-screen.jsx` compõe a tela, `access-form.jsx` tem o formulário, `auth-controls.jsx` reúne controles reutilizáveis e `auth.css` define o layout responsivo. As imagens da tela são `mascote.png`, `textura.jpg` (textura com linhas contínuas, 1920×1279 px) e `textura-cadastro.svg` (arte vertical do painel do cadastro), em `features/auth/assets/`; textos, campos e botões são HTML.
 
 A interface segue a paleta e a composição do Figma. No computador, o cartão tem até 846 px de largura e cresce conforme os campos e os erros; no celular, o layout se reorganiza. A curva lateral é vetorial e decorativa.
 

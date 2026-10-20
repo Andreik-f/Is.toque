@@ -106,15 +106,16 @@
   position: absolute;
   right: 0;
   width: 18px;
-  height: 18px;
+  height: 19px;
+  pointer-events: none;
 }
 .sidebar nav a.active::before {
-  bottom: 100%;
-  background: radial-gradient(circle at 0 0, var(--teal) 17px, var(--paper) 18px);
+  bottom: calc(100% - 1px);
+  background: radial-gradient(circle at 0 0, transparent 17.5px, var(--paper) 18.5px);
 }
 .sidebar nav a.active::after {
-  top: 100%;
-  background: radial-gradient(circle at 0 100%, var(--teal) 17px, var(--paper) 18px);
+  top: calc(100% - 1px);
+  background: radial-gradient(circle at 0 100%, transparent 17.5px, var(--paper) 18.5px);
 }
 .sidebar nav a.active > svg:first-child {
   box-sizing: content-box;
