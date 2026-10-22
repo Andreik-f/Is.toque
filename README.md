@@ -1,13 +1,16 @@
 # IS.TOQUE
 
-`ANALISE E DESENVOLVIMENTO DE SISTEMAS`
+`ANÁLISE E DESENVOLVIMENTO DE SISTEMAS`
 
 `Trabalho Interdisciplinar: Desenvolvimento de Aplicação Interativa`
 
-`SEMESTRE`
+`2º SEMESTRE DE 2026`
 
-[Um sistema de gerenciamento de estoque para microempresas, focado em entrada única de produto e saida baseada em receitas.
-1.0 - foco em Restaurantes.]
+O IS.TOQUE é um sistema de gerenciamento de estoque para restaurantes e microempresas. A proposta é reunir o cadastro de produtos, o controle de entradas, saídas, perdas e descartes e o gerenciamento de receitas. Seu diferencial é calcular a capacidade de produção a partir dos insumos disponíveis e dar baixa nos ingredientes ao registrar uma produção.
+
+Na etapa atual, o projeto possui frontend em React com Vite e backend em Java 21 com Spring Boot e PostgreSQL. O cadastro de empresa e administrador, o login e o cadastro e a consulta de produtos e categorias já estão integrados à API, assim como a consulta de unidades de medida. O repositório também possui testes automatizados e integração contínua com GitHub Actions.
+
+As interfaces de movimentações, receitas, produção, relatórios e equipe estão disponíveis com operações em memória, ainda sem persistência pela API. As fotos dos produtos também permanecem apenas na interface, e a importação de notas fiscais utiliza dados simulados. A integração desses recursos e a proteção das rotas por autenticação e permissões continuam em desenvolvimento.
 
 ## Integrantes
 
@@ -35,7 +38,8 @@
 
 # Hospedagem
 
-* Insira o endereço eletrônico público de acesso ao conteúdo publicado. 
+* API de produção (Render): [https://is-toque-prod.onrender.com](https://is-toque-prod.onrender.com).
+* Frontend: endereço público ainda não registrado no repositório. A publicação do frontend e a atualização e integração do ambiente de produção são acompanhadas na [tarefa HT034](https://github.com/ICEI-PUC-Minas-PBR-ADS/pbr-ads-2026-2-p1-tidai-t1-8246101-pbr-ads-2026-2-p1-tidai-t-davidwsr1/issues/64).
 
 # Código-Fonte
 
@@ -43,4 +47,4 @@
 
 # Apresentação
 
-* <a href="apresentacao/README.md">Apresentação do Projeto</a>
+* <a href="documentação/apresentação/README.md">Apresentação do Projeto</a>

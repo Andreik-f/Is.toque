@@ -1,18 +1,26 @@
 # Introdução
 
-[Aqui a equipe deve criar um texto descritivo com a visão geral do problema abordado, apresentando o ambiente e as situações envolvidas no problema.]
+O gerenciamento de estoque faz parte da rotina de restaurantes, lanchonetes e pequenos estabelecimentos alimentícios. Nesses negócios, produtos e insumos são recebidos, armazenados e utilizados no preparo de diferentes receitas, enquanto também podem ocorrer perdas, descartes e divergências entre as quantidades registradas e as disponíveis fisicamente.
+
+Quando essas informações ficam dispersas em anotações, planilhas ou registros que não acompanham a produção, o responsável pelo estabelecimento pode ter dificuldade para identificar o saldo de cada produto, acompanhar a validade dos alimentos e planejar reposições. Além de conhecer a quantidade de cada ingrediente, é necessário entender quais preparações podem ser produzidas com o estoque existente.
+
+Nesse contexto, o IS.TOQUE tem como proposta integrar o controle de estoque ao gerenciamento de receitas e ao registro da produção. O projeto concentra-se no controle interno dos produtos e insumos, relacionando sua disponibilidade às quantidades necessárias para cada preparação e oferecendo informações para o acompanhamento das movimentações e das perdas.
 
 ## Problema
-[Aqui a equipe deve fornecer uma descrição detalhada do problema a ser resolvido. Não é o momento adequado para abordar questões técnicas relacionadas ao desenvolvimento da aplicação. O objetivo é compreender e comunicar de maneira precisa qual é o desafio ou necessidade que motiva a criação da aplicação.]
 
-Este link pode ajudar a equipe a entender mais sobre definição do problema: [Objetivos, Problema de pesquisa e Justificativa.](https://medium.com/@versioparole/objetivos-problema-de-pesquisa-e-justificativa-c98c8233b9c3)
+O problema abordado pelo projeto é a dificuldade de manter informações atualizadas e integradas sobre os insumos disponíveis e sua utilização na produção de alimentos. O controle isolado das quantidades de cada produto não permite determinar diretamente quantas unidades de uma receita podem ser preparadas, pois essa capacidade depende da disponibilidade de todos os ingredientes envolvidos.
 
+Por exemplo, um estabelecimento pode possuir pães e hambúrgueres suficientes para preparar vinte sanduíches, mas queijo para apenas oito. Nesse caso, a quantidade de queijo limita a produção, mesmo que os demais ingredientes estejam disponíveis em maior quantidade. Quando essa relação é conferida manualmente, o planejamento exige verificações adicionais e pode se basear em uma disponibilidade maior do que a real.
+
+Outra dificuldade ocorre quando o consumo dos ingredientes não é registrado junto com a produção. A retirada de vários produtos para uma mesma receita pode deixar de ser anotada ou ser registrada de forma incompleta, provocando diferenças entre o estoque físico e o registrado. Sem histórico e identificação das operações, também se torna mais difícil compreender a origem dessas diferenças e acompanhar perdas, descartes e ajustes.
+
+Essas situações podem resultar em falta de ingredientes durante o preparo, compras desnecessárias, acúmulo de produtos e aproveitamento inadequado de alimentos próximos do vencimento. A necessidade central é relacionar estoque, composição das receitas e produção, permitindo que os responsáveis saibam o que está disponível, o que pode ser produzido e quais itens precisam de reposição.
 
 ## Objetivos
 
 ### Objetivo Geral
 
-Desenvolver um sistema de gerenciamento de estoque destinado a restaurantes e pequenos negócios, permitindo controlar produtos, insumos, entradas, saídas, receitas e produção de forma organizada e integrada, proporcionando maior controle sobre os recursos disponíveis, redução de perdas e apoio à tomada de decisões relacionadas ao abastecimento e à utilização dos produtos.
+Desenvolver um sistema de gerenciamento de estoque destinado a restaurantes e pequenos negócios, integrando o controle de produtos, insumos, movimentações, receitas e produção, com o objetivo de apoiar o planejamento de reposições, o acompanhamento do consumo e a identificação de perdas e desperdícios.
 
 ### Objetivos Específicos
 
@@ -22,48 +30,48 @@ b) Permitir o gerenciamento de usuários com diferentes perfis e níveis de aces
 
 c) Controlar as entradas e saídas de produtos do estoque;
 
-d) Permitir o acompanhamento da quantidade disponível de cada produto;
+d) Permitir o acompanhamento da quantidade disponível de cada produto, respeitando sua unidade de medida;
 
 e) Permitir o estabelecimento de níveis mínimos e máximos de estoque;
 
-f) Identificar produtos que estejam abaixo do estoque mínimo estabelecido;
+f) Identificar produtos com quantidade igual ou inferior ao estoque mínimo estabelecido;
 
-g) Registrar o histórico das movimentações realizadas no estoque;
+g) Registrar o histórico das movimentações, incluindo quantidade, data e usuário responsável;
 
-h) Permitir o registro de perdas, descartes e ajustes de estoque;
+h) Permitir o registro de perdas, descartes e ajustes de estoque, com justificativa nos casos aplicáveis;
 
-i) Permitir o cadastro de receitas utilizando produtos previamente registrados no estoque;
+i) Permitir o cadastro de receitas com produtos previamente registrados e com a quantidade de cada ingrediente necessária para produzir uma unidade;
 
-j) Calcular a quantidade máxima de receitas que pode ser produzida com base na disponibilidade atual dos produtos;
+j) Calcular a quantidade máxima de unidades de uma receita que pode ser produzida com base na disponibilidade atual dos ingredientes;
 
-k) Identificar os produtos que limitam a capacidade de produção de uma determinada receita;
+k) Identificar os produtos que limitam a capacidade de produção de uma receita;
 
-l) Permitir o registro da produção de receitas e realizar automaticamente a baixa dos produtos utilizados;
+l) Permitir o registro da quantidade produzida e realizar automaticamente a baixa conjunta dos ingredientes utilizados;
 
 m) Atualizar a capacidade de produção das receitas após alterações no estoque;
 
 n) Auxiliar o estabelecimento no planejamento de compras e reposição de produtos;
 
-o) Fornecer informações que auxiliem na redução de desperdícios e perdas de estoque.
+o) Disponibilizar informações por período para acompanhar movimentações, consumo e perdas de estoque;
 
-Este link pode ajudar a equipe a entender mais sobre definição dos objetivos: [Objetivos, Problema de pesquisa e Justificativa.](https://medium.com/@versioparole/objetivos-problema-de-pesquisa-e-justificativa-c98c8233b9c3)
+p) Permitir o acompanhamento da validade dos produtos sujeitos a esse controle, identificando itens próximos do vencimento ou vencidos.
 
 ## Justificativa
 
-[Aqui a equipe deve descrever a importância ou a motivação para trabalhar com o problema definido. Indique as razões pelas quais a equipe escolheu o problema e definiu os objetivos.
+A escolha do tema se justifica pela relação entre o controle dos insumos e a organização da produção em pequenos estabelecimentos alimentícios. Informações atualizadas sobre quantidades, movimentações e validade podem apoiar decisões de compra e preparo, além de permitir o acompanhamento dos produtos que deixam de estar disponíveis por perdas ou descartes.
 
-Devem ser apresentados dados de fontes relevantes e confiáveis sobre o problema, inserindo-o como alvo de estudo. Sugere-se que a equipe utilize questionários, entrevistas e dados estatísticos, que devem ser apresentados, com o objetivo de esclarecer detalhes do problema que será abordado pela equipe.]
+A dimensão do desperdício de alimentos reforça a relevância do tema. Segundo o [Programa das Nações Unidas para o Meio Ambiente — PNUMA (2024)](https://brasil.un.org/pt-br/264460-%C3%ADndice-de-desperd%C3%ADcio-de-alimentos-2024), foram gerados aproximadamente 1,05 bilhão de toneladas de resíduos alimentares no mundo em 2022, incluindo partes não comestíveis. Desse total, 28% tiveram origem nos serviços de alimentação. O levantamento tem abrangência mundial e serve como contextualização da importância de acompanhar o uso e o desperdício de alimentos no setor.
 
-Este link pode ajudar a equipe a formular a justificativa: [Como montar a justificativa.](https://guiadamonografia.com.br/como-montar-justificativa-do-tcc/)
+A relação entre receitas e estoque também encontra apoio nas orientações do [Sebrae, na ficha de serviço “Elaboração de cardápio e/ou fichas técnicas para segmentos de alimentação”](https://portfolio-sebraetec.sebrae.com.br/fichas/14062-9--elaboracao-de-cardapio-e-ou-fichas-tecnicas-para-segmentos-de-alimentacao). A instituição apresenta a estimativa de uso dos ingredientes, a melhoria do controle de estoque e a prevenção do desperdício entre os benefícios esperados dessa organização. A ficha técnica reúne informações sobre os ingredientes, as unidades e as quantidades utilizadas em cada preparação.
+
+Com base nesse contexto, o diferencial proposto pelo IS.TOQUE é associar a composição das receitas ao saldo dos ingredientes, possibilitando calcular a capacidade de produção e registrar o consumo de vários insumos em uma mesma operação. Espera-se, assim, oferecer apoio ao planejamento e tornar mais organizado o acompanhamento das movimentações. A redução de perdas constitui um resultado esperado, a ser avaliado durante a utilização do sistema.
+
+No âmbito acadêmico, o projeto permite aplicar os conhecimentos de análise de requisitos, modelagem de dados, desenvolvimento de interfaces e implementação de regras de negócio a um problema de gestão. A conexão entre estoque e produção orienta o desenvolvimento de uma solução alinhada às atividades do público-alvo.
 
 ## Público-Alvo
 
-O sistema será destinado principalmente a restaurantes, lanchonetes, bares, pequenos estabelecimentos alimentícios e outros pequenos negócios que necessitem realizar o controle de produtos, matérias-primas, insumos e produção.
+O público-alvo principal do IS.TOQUE é formado por restaurantes, lanchonetes, bares e outros pequenos estabelecimentos alimentícios que precisam controlar produtos e insumos utilizados em preparações. A proposta também contempla pequenos negócios com rotinas semelhantes de consumo de matérias-primas e registro de produção.
 
-O sistema poderá ser utilizado por proprietários, administradores, gerentes e funcionários responsáveis pelo controle, armazenamento, reposição, produção e utilização dos produtos.
+Os usuários previstos são proprietários, administradores, gerentes e funcionários que atuam no recebimento, armazenamento, reposição e utilização dos produtos. Os proprietários e gerentes necessitam de uma visão do estoque, das perdas e das necessidades de compra; os administradores organizam os usuários e seus níveis de acesso; e os funcionários registram as operações de estoque e produção conforme suas responsabilidades.
 
-Os links abaixo podem ajudar a equipe a conhecer um pouco mais sobre o público-alvo. 
-
-> - [Público-alvo](https://blog.hotmart.com/pt-br/publico-alvo/)
-> - [Público-alvo: o que é, tipos, como definir seu público e exemplos](https://klickpages.com.br/blog/publico-alvo-o-que-e/)
-
+O projeto é direcionado especialmente a estabelecimentos que necessitam reunir essas informações em um mesmo ambiente e relacionar a disponibilidade dos ingredientes à capacidade de produzir suas receitas.
