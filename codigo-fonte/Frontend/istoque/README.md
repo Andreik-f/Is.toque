@@ -46,15 +46,17 @@ src/
 ├── config/              → rotas e menu, data de referência, empresa e usuário da demonstração
 ├── features/            → auth, products, stock, recipes, production, users, reports, imports (cada uma com api/ quando chama a API)
 ├── hooks/               → navegação por hash (#estoque, #produto/12...)
-├── lib/                 → cliente HTTP da API (com testes)
+├── lib/                 → cliente HTTP da API e apoio às animações (com testes)
 ├── stores/              → sessão, estado das telas e da interface (modal e aviso)
 ├── testing/mocks/       → dados fictícios
-└── utils/               → formatação, CSV e regras de estoque (com testes)
+└── utils/               → formatação, CSV, regras de estoque e expressão do mascote (com testes)
 ```
 
 Imports usam o alias `@/` para `src/` (ex.: `@/components/ui/button.jsx`).
 
-Os estilos ficam em `src/styles/`: `base/` (fontes, cores, reset), `layout/` (menu lateral e barra do topo), `components/` (um arquivo por componente de `components/ui/`, mais painéis, filtros e avisos), `features/` (um arquivo por tela) e `utilities.css`. Cada arquivo traz as próprias regras de celular (`@media`). O `styles/index.css` importa todos numa ordem fixa, que deve ser mantida: regras com a mesma especificidade valem pela posição. A tela de acesso tem o próprio `auth.css`, em `features/auth/components/`.
+Os estilos ficam em `src/styles/`: `base/` (fontes, cores, tempos de animação, reset), `layout/` (menu lateral e barra do topo), `components/` (um arquivo por componente de `components/ui/`, mais painéis, filtros e avisos), `features/` (um arquivo por tela) e `utilities.css`. Cada arquivo traz as próprias regras de celular (`@media`). O `styles/index.css` importa todos numa ordem fixa, que deve ser mantida: regras com a mesma especificidade valem pela posição. A tela de acesso tem o próprio `auth.css`, em `features/auth/components/`.
+
+Animações do menu e dos estados: só `transform`, `opacity` e as propriedades individuais `translate`, `scale` e `rotate`, de 100 a 260 ms, com os tempos e curvas de `tokens.css`; o "reduzir movimento" do `utilities.css` zera tudo (a aba e a bolha pulam direto). No menu lateral, a aba ativa é um único elemento (`nav-indicator`) que desliza até o item, medido em `sidebar.jsx`; o hover usa fade num `::before`; o círculo âmbar, o contador de estoque baixo, o título da barra do topo e o sino só animam quando o valor muda, nunca ao abrir (`hooks/use-change-count.js`); os itens entram em sequência ao abrir. No celular, o menu abre em 250 ms e fecha em 200 ms, o fundo escuro (`scrim`) fica sempre montado e some com `visibility` (sem clique nem foco quando fechado), e a bolha da barra de baixo desliza por `translate` calculado em CSS (`--idx` e `--n`). O conteúdo de cada rota entra com fade (`.route-enter`, com `key` por rota). O mascote aparece no logo (balança no hover), na tela de carregamento (`mode="espera"`, com a tampa subindo) e na lista de produtos vazia (`mascot` do `Empty`, `mode="vazio"`).
 
 Rotas de revisão: `#dashboard`, `#estoque`, `#produto/<id>` (ex.: `#produto/tomate`), `#movimentacoes`, `#receitas`, `#receita/<id>` (ex.: `#receita/burger`), `#reposicao`, `#relatorios`, `#equipe`, `#importacao`, `#fluxos`, `#login`, `#cadastro`, `#recuperar`. O id fica na URL, então recarregar a página ou usar o botão Voltar mantém o mesmo produto ou receita; sem id, `#produto` e `#receita` abrem o último item aberto. O `#fluxos` (mapa de fluxos do protótipo) só aparece no menu da demonstração.
 
@@ -70,7 +72,7 @@ O cadastro e a edição aceitam uma foto opcional JPEG/JPG, PNG ou WebP até 5 M
 
 Login: e-mail do usuário e senha. Cadastro: razão social, CNPJ, nome do responsável, e-mail, senha e confirmação. Os campos seguem a modelagem de dados e o contrato da API (`POST /api/auth/login` e `POST /api/auth/cadastro`), e as regras de validação ficam em `features/auth/utils/validation.js`; confirmação serve somente à interface. Nome fantasia, telefone e contato da empresa ficaram para uma etapa posterior do cadastro.
 
-Em `features/auth/components/`, `auth-screen.jsx` compõe a tela, `access-form.jsx` tem o formulário, `auth-controls.jsx` reúne controles reutilizáveis e `auth.css` define o layout responsivo. As imagens da tela são `mascote.png`, `textura.jpg` (textura com linhas contínuas, 1920×1279 px) e `textura-cadastro.svg` (arte vertical do painel do cadastro), em `features/auth/assets/`; textos, campos e botões são HTML.
+Em `features/auth/components/`, `auth-screen.jsx` compõe a tela, `access-form.jsx` tem o formulário, `auth-controls.jsx` reúne controles reutilizáveis e `auth.css` define o layout responsivo. As imagens da tela são `textura.jpg` (textura com linhas contínuas, 1920×1279 px) e `textura-cadastro.svg` (arte vertical do painel do cadastro), em `features/auth/assets/`; o mascote é um SVG inline (`components/ui/mascot.jsx`); textos, campos e botões são HTML.
 
 A interface segue a paleta e a composição do Figma. No computador, o cartão tem até 846 px de largura e cresce conforme os campos e os erros; no celular, o layout se reorganiza. A curva lateral é vetorial e decorativa.
 
@@ -78,4 +80,4 @@ A validação verifica obrigatoriedade, e-mail, CNPJ, tamanho mínimo e igualdad
 
 ## Padronização dos campos
 
-Login e cadastro compartilham o componente AuthField: rótulo acima do controle que desaparece ao preencher e reaparece ao apagar, mantendo o espaço e o nome acessível; placeholder nativo que some durante a digitação; altura de 48 px, raio de 10 px, texto alinhado à esquerda, espaçamento uniforme e borda neutra. Senhas têm botão de mostrar/ocultar, sem submissão do formulário. Foco usa um único contorno no controle; o input não cria um segundo outline. Erros são ligados por aria-describedby e aparecem abaixo do campo correspondente; a submissão direciona o foco ao primeiro inválido. O preenchimento automático permanece habilitado.
+Login e cadastro compartilham o componente AuthField: o rótulo fica dentro do campo e, com foco ou texto, sobe e encolhe (só CSS, com `:placeholder-shown`, por isso o input leva `placeholder=" "`, e o rótulo faz o papel de dica); altura de 54 px, raio de 10 px, texto alinhado à esquerda, espaçamento uniforme e borda neutra. Senhas têm botão de mostrar/ocultar, sem submissão do formulário. Foco usa um único contorno no controle; o input não cria um segundo outline. Erros são ligados por aria-describedby e aparecem abaixo do campo correspondente; a submissão direciona o foco ao primeiro inválido. O preenchimento automático permanece habilitado.

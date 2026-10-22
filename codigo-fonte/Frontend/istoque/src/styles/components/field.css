@@ -57,6 +57,20 @@
   line-height: 1.6;
   margin-top: 14px;
 }
+@keyframes error-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+/* Só mensagens de erro de verdade (role="alert"): o .error-text solto também
+   marca a célula da tabela do modal de produção, que não deve animar. As
+   classes access-* são da tela de acesso. */
+p.error-text[role="alert"],
+.access-field-error,
+.access-error {
+  animation: error-in var(--dur-fast) var(--ease-out);
+}
 @media (max-width: 700px) {
   .form-grid {
     gap: 12px;

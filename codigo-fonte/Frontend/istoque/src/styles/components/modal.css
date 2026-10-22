@@ -14,9 +14,50 @@
 .modal.wide {
   width: 740px;
 }
+/* Sem backdrop-filter: o blur custa pintura em máquina modesta e o fundo já é
+   70% opaco. */
 .modal::backdrop {
   background: #08292cb3;
-  backdrop-filter: blur(4px);
+}
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes modal-out {
+  to {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@keyframes modal-backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes modal-backdrop-out {
+  to {
+    opacity: 0;
+  }
+}
+.modal[open] {
+  animation: modal-in var(--dur-base) var(--ease-out);
+}
+.modal[open]::backdrop {
+  animation: modal-backdrop-in var(--dur-base) var(--ease-out);
+}
+/* Saída: a classe closing é posta pelo Modal e o onClose só roda quando a
+   animação termina. Vem depois das regras [open] (mesma especificidade) para
+   valer sobre elas; o forwards segura o estado final até o modal desmontar.
+   Já pedido o fechamento, o modal não aceita mais cliques: quem aperta o X e
+   logo em seguida "Salvar" não pode acabar salvando. */
+.modal.closing {
+  animation: modal-out var(--dur-fast) var(--ease-in) forwards;
+  pointer-events: none;
+}
+.modal.closing::backdrop {
+  animation: modal-backdrop-out var(--dur-fast) var(--ease-in) forwards;
 }
 .modal-head {
   display: flex;

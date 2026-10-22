@@ -1,0 +1,118 @@
+/* Mascote (components/ui/mascot.jsx). Só transform e opacity; translate, scale e
+   rotate são propriedades separadas para compor: o olho olha (translate) e
+   pisca (scale) sem um apagar o outro. Distâncias em unidades do SVG. */
+.mascot {
+  display: block;
+  /* as peças se mexem para fora do viewBox sem serem cortadas aqui */
+  overflow: visible;
+}
+.mascot[data-variant="duas"] {
+  --mascot-d1: 90px;
+  --mascot-d2: 45px;
+  --mascot-d3: 160px;
+}
+.mascot[data-variant="uma"] {
+  --mascot-d1: 72px;
+  --mascot-d2: 36px;
+  --mascot-d3: 135px;
+}
+.mascot-top,
+.mascot-bottom {
+  transform-box: fill-box;
+  /* a caixa gira e pula pela base */
+  transform-origin: 50% 100%;
+}
+.mascot-tape {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.mascot-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  translate: var(--mascot-x, 0px) var(--mascot-y, 0px);
+  scale: var(--mascot-eye-x, 1) var(--mascot-eye-y, 1);
+  transition:
+    translate 160ms var(--ease-out),
+    scale 120ms var(--ease-out);
+}
+/* o Mascot expõe o estado do olho em data-eye; o CSS só escala por ele */
+.mascot[data-eye="fechado"] {
+  --mascot-eye-y: 0.08;
+}
+.mascot[data-eye="arregalado"] {
+  --mascot-eye-x: 1.25;
+  --mascot-eye-y: 1.25;
+}
+
+/* As piscadas partem do tamanho que o olho tem agora (aberto, fechado ou
+   arregalado), em vez de fixar 1, para não pular se o estado mudar no meio. */
+@keyframes mascot-blink {
+  0%,
+  100% {
+    scale: var(--mascot-eye-x, 1) var(--mascot-eye-y, 1);
+  }
+  50% {
+    scale: var(--mascot-eye-x, 1) 0.08;
+  }
+}
+/* Pisca em 14% do ciclo, para a primeira piscada vir logo (~0,5 s em 3,6 s). */
+@keyframes mascot-blink-loop {
+  0%,
+  10%,
+  18%,
+  100% {
+    scale: var(--mascot-eye-x, 1) var(--mascot-eye-y, 1);
+  }
+  14% {
+    scale: var(--mascot-eye-x, 1) 0.08;
+  }
+}
+@keyframes mascot-drop {
+  from {
+    opacity: 0;
+    translate: 0 calc(-1 * var(--mascot-d2));
+  }
+}
+@keyframes mascot-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+/* Caixa de cima sobe e desce devagar (usado no carregamento). */
+@keyframes mascot-lid {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 calc(-0.35 * var(--mascot-d1));
+  }
+}
+
+/* "backwards", nunca "forwards"/"both": depois da entrada a peça volta a ser
+   comandada pelo CSS normal (o olho fechado, por exemplo). */
+.mascot[data-mode="entrada"][data-variant="duas"] .mascot-top {
+  animation: mascot-drop 300ms var(--ease-out) backwards;
+}
+.mascot[data-mode="entrada"][data-variant="duas"] .mascot-bottom {
+  animation: mascot-fade-in 200ms var(--ease-out) backwards;
+}
+.mascot[data-mode="entrada"][data-variant="uma"] .mascot-bottom {
+  animation: mascot-drop 300ms var(--ease-out) backwards;
+}
+.mascot[data-mode="entrada"] .mascot-eye {
+  animation: mascot-blink 180ms ease-in-out 520ms 1 backwards;
+}
+.mascot[data-mode="espera"] .mascot-eye {
+  animation: mascot-blink-loop 3.6s ease-in-out infinite;
+}
+/* Na espera da tela de carregamento a caixa de cima também sobe e desce
+   devagar (2,6 s). Param quando os dados chegam: o bloco sai da tela. */
+.mascot[data-mode="espera"][data-variant="duas"] .mascot-top {
+  animation: mascot-lid 2600ms ease-in-out infinite;
+}
+.mascot[data-mode="vazio"] .mascot-eye {
+  /* o atraso negativo adianta o ciclo: a primeira piscada vem em ~0,5 s (14% de
+     5,2 s seriam 0,73 s) */
+  animation: mascot-blink-loop 5.2s ease-in-out -0.23s infinite;
+}

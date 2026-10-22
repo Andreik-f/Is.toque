@@ -1,13 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button.jsx";
 import { Field } from "@/components/ui/field.jsx";
 import { Icon } from "@/components/ui/icon.jsx";
+import { Mascot } from "@/components/ui/mascot.jsx";
 import { Modal } from "@/components/ui/modal.jsx";
+import { mascotFace } from "@/utils/mascot.js";
 import { login, signup as signupRequest } from "../api/auth.js";
-import mascot from "../assets/mascote.png";
 import { AccessForm } from "./access-form.jsx";
 import { AuthCurve, AuthPromo } from "./auth-controls.jsx";
 import "./auth.css";
+
+const NO_ACTIVITY = { focus: null, emailLength: 0, passwordVisible: false };
+const sameActivity = (a, b) =>
+  a.focus === b.focus &&
+  a.emailLength === b.emailLength &&
+  a.passwordVisible === b.passwordVisible;
 
 // Tela de acesso: login, cadastro e recuperação de senha (#login, #cadastro,
 // #recuperar). Login e cadastro chamam a API e entregam a sessão a
@@ -16,22 +23,50 @@ export function AuthScreen({ route, go, onAuthenticated }) {
   const signup = route === "cadastro";
   const [sent, setSent] = useState(false);
   useEffect(() => setSent(false), [route]);
+  // o que a pessoa está fazendo no formulário, para o olho do mascote
+  const [activity, setActivity] = useState(NO_ACTIVITY);
+  // login e cadastro são formulários diferentes (o formulário remonta): ao
+  // alternar, o olho volta ao centro em vez de herdar o foco do outro
+  useEffect(() => setActivity(NO_ACTIVITY), [signup]);
+  // o ref do mascote dispara as reações: erro() balança a caixa de cima e
+  // sucesso() solta a fita e faz as caixas pularem
+  const mascotRef = useRef(null);
   return (
     <main className={`access-page ${signup ? "is-signup" : "is-login"}`}>
       <AuthCurve signup={signup} />
       <div className="access-card">
         <AuthPromo signup={signup} />
+        {/* a entrada roda uma vez ao montar: alternar login e cadastro não
+            desmonta esta tela, então o mascote não repete */}
         <div className="access-mascot" aria-hidden="true">
-          <img src={mascot} alt="" width="541" height="462" draggable="false" />
+          <Mascot
+            ref={mascotRef}
+            variant="duas"
+            mode="entrada"
+            face={mascotFace(activity, "duas")}
+          />
         </div>
         <AccessForm
           key={signup ? "signup" : "login"}
           signup={signup}
-          onSubmit={async (values) =>
-            onAuthenticated(
-              await (signup ? signupRequest(values) : login(values)),
+          // cada digitação avisa, mas só muda o estado (e redesenha a tela)
+          // quando algo da atividade mudou; o tamanho do e-mail conta cru,
+          // então depois dos 22 caracteres ainda redesenha a cada tecla
+          onActivity={(next) =>
+            setActivity((previous) =>
+              sameActivity(previous, next) ? previous : next,
             )
           }
+          onSubmit={(values) =>
+            signup ? signupRequest(values) : login(values)
+          }
+          // entra no sistema só depois do mascote comemorar; com reduzir
+          // movimento a promessa resolve na hora e entra sem esperar
+          onSuccess={async (session) => {
+            await mascotRef.current?.sucesso();
+            onAuthenticated(session);
+          }}
+          onFail={() => mascotRef.current?.erro()}
         />
       </div>
       {route === "recuperar" && (

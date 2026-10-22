@@ -50,11 +50,18 @@ export function AppRouter() {
         </>
       }
     >
-      {Page ? (
-        <Page id={id} />
-      ) : (
-        <PageHeading title={routeTitle(route)} subtitle={routeSubtitle(route)} />
-      )}
+      {/* a key por rota refaz a entrada a cada troca de tela; fica aqui e não
+          no <main>, que é do layout e não muda */}
+      <div className="route-enter" key={route}>
+        {Page ? (
+          <Page id={id} />
+        ) : (
+          <PageHeading
+            title={routeTitle(route)}
+            subtitle={routeSubtitle(route)}
+          />
+        )}
+      </div>
     </AppLayout>
   );
 }

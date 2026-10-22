@@ -87,6 +87,7 @@ export function EstoqueRoute() {
         <ProductGrid products={visible} onOpen={openProduct} />
       ) : !products.length ? (
         <Empty
+          mascot
           title="Nenhum produto cadastrado"
           text="Cadastre o primeiro produto para começar a controlar o estoque."
           action={

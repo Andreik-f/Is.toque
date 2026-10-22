@@ -24,8 +24,17 @@
   border: 0;
 }
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
+  }
+  /* separado de propósito: um navegador que não entenda ::backdrop em * não
+     pode derrubar a regra acima */
+  *::backdrop {
+    animation: none !important;
+    transition: none !important;
   }
 }

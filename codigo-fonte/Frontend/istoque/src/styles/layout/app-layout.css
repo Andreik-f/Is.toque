@@ -24,16 +24,44 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  letter-spacing: 1px;
+  letter-spacing: -0.3px;
   padding: 0 12px;
 }
+/* A plaquinha na cor da página existe porque o contorno escuro do mascote
+   some sobre o fundo verde do menu. */
 .logo-mark {
-  color: var(--amber);
-  display: flex;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--paper);
+}
+.logo-mark .mascot {
+  width: 30px;
+  height: 30px;
+  /* balança pela base, como uma caixa que se apoia no chão */
+  transform-origin: 50% 100%;
 }
 .logo-dot {
   color: var(--amber);
-  margin-left: -9px;
+}
+@keyframes logo-wiggle {
+  25% {
+    rotate: -10deg;
+  }
+  55% {
+    rotate: 10deg;
+  }
+  80% {
+    rotate: -5deg;
+  }
+}
+@media (hover: hover) {
+  .logo:hover .mascot {
+    animation: logo-wiggle 500ms ease-in-out;
+  }
 }
 .workspace {
   display: flex;
@@ -71,11 +99,14 @@
   margin: 0 17px 12px;
 }
 .sidebar nav {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 7px;
 }
 .sidebar nav a {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 13px;
@@ -84,47 +115,109 @@
   border-radius: 9px;
   font-size: var(--font-13);
   color: var(--on-teal);
+  /* Única animação de cor do projeto: a aba (nav-indicator) leva 340 ms para
+     chegar; sem isto o texto do item novo ficaria verde sobre o fundo verde
+     enquanto ela ainda não chegou. */
+  transition: color 240ms var(--ease-out);
 }
-.sidebar nav a:hover {
+/* O fundo do hover é um ::before que só muda de opacity (150 ms): transicionar
+   background repintaria o item. Fica atrás do texto (z-index -1 dentro do
+   link, que cria o próprio contexto) e só nos itens que não são o ativo. */
+.sidebar nav a::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 9px;
   background: #ffffff10;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease-out);
 }
-/* item ativo: aba da cor da página, aberta para o conteúdo, com o ícone em
-   círculo âmbar */
+/* o ícone anda 4 px no hover (translate, para não brigar com outros efeitos) */
+.sidebar nav a > svg:first-child {
+  transition: translate var(--dur-base) var(--ease-out);
+}
+@media (hover: hover) {
+  .sidebar nav a:not(.active):hover::before {
+    opacity: 1;
+  }
+  .sidebar nav a:not(.active):hover > svg:first-child {
+    translate: 4px 0;
+  }
+}
+/* Item ativo: só o texto muda. A aba da cor da página, com os cantos côncavos
+   e o círculo âmbar do ícone, é o nav-indicator, que desliza entre os itens;
+   assim o item ativo tem a mesma altura (47 px) dos outros. */
 .sidebar nav a.active {
-  background: var(--paper);
   color: var(--teal);
   font-weight: 600;
-  margin-right: -18px;
-  padding: 12px 33px 12px 12px;
+}
+.nav-indicator {
+  position: absolute;
+  z-index: 0;
+  left: 0;
+  right: -18px;
+  top: 0;
+  height: 47px;
+  background: var(--paper);
   border-radius: 34px 0 0 34px;
-  position: relative;
+  translate: 0 var(--y, 0px);
+  pointer-events: none;
+}
+.nav-indicator.ready {
+  transition:
+    translate 340ms var(--ease-in-out),
+    opacity 150ms var(--ease-out);
+}
+.nav-indicator[data-hidden] {
+  opacity: 0;
+}
+/* Pop do círculo ao chegar: o atraso de 250 ms espera a aba (340 ms) chegar.
+   "backwards": antes de começar fica em .85, depois volta ao CSS normal. */
+@keyframes nav-pop {
+  from {
+    scale: 0.85;
+  }
+}
+.nav-dot.pop {
+  animation: nav-pop 200ms var(--ease-out) 250ms backwards;
 }
 /* cantos côncavos onde a aba encontra a página */
-.sidebar nav a.active::before,
-.sidebar nav a.active::after {
+.nav-indicator::before,
+.nav-indicator::after {
   content: "";
   position: absolute;
   right: 0;
   width: 18px;
   height: 19px;
-  pointer-events: none;
 }
-.sidebar nav a.active::before {
+.nav-indicator::before {
   bottom: calc(100% - 1px);
-  background: radial-gradient(circle at 0 0, transparent 17.5px, var(--paper) 18.5px);
+  background: radial-gradient(
+    circle at 0 0,
+    transparent 17.5px,
+    var(--paper) 18.5px
+  );
 }
-.sidebar nav a.active::after {
+.nav-indicator::after {
   top: calc(100% - 1px);
-  background: radial-gradient(circle at 0 100%, transparent 17.5px, var(--paper) 18.5px);
+  background: radial-gradient(
+    circle at 0 100%,
+    transparent 17.5px,
+    var(--paper) 18.5px
+  );
 }
-.sidebar nav a.active > svg:first-child {
-  box-sizing: content-box;
-  width: 20px;
-  height: 20px;
-  padding: 9px;
-  border: 3px solid var(--teal);
+/* o círculo âmbar fica atrás do ícone, que é do link (a 15 px da borda) */
+.nav-dot {
+  position: absolute;
+  left: 5.5px;
+  top: 4px;
+  width: 39px;
+  height: 39px;
   border-radius: 50%;
   background: var(--amber);
+  border: 3px solid var(--teal);
 }
 .sidebar nav b {
   font-size: var(--font-10);
@@ -132,6 +225,30 @@
   background: #ffffff1f;
   padding: 3px 6px;
   border-radius: 5px;
+}
+/* Entrada em sequência: cada item entra um depois do outro (--i é a posição).
+   Roda quando o menu monta, ou seja, uma vez ao abrir o sistema; "backwards"
+   para o item voltar ao CSS normal (hover, ativo) depois de entrar. */
+@keyframes nav-slide-in {
+  from {
+    opacity: 0;
+    translate: -8px 0;
+  }
+}
+@media (min-width: 701px) {
+  .sidebar nav a {
+    animation: nav-slide-in 240ms var(--ease-out) backwards;
+    animation-delay: calc(var(--i, 0) * 40ms + 100ms);
+  }
+}
+@keyframes nav-bump {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.sidebar nav b.bump {
+  animation: nav-bump 200ms var(--ease-out) backwards;
 }
 .sidebar nav a.active b {
   background: #164d4e18;
@@ -235,6 +352,15 @@
   color: var(--ink);
   font-weight: 600;
 }
+@keyframes title-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.breadcrumb span.swap {
+  animation: title-in var(--dur-fast) var(--ease-out) backwards;
+}
 .topbar-right {
   display: flex;
   align-items: center;
@@ -258,6 +384,37 @@
   background: none;
   position: relative;
 }
+/* Sino: balança pela ponta de cima, como pendurado, e o ponto aparece com um
+   pop que passa um pouco do tamanho (1.3) antes de assentar. */
+@keyframes bell-ring {
+  15% {
+    rotate: -14deg;
+  }
+  35% {
+    rotate: 12deg;
+  }
+  55% {
+    rotate: -8deg;
+  }
+  75% {
+    rotate: 5deg;
+  }
+}
+@keyframes dot-pop {
+  from {
+    scale: 0;
+  }
+  60% {
+    scale: 1.3;
+  }
+}
+.notification svg.ring {
+  transform-origin: 50% 8%;
+  animation: bell-ring 600ms ease-in-out;
+}
+.notification i.pop {
+  animation: dot-pop 250ms var(--ease-out) backwards;
+}
 .notification i {
   position: absolute;
   width: 6px;
@@ -271,6 +428,18 @@
   max-width: 1580px;
   padding: 35px 40px 24px;
   margin: auto;
+}
+/* Entrada da tela ao trocar de rota. Sem "to" e com "backwards": no fim não
+   sobra transform no wrapper (um transform viraria o bloco de contenção de
+   qualquer filho com position: fixed). */
+@keyframes route-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.route-enter {
+  animation: route-in 180ms var(--ease-out) backwards;
 }
 .page-footer {
   display: flex;
@@ -291,6 +460,16 @@
   color: var(--teal);
   text-align: center;
 }
+.status-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.status-loading .mascot {
+  width: auto;
+  height: 140px;
+}
 .status-actions {
   display: flex;
   flex-wrap: wrap;
@@ -307,9 +486,8 @@
     width: 205px;
     padding-inline: 13px;
   }
-  .sidebar nav a.active {
-    margin-right: -13px;
-    padding-right: 28px;
+  .nav-indicator {
+    right: -13px;
   }
   .shell {
     margin-left: 205px;
@@ -339,19 +517,36 @@
     font-size: var(--font-12);
     padding-inline: 12px;
   }
+  /* o ícone chega 3 px mais perto da borda: o círculo acompanha */
+  .nav-dot {
+    left: 2.5px;
+  }
   .shell main {
     padding: 25px;
   }
 }
 @media (max-width: 700px) {
+  /* Fechado, o menu sai com 200 ms (acelera no fim) e só então fica hidden,
+     para não receber foco por teclado; aberto, entra em 250 ms (começa
+     rápido) e fica visível já no começo. */
   .sidebar {
     transform: translateX(-100%);
-    transition: transform 0.2s;
+    visibility: hidden;
+    transition:
+      transform 200ms var(--ease-in),
+      visibility 0s linear 200ms;
     width: 240px;
     z-index: 70;
   }
   .sidebar.open {
     transform: translateX(0);
+    visibility: visible;
+    transition: transform 250ms var(--ease-out);
+  }
+  /* a cada abertura os itens entram em sequência (a regra só vale com .open) */
+  .sidebar.open nav a {
+    animation: nav-slide-in 220ms var(--ease-out) backwards;
+    animation-delay: calc(var(--i, 0) * 30ms + 80ms);
   }
   .scrim {
     display: block;
@@ -360,6 +555,18 @@
     background: #123c3c88;
     border: 0;
     z-index: 60;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 150ms var(--ease-in),
+      visibility 0s linear 150ms;
+  }
+  .scrim.on {
+    opacity: 1;
+    visibility: visible;
+    transition:
+      opacity 200ms var(--ease-out),
+      visibility 0s;
   }
   .shell {
     margin-left: 0;
@@ -441,18 +648,47 @@
     overflow: hidden;
     clip-path: inset(50%);
   }
-  /* item ativo: círculo verde elevado, com a barra se curvando em volta */
+  /* Item ativo: a bolha verde (bubble-track, um elemento só) desliza até o
+     ícone e o ícone sobe 18 px. O anel de 6 px na cor da barra é box-shadow
+     estático: o que se move é só translate. */
   .mobile-nav > a.active {
     opacity: 1;
   }
+  .mobile-nav > a svg {
+    transition:
+      translate 240ms var(--ease-out),
+      scale var(--dur-press) var(--ease-out);
+  }
+  /* o ícone afunda ao toque (scale, para compor com o translate de cima) */
+  .mobile-nav > a:active svg {
+    scale: 0.9;
+  }
   .mobile-nav > a.active svg {
-    box-sizing: content-box;
-    width: 24px;
-    height: 24px;
-    padding: 12px;
+    translate: 0 -18px;
+  }
+  .bubble-track {
+    position: absolute;
+    top: 0;
+    bottom: env(safe-area-inset-bottom);
+    left: 0;
+    width: calc(100% / var(--n));
+    display: grid;
+    place-items: center;
+    translate: calc(var(--idx) * 100%) 0;
+    transition:
+      translate 260ms var(--ease-out),
+      opacity 150ms var(--ease-out);
+    pointer-events: none;
+  }
+  .bubble-track[data-hidden] {
+    opacity: 0;
+  }
+  .bubble {
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     background: var(--teal);
     box-shadow: 0 0 0 6px var(--ink);
-    transform: translateY(-18px);
+    translate: 0 -18px;
   }
 }

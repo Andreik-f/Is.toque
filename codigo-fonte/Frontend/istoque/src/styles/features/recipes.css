@@ -1,28 +1,58 @@
 /* Receitas: cards, ficha técnica, capacidade e editor de ingredientes. */
-.recipe-card:hover {
-  box-shadow: 0 8px 20px #164d4e0a;
-  transform: translateY(-3px);
-  border-color: #a7bdb4;
-}
 .recipe-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 22px;
 }
 .recipe-card {
+  position: relative;
   border: 1px solid var(--line);
   border-radius: 16px;
-  overflow: hidden;
   background: var(--panel);
   padding: 0;
   text-align: left;
-  transition: 0.2s;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+/* Mesma técnica do .product-card: sombra num ::after, só a opacity anima. */
+.recipe-card::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  box-shadow: 0 8px 20px #164d4e0a;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+@media (hover: hover) {
+  .recipe-card:hover {
+    transform: translateY(-2px);
+    border-color: #a7bdb4;
+  }
+  .recipe-card:hover::after {
+    opacity: 1;
+  }
+}
+/* Foco por teclado, fora do @media (hover: hover): mesmo efeito do hover. */
+.recipe-card:focus-visible {
+  transform: translateY(-2px);
+  border-color: #a7bdb4;
+}
+.recipe-card:focus-visible::after {
+  opacity: 1;
 }
 .recipe-art {
   height: 206px;
   background: #f0e5ce;
   position: relative;
   padding: 14px;
+  /* sem o overflow: hidden do card, os cantos retos da arte apareceriam por
+     cima da borda arredondada; o raio do card vale só para os cantos que
+     encostam nela */
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
 }
 .recipe-card:nth-child(2) .recipe-art {
   background: #e5eddf;
@@ -296,6 +326,10 @@
     display: flex;
     align-items: center;
     overflow: hidden;
+    /* aqui a arte é a coluna da esquerda: arredonda os cantos da esquerda */
+    border-radius: 0;
+    border-top-left-radius: inherit;
+    border-bottom-left-radius: inherit;
   }
   .recipe-art .food-art {
     width: 155px;

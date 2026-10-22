@@ -1,18 +1,35 @@
 import React, { useId, useState } from "react";
 import { Icon } from "@/components/ui/icon.jsx";
 
-export function AuthField({ label, error, type = "text", ...props }) {
+// onVisibleChange avisa quando a senha é mostrada ou escondida (o mascote
+// espia quando ela aparece). index é a posição na entrada em sequência da tela.
+// O rótulo fica dentro do campo e sobe com o foco ou com texto: isso é CSS puro
+// (:placeholder-shown), inclusive no preenchimento automático do navegador, mas
+// exige um placeholder, por isso o " " fixo (o rótulo faz o papel de dica).
+export function AuthField({
+  label,
+  error,
+  type = "text",
+  onVisibleChange,
+  index = 0,
+  ...props
+}) {
   const id = useId();
   const [visible, setVisible] = useState(false);
   const password = type === "password";
   return (
-    <div className="access-field" data-invalid={error ? "true" : undefined}>
-      <label className="access-field-label" htmlFor={id}>
-        {label}
-      </label>
+    <div
+      className="access-field access-rise"
+      style={{ "--i": index }}
+      data-invalid={error ? "true" : undefined}
+    >
       <div className="access-control">
+        <label className="access-field-label" htmlFor={id}>
+          {label}
+        </label>
         <input
           {...props}
+          placeholder=" "
           id={id}
           type={password && visible ? "text" : type}
           aria-invalid={error ? true : undefined}
@@ -24,7 +41,10 @@ export function AuthField({ label, error, type = "text", ...props }) {
             className="access-password-toggle"
             aria-label={`${visible ? "Ocultar" : "Mostrar"}: ${label.toLowerCase()}`}
             aria-pressed={visible}
-            onClick={() => setVisible((v) => !v)}
+            onClick={() => {
+              setVisible(!visible);
+              onVisibleChange?.(!visible);
+            }}
           >
             <svg
               width="20"
@@ -53,16 +73,26 @@ export function AuthField({ label, error, type = "text", ...props }) {
   );
 }
 
+// progress ("idle", "running", "done" ou "failed") liga a barra de progresso
+// do botão de envio; sem ele, o botão não tem barra (os links não têm).
 export function AuthButton({
   children,
   href,
   arrow = false,
   className = "",
+  progress,
   ...props
 }) {
   const Tag = href ? "a" : "button";
   return (
     <Tag className={`access-button ${className}`} href={href} {...props}>
+      {progress && (
+        <span
+          className="access-progress"
+          data-state={progress}
+          aria-hidden="true"
+        />
+      )}
       <span>{children}</span>
       {arrow && <Icon name="arrow" size={16} />}
     </Tag>

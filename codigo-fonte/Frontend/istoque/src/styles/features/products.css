@@ -5,20 +5,47 @@
   gap: 17px;
 }
 .product-card {
+  position: relative;
   background: var(--panel);
   border: 1px solid var(--line);
   padding: 0;
   text-align: left;
   border-radius: 14px;
-  overflow: hidden;
   transition:
-    box-shadow 0.2s,
-    transform 0.2s;
+    transform var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
 }
-.product-card:hover {
+/* A sombra do hover fica num ::after fixo e só a opacity muda: animar
+   box-shadow repinta o card a cada quadro. Por isso o card não tem mais
+   overflow: hidden, que cortaria essa sombra. */
+.product-card::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
   box-shadow: 0 8px 20px #164d4e0a;
-  transform: translateY(-3px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+/* Hover só onde há mouse: em tela de toque ele ficaria preso depois do toque. */
+@media (hover: hover) {
+  .product-card:hover {
+    transform: translateY(-2px);
+    border-color: #a7bdb4;
+  }
+  .product-card:hover::after {
+    opacity: 1;
+  }
+}
+/* O foco por teclado ganha o mesmo efeito do hover. Fica fora do @media
+   (hover: hover) para valer também para quem navega sem mouse. */
+.product-card:focus-visible {
+  transform: translateY(-2px);
   border-color: #a7bdb4;
+}
+.product-card:focus-visible::after {
+  opacity: 1;
 }
 .product-art {
   height: 142px;

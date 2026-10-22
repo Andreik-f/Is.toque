@@ -34,18 +34,19 @@ export function AppLayout({ route, children, overlays }) {
         onNavigate={() => setMobileMenu(false)}
         lowCount={lowStock.length}
       />
-      {mobileMenu && (
-        <button
-          className="scrim"
-          aria-label="Fechar menu"
-          onClick={() => setMobileMenu(false)}
-        />
-      )}
+      {/* sempre montado, para o fade de saída: fechado fica visibility:
+          hidden (sem clique nem foco) e a classe "on" o mostra */}
+      <button
+        className={"scrim" + (mobileMenu ? " on" : "")}
+        aria-label="Fechar menu"
+        onClick={() => setMobileMenu(false)}
+      />
       <div className="shell">
         <Topbar
           route={route}
           userName={profile.userName}
           hasAlerts={hasAlerts}
+          lowCount={lowStock.length}
           onOpenMenu={() => setMobileMenu(true)}
         />
         <main>
@@ -53,8 +54,8 @@ export function AppLayout({ route, children, overlays }) {
             <div className="notice">
               <Icon name="alert" />
               <span>
-                Esta tela ainda não grava no servidor: o que você registrar
-                aqui vale até recarregar a página.
+                Esta tela ainda não grava no servidor: o que você registrar aqui
+                vale até recarregar a página.
               </span>
             </div>
           )}

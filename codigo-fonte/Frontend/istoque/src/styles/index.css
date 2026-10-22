@@ -27,4 +27,5 @@
 @import "./features/production.css";
 @import "./components/toast.css";
 @import "./components/empty.css";
+@import "./components/mascot.css";
 @import "./utilities.css";

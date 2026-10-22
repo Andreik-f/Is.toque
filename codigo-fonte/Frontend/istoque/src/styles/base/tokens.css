@@ -1,5 +1,5 @@
-/* Cores e medidas compartilhadas. Pontos de quebra usados nos @media:
-   1650px (tela larga), 1200px, 950px e 700px (celular). */
+/* Cores, medidas e tempos de animação compartilhados. Pontos de quebra usados
+   nos @media: 1650px (tela larga), 1200px, 950px e 700px (celular). */
 :root {
   --teal: #164d4e;
   --teal-hover: #0d3d3e;
@@ -53,4 +53,12 @@
   color: var(--ink);
   background: var(--paper);
   font-synthesis: none;
+  /* Movimento: durações e curvas das animações. O reduzir movimento fica em
+     utilities.css. */
+  --dur-press: 100ms;
+  --dur-fast: 150ms;
+  --dur-base: 200ms;
+  --ease-out: cubic-bezier(0, 0, 0.58, 1);
+  --ease-in: cubic-bezier(0.42, 0, 1, 1);
+  --ease-in-out: cubic-bezier(0.42, 0, 0.58, 1);
 }

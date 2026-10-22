@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button.jsx";
 import { Empty } from "@/components/ui/empty.jsx";
+import { Mascot } from "@/components/ui/mascot.jsx";
 import {
   createCategory,
   createProduct,
@@ -120,7 +121,13 @@ function CompanyData({ session, children }) {
             }
           />
         ) : (
-          <p role="status">Carregando os dados de {session.nomeEmpresa}...</p>
+          // o mascote é decorativo (aria-hidden): quem avisa o leitor de tela
+          // é o parágrafo. Usa a versão de duas caixas, que é a da tela de
+          // acesso de onde a pessoa acabou de vir.
+          <div className="status-loading">
+            <Mascot variant="duas" mode="espera" />
+            <p role="status">Carregando os dados de {session.nomeEmpresa}...</p>
+          </div>
         )}
       </main>
     );

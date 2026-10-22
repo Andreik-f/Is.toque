@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => {
     server: { proxy },
     preview: { proxy },
     // Imagens de até 200000 bytes (cerca de 195 KB) vão embutidas no pacote
-    // (mascote.png e textura-cadastro.svg, usada só no painel do cadastro).
+    // (textura-cadastro.svg, usada só no painel do cadastro).
     // textura.jpg, com cerca de 583 KB, passa do limite e sai como arquivo
     // separado em dist/assets. Este build não gera o arquivo único do
     // protótipo (documentação/ux/ISTOQUE-Prototipo.html).

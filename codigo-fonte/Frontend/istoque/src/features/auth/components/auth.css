@@ -63,6 +63,7 @@
     sans-serif;
   text-decoration: none;
   cursor: pointer;
+  transition: transform var(--dur-press) var(--ease-out);
 }
 .access-button svg {
   flex-shrink: 0;
@@ -74,6 +75,9 @@
 }
 .access-button:hover {
   filter: brightness(0.96);
+}
+.access-button:active:not(:disabled) {
+  transform: scale(0.97);
 }
 .access-button:disabled {
   cursor: progress;
@@ -159,10 +163,6 @@
     600 14px/normal Inter,
     sans-serif;
 }
-.access-field input::placeholder {
-  color: #929292;
-  opacity: 1;
-}
 .access-field:focus-within {
   outline: 3px solid var(--access-amber);
   outline-offset: 3px;
@@ -205,7 +205,7 @@
   overflow: hidden;
   pointer-events: none;
 }
-.access-mascot img {
+.access-mascot .mascot {
   display: block;
   width: auto;
   height: 220px;
@@ -437,32 +437,60 @@
   flex-direction: column;
   align-items: stretch;
   gap: 7px;
+  /* Os 19px são o lugar onde ficava o rótulo: o campo continua com os 73px de
+     antes (rótulo 18 + espaço 7 + controle 48), então a altura do cartão e o
+     lugar do mascote não mudam. */
+  padding-top: 19px;
   height: auto;
   border: 0;
   border-radius: 0;
   background: transparent;
   color: inherit;
 }
+/* Rótulo flutuante: fica dentro do campo, no lugar do texto, e sobe e encolhe
+   quando o campo tem foco ou texto. A cor é fixa e escura porque agora ele
+   fica sobre o fundo branco do campo, em qualquer versão da tela. */
 .access-field-label {
+  position: absolute;
+  top: 15px;
+  left: 14px;
+  z-index: 1;
+  /* o clique no rótulo cai no campo */
+  pointer-events: none;
+  transform-origin: left top;
   font:
-    600 13px/18px Inter,
+    400 15px/22px Inter,
     sans-serif;
-  color: inherit;
-  cursor: pointer;
+  color: #5f6d69;
+  transition: transform var(--dur-fast) var(--ease-out);
 }
 .access-control {
+  position: relative;
   display: flex;
   align-items: center;
   width: 100%;
-  height: 48px;
-  min-height: 48px;
+  height: 54px;
+  min-height: 54px;
   border: 1px solid #c5ceca;
   border-radius: 10px;
   background: #fff;
-  transition:
-    border-color 0.15s,
-    box-shadow 0.15s;
+  transition: border-color var(--dur-fast);
   overflow: hidden;
+}
+/* Quatro regras com a mesma declaração, de propósito: um seletor que o
+   navegador não entenda (:has, :autofill) derrubaria a regra inteira, e se
+   estivessem na mesma lista o rótulo pararia de subir em tudo. */
+.access-control:focus-within .access-field-label {
+  transform: translateY(-9px) scale(0.8);
+}
+.access-control:has(input:not(:placeholder-shown)) .access-field-label {
+  transform: translateY(-9px) scale(0.8);
+}
+.access-control:has(input:autofill) .access-field-label {
+  transform: translateY(-9px) scale(0.8);
+}
+.access-control:has(input:-webkit-autofill) .access-field-label {
+  transform: translateY(-9px) scale(0.8);
 }
 .access-field .access-control input {
   flex: 1;
@@ -471,7 +499,8 @@
   height: 100%;
   border: 0;
   border-radius: 0;
-  padding: 0 14px;
+  /* espaço em cima para o rótulo, quando ele sobe */
+  padding: 20px 14px 4px;
   background: transparent;
   font:
     400 15px/22px Inter,
@@ -479,10 +508,6 @@
   color: #203b3c;
   text-align: left;
   box-shadow: none;
-}
-.access-field .access-control input::placeholder {
-  color: #5f6d69;
-  font-weight: 400;
 }
 .access-field .access-control input:focus,
 .access-field .access-control input:focus-visible {
@@ -561,6 +586,58 @@
   padding: 12px 20px;
   font-size: var(--font-15);
 }
+/* Barra de progresso do botão de envio: sobe até 90% enquanto a requisição
+   não volta e para (ela não dura um tempo fixo: o Render pode levar segundos
+   para acordar o back, e uma barra cheia e parada mentiria que está quase
+   pronto); quando a resposta chega, completa em 150 ms; no erro some com
+   opacity. Sem laço. É transição, não animação fixa: ela recomeça de onde a
+   barra estiver. A cor é a do texto do botão, então serve nas três versões. */
+.access-submit {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.access-progress {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: currentColor;
+  opacity: 0.22;
+  transform: scaleX(0);
+  transform-origin: left;
+  pointer-events: none;
+}
+.access-progress[data-state="running"] {
+  transform: scaleX(0.9);
+  transition: transform 900ms var(--ease-out);
+}
+.access-progress[data-state="done"] {
+  transform: scaleX(1);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+/* segura a barra em 90% enquanto some, sem voltar a zero antes do fade */
+.access-progress[data-state="failed"] {
+  transform: scaleX(0.9);
+  opacity: 0;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-in);
+}
+/* Entrada em sequência: título, campos, link e botão sobem um depois do outro
+   (fade + 8px), 60 ms entre itens, a partir de 150 ms; --i é a posição de cada
+   um. Só ao abrir: roda quando o item monta. "backwards", nunca "forwards":
+   depois da entrada o item volta a ser comandado pelo CSS normal (o :active do
+   botão de envio, por exemplo). */
+@keyframes access-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+.access-rise {
+  animation: access-rise 280ms var(--ease-out) backwards;
+  animation-delay: calc(var(--i, 0) * 60ms + 150ms);
+}
 .access-forgot {
   margin-top: 14px;
   font-size: var(--font-13);
@@ -574,9 +651,6 @@
 }
 .is-signup .access-form-content form {
   margin-top: 24px;
-}
-.is-signup .access-field-label {
-  color: var(--teal);
 }
 @media (max-width: 760px) {
   .access-form-panel,
@@ -592,9 +666,9 @@
   .access-field .access-control input {
     font-size: var(--font-16);
   }
-  .access-field-label,
-  .is-signup .access-field-label {
-    color: #203b3c;
+  /* o rótulo acompanha o tamanho do texto do campo */
+  .access-field-label {
+    font-size: var(--font-16);
   }
   .access-field .access-field-error {
     color: #a32e27;
@@ -621,5 +695,10 @@
 @media (prefers-reduced-motion: reduce) {
   .access-control {
     transition: none;
+  }
+  /* sem transição a barra ficaria parada em 90%: o texto do botão e o
+     aria-busy já dizem que está enviando */
+  .access-progress {
+    display: none;
   }
 }
