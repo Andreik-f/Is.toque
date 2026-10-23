@@ -1,6 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { DEFAULT_ROUTE, isNavActive, parseHash } from "./paths.js";
+import {
+  DEFAULT_ROUTE,
+  isNavActive,
+  parseHash,
+  showsLanding,
+} from "./paths.js";
 
 test("a URL leva a rota e, nas telas de detalhe, o id do item", () => {
   assert.deepEqual(parseHash("#produto/12"), { route: "produto", id: "12" });
@@ -10,6 +15,16 @@ test("a URL leva a rota e, nas telas de detalhe, o id do item", () => {
   });
   assert.deepEqual(parseHash("#estoque"), { route: "estoque", id: null });
   assert.deepEqual(parseHash(""), { route: DEFAULT_ROUTE, id: null });
+});
+
+test("sem hash, a página inicial abre só para quem não tem sessão", () => {
+  assert.equal(showsLanding("", false), true);
+  assert.equal(showsLanding("#", false), true);
+  assert.equal(showsLanding("", true), false);
+  assert.equal(showsLanding("#inicio", false), true);
+  assert.equal(showsLanding("#inicio", true), true);
+  assert.equal(showsLanding("#dashboard", false), false);
+  assert.equal(showsLanding("#login", false), false);
 });
 
 test("produto e receita deixam marcado o item do menu de onde vieram", () => {

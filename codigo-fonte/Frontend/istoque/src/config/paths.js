@@ -14,6 +14,17 @@ export function parseHash(hash) {
 // Rotas que abrem fora do layout principal (tela de acesso).
 export const AUTH_ROUTES = ["login", "cadastro", "recuperar"];
 
+// Página inicial de apresentação, também fora do layout principal.
+export const LANDING_ROUTE = "inicio";
+
+// A apresentação abre em #inicio e, sem hash, para quem não tem sessão. Com
+// sessão, a URL sem hash continua abrindo o painel; a demonstração segue em
+// #dashboard.
+export function showsLanding(hash, signedIn) {
+  const route = hash.replace(/^#/, "").split("/")[0];
+  return route === LANDING_ROUTE || (!route && !signedIn);
+}
+
 // Telas que ainda não têm rota na API: com login, o que se registra nelas
 // fica só na página até recarregar.
 export const LOCAL_ONLY_ROUTES = [

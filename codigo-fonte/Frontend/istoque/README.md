@@ -2,6 +2,8 @@
 
 Interface de gestão de estoque para restaurantes. Com login, usa a API do backend (`codigo-fonte/Backend/istoque`). Sem login, funciona como demonstração, com dados fictícios em memória: recarregar reinicia a demonstração.
 
+O endereço sem hash abre a página inicial de apresentação (`#inicio`) para quem não tem sessão e o painel para quem já entrou. A demonstração continua em `#dashboard`.
+
 ## Executar
 
 ```bash
@@ -44,7 +46,7 @@ src/
 ├── app/                 → rotas (uma tela por arquivo), roteador, providers, modais e carga dos dados da empresa
 ├── components/          → componentes compartilhados (ui/ e layouts/)
 ├── config/              → rotas e menu, data de referência, empresa e usuário da demonstração
-├── features/            → auth, products, stock, recipes, production, users, reports, imports (cada uma com api/ quando chama a API)
+├── features/            → auth, products, stock, recipes, production, users, reports, imports, landing (cada uma com api/ quando chama a API)
 ├── hooks/               → navegação por hash (#estoque, #produto/12...)
 ├── lib/                 → cliente HTTP da API e apoio às animações (com testes)
 ├── stores/              → sessão, estado das telas e da interface (modal e aviso)
@@ -58,7 +60,11 @@ Os estilos ficam em `src/styles/`: `base/` (fontes, cores, tempos de animação,
 
 Animações do menu e dos estados: só `transform`, `opacity` e as propriedades individuais `translate`, `scale` e `rotate`, de 100 a 260 ms, com os tempos e curvas de `tokens.css`; o "reduzir movimento" do `utilities.css` zera tudo (a aba e a bolha pulam direto). No menu lateral, a aba ativa é um único elemento (`nav-indicator`) que desliza até o item, medido em `sidebar.jsx`; o hover usa fade num `::before`; o círculo âmbar, o contador de estoque baixo, o título da barra do topo e o sino só animam quando o valor muda, nunca ao abrir (`hooks/use-change-count.js`); os itens entram em sequência ao abrir. No celular, o menu abre em 250 ms e fecha em 200 ms, o fundo escuro (`scrim`) fica sempre montado e some com `visibility` (sem clique nem foco quando fechado), e a bolha da barra de baixo desliza por `translate` calculado em CSS (`--idx` e `--n`). O conteúdo de cada rota entra com fade (`.route-enter`, com `key` por rota). O mascote aparece no logo (balança no hover), na tela de carregamento (`mode="espera"`, com a tampa subindo) e na lista de produtos vazia (`mascot` do `Empty`, `mode="vazio"`).
 
-Rotas de revisão: `#dashboard`, `#estoque`, `#produto/<id>` (ex.: `#produto/tomate`), `#movimentacoes`, `#receitas`, `#receita/<id>` (ex.: `#receita/burger`), `#reposicao`, `#relatorios`, `#equipe`, `#importacao`, `#fluxos`, `#login`, `#cadastro`, `#recuperar`. O id fica na URL, então recarregar a página ou usar o botão Voltar mantém o mesmo produto ou receita; sem id, `#produto` e `#receita` abrem o último item aberto. O `#fluxos` (mapa de fluxos do protótipo) só aparece no menu da demonstração.
+Rotas de revisão: `#inicio`, `#dashboard`, `#estoque`, `#produto/<id>` (ex.: `#produto/tomate`), `#movimentacoes`, `#receitas`, `#receita/<id>` (ex.: `#receita/burger`), `#reposicao`, `#relatorios`, `#equipe`, `#importacao`, `#fluxos`, `#login`, `#cadastro`, `#recuperar`. O id fica na URL, então recarregar a página ou usar o botão Voltar mantém o mesmo produto ou receita; sem id, `#produto` e `#receita` abrem o último item aberto. O `#fluxos` (mapa de fluxos do protótipo) só aparece no menu da demonstração.
+
+## Página inicial
+
+`features/landing/` monta a apresentação do produto (`#inicio`), carregada à parte (`React.lazy`) para não pesar no sistema. O estilo fica em `styles/features/landing.css`, todo sob `.landing`, e as capturas de tela em `public/landing/` (referenciadas por URL, para não virarem base64 no pacote). O painel do topo simula um dia de cozinha a cada 2,8 s com a lógica de `utils/simulation.js` (com testes) e para fora da tela. Os efeitos de rolagem usam `animation-timeline` só onde o navegador suporta; sem suporte, ou com "reduzir movimento", a página fica no estado final, parada. Os links "Como funciona" e "Perguntas" rolam sem mudar o hash, que o roteador leria como rota.
 
 A importação usa uma nota fictícia; não há upload nem processamento de notas. As fontes Inter e Poppins são distribuídas com suas licenças OFL em `public/fonts/`.
 

@@ -28,4 +28,5 @@
 @import "./components/toast.css";
 @import "./components/empty.css";
 @import "./components/mascot.css";
+@import "./features/landing.css";
 @import "./utilities.css";
