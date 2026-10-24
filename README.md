@@ -38,8 +38,9 @@ As interfaces de movimentações, receitas, produção, relatórios e equipe est
 
 # Hospedagem
 
-* API de produção (Render): [https://is-toque-prod.onrender.com](https://is-toque-prod.onrender.com).
-* Frontend: endereço público ainda não registrado no repositório. A publicação do frontend e a atualização e integração do ambiente de produção são acompanhadas na [tarefa HT034](https://github.com/ICEI-PUC-Minas-PBR-ADS/pbr-ads-2026-2-p1-tidai-t1-8246101-pbr-ads-2026-2-p1-tidai-t-davidwsr1/issues/64).
+* Frontend (Render, site estático): [https://istoque-front.onrender.com](https://istoque-front.onrender.com).
+* API de produção (Render, Docker): [https://is-toque-prod.onrender.com](https://is-toque-prod.onrender.com).
+* O deploy é automático a partir do repositório `erezende544/is.toque_prod`, branch `Release`. A manutenção do ambiente de produção é acompanhada na [tarefa HT034](https://github.com/ICEI-PUC-Minas-PBR-ADS/pbr-ads-2026-2-p1-tidai-t1-8246101-pbr-ads-2026-2-p1-tidai-t-davidwsr1/issues/64).
 
 # Código-Fonte
 
