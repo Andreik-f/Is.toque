@@ -4,6 +4,40 @@ Esta página reúne os modelos do banco de dados do Is.toque. Eles cobrem o que 
 
 O banco é PostgreSQL. O banco de desenvolvimento fica no Neon e é usado pela equipe toda. O de produção é outro, separado (HT007).
 
+## Arquitetura da aplicação
+
+O Is.toque tem um front-end estático, uma API e um banco de dados, publicados em serviços separados.
+
+```mermaid
+flowchart LR
+    U["Navegador<br/>(computador ou celular)"]
+
+    subgraph Render["Render"]
+        F["Frontend estático<br/>React + Vite<br/>istoque-front.onrender.com"]
+        A["API Spring Boot 4, Java 21<br/>(Docker)<br/>is-toque-prod.onrender.com"]
+    end
+
+    subgraph Neon["Neon"]
+        D[("PostgreSQL<br/>produção")]
+        DD[("PostgreSQL<br/>desenvolvimento")]
+    end
+
+    G["GitHub<br/>erezende544/is.toque_prod<br/>branch Release"]
+
+    U -->|"1. baixa a aplicação (HTML, JS, CSS)"| F
+    U -->|"2. chama /api (JSON), com CORS liberado para a origem do front"| A
+    A -->|"JPA/Hibernate; Flyway aplica as migrações ao iniciar"| D
+    A -.->|"ambiente local da equipe"| DD
+    G -->|"deploy automático"| F
+    G -->|"deploy automático"| A
+```
+
+- **Navegador:** carrega o front-end uma vez e passa a chamar a API diretamente, com `fetch`. A navegação usa hash (`#estoque`), sem recarregar a página.
+- **Frontend (Render, site estático):** gerado com `npm run build`. O endereço da API vem da variável `VITE_API_URL`, lida no build; em desenvolvimento, o Vite repassa `/api` para `http://localhost:8080` (`API_PROXY`).
+- **API (Render, Docker):** controllers, serviços e repositórios JPA em `br.com.istoque`. Ela só aceita chamadas do navegador vindas das origens listadas em `CORS_ORIGENS`, que em produção deve conter o endereço do front publicado. Ainda não exige token (HT001).
+- **Banco (Neon):** PostgreSQL. O Hibernate só valida as entidades (`ddl-auto=validate`); quem cria e altera as tabelas é o Flyway, com as migrações de `src/main/resources/db/migration`. O banco de desenvolvimento e o de produção são separados.
+- **Deploy:** automático, a partir do repositório `erezende544/is.toque_prod`, branch `Release`.
+
 ## Como os modelos foram feitos
 
 Seguimos as três fases da análise de dados descritas por Oliveira (2002):
@@ -204,7 +238,7 @@ O que cada card muda:
 - O banco de produção tinha só `empresa`, `perfil` e `usuario`, criadas pelo Hibernate. Em 09/10/2026 o esquema dele foi igualado ao da V1, mantendo os registros, e agora é o mesmo do banco de desenvolvimento. Ele também foi marcado como estando na V1 (baseline).
 - Como criar uma migração nova está no [README do backend](../codigo-fonte/Backend/istoque/README.md).
 
-**HT035: tabelas de estoque, receitas, produção e fotos**
+**HT035: tabelas de estoque, receitas, produção e fotos** (pendente; conferido em 23/10/2026: no banco só existe a migração V1, sem `produto_foto` e com a sigla `UN` ainda presente)
 
 - `receita`: entram `categoria`, `rendimento` e `tempo_preparo_minutos`. O índice único `(empresa_id, nome)` passa a valer só para as receitas ativas.
 - Nova tabela `produto_foto`.
@@ -214,7 +248,7 @@ O que cada card muda:
 - `perfil`: sai o índice único repetido. Hoje existem dois iguais em `(empresa_id, nome)`: `uk_perfil_empresa_nome` e `perfis_empresa_id_nome_idx`.
 - `lote`, `movimentacao`, `receita_item` e `producao` já estão no banco como neste modelo. O HT035 só confere e corrige o que estiver diferente.
 
-**HU007: permissões de cada perfil**
+**HU007: permissões de cada perfil** (pendente; conferido em 23/10/2026: não existe a tabela `permissao` e `perfil_permissao` ainda guarda os oito códigos de texto antigos, sem entidade no código)
 
 - Nova tabela `permissao`, com os nove códigos.
 - `perfil_permissao` é refeita. Hoje ela guarda o código como texto, com oito códigos antigos (`USUARIO_GERENCIAR`, `PERDA_REGISTRAR` e outros). Passa a apontar para `permissao` por `permissao_id`.
