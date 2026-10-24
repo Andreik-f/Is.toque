@@ -14,6 +14,38 @@ cd codigo-fonte\Backend\istoque
 
 Para conferir se a API conectou no banco: http://localhost:8080/actuator/health
 
+## Endpoints
+
+A API ainda não exige autenticação: o login confere e-mail e senha, mas não gera token, e o `SecurityConfig` libera todas as rotas (HT001). Por isso a coluna "Exige autenticação" é "Não" em todas. Como o isolamento entre empresas no servidor também ainda não existe (HT002), as rotas recebem o `empresaId` por parâmetro ou no corpo.
+
+| Método | Caminho | O que faz | Exige autenticação |
+|---|---|---|---|
+| POST | `/api/auth/login` | Entra com e-mail e senha; devolve os dados do usuário e da empresa | Não |
+| POST | `/api/auth/cadastro` | Cria a empresa, os perfis padrão e o administrador | Não |
+| GET | `/api/empresas` | Lista as empresas | Não |
+| GET | `/api/empresas/{id}` | Busca uma empresa | Não |
+| POST | `/api/empresas` | Cadastra uma empresa (com os perfis padrão) | Não |
+| PUT | `/api/empresas/{id}` | Atualiza uma empresa | Não |
+| DELETE | `/api/empresas/{id}` | Exclui a empresa (exclusão definitiva) | Não |
+| GET | `/api/usuarios` | Lista os usuários | Não |
+| POST | `/api/usuarios` | Cadastra um usuário | Não |
+| PUT | `/api/usuarios/{id}` | Atualiza nome, e-mail, perfil e empresa do usuário | Não |
+| PATCH | `/api/usuarios/{id}/senha` | Altera a senha do usuário (`novaSenha`) | Não |
+| DELETE | `/api/usuarios/{id}` | Desativa o usuário (exclusão lógica) | Não |
+| GET | `/api/perfis?empresaId=` | Lista os perfis da empresa | Não |
+| GET | `/api/categorias?empresaId=` | Lista as categorias da empresa | Não |
+| POST | `/api/categorias` | Cadastra uma categoria | Não |
+| GET | `/api/unidades-medida` | Lista as unidades de medida | Não |
+| GET | `/api/produtos?empresaId=` | Lista os produtos (`empresaId` é opcional e filtra) | Não |
+| GET | `/api/produtos/ativos?empresaId=` | Lista só os produtos ativos | Não |
+| GET | `/api/produtos/{id}` | Busca um produto | Não |
+| POST | `/api/produtos` | Cadastra um produto | Não |
+| PUT | `/api/produtos/{id}` | Atualiza um produto (a quantidade atual enviada é ignorada) | Não |
+| PATCH | `/api/produtos/{id}/desativar` | Desativa o produto (exclusão lógica) | Não |
+| GET | `/actuator/health` | Situação da API e da conexão com o banco | Não |
+
+Os erros seguem o formato `{ timestamp, status, message, campos }`. Os corpos de requisição e resposta, as regras de validação, as mensagens de erro e os exemplos de cada rota estão na [Wiki do projeto](https://github.com/ICEI-PUC-Minas-PBR-ADS/pbr-ads-2026-2-p1-tidai-t1-8246101-pbr-ads-2026-2-p1-tidai-t-davidwsr1/wiki). A API publicada está em https://is-toque-prod.onrender.com. Ainda não existem rotas para movimentações, receitas, produção e fotos: as tabelas de estoque e receitas já existem no banco, mas sem endpoints.
+
 ## Banco de dados e migrações (Flyway)
 
 O banco só muda por **migrações**: scripts SQL versionados em `src/main/resources/db/migration`. O Hibernate não cria nem altera tabelas (`spring.jpa.hibernate.ddl-auto=validate`); ele só confere se as entidades batem com o banco. Se não baterem, a aplicação não sobe e mostra qual tabela ou coluna está diferente.
