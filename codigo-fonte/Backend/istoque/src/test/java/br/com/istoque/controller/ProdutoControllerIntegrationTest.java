@@ -1,5 +1,6 @@
 package br.com.istoque.controller;
 
+import br.com.istoque.support.WithUsuarioAutenticado;
 import tools.jackson.databind.ObjectMapper;
 import br.com.istoque.infrastructure.entity.Categoria;
 import br.com.istoque.infrastructure.entity.Empresa;
@@ -49,6 +50,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@WithUsuarioAutenticado
 class ProdutoControllerIntegrationTest {
 
     @Autowired

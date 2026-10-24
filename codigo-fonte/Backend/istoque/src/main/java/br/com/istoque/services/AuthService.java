@@ -17,10 +17,14 @@ public class AuthService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
-    public AuthService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+    public AuthService(UsuarioRepository usuarioRepository,
+                       PasswordEncoder passwordEncoder,
+                       JwtService jwtService) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     @Transactional
@@ -45,12 +49,20 @@ public class AuthService {
                 ? usuario.getEmpresa().getNomeFantasia()
                 : usuario.getEmpresa().getRazaoSocial();
 
+        JwtService.TokenGerado token = jwtService.gerarToken(
+                usuario.getEmail(),
+                usuario.getId(),
+                usuario.getEmpresa().getId(),
+                usuario.getPerfil().getNome());
+
         return new LoginResponseDTO(
                 usuario.getId(),
                 usuario.getNome(),
                 usuario.getEmail(),
                 usuario.getPerfil().getNome(),
                 usuario.getEmpresa().getId(),
-                nomeDaEmpresa);
+                nomeDaEmpresa,
+                token.token(),
+                token.expiraEm());
     }
 }

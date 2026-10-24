@@ -1,5 +1,6 @@
 package br.com.istoque.controller;
 
+import br.com.istoque.support.WithUsuarioAutenticado;
 import br.com.istoque.infrastructure.entity.Categoria;
 import br.com.istoque.infrastructure.entity.Empresa;
 import br.com.istoque.infrastructure.repository.CategoriaRepository;
@@ -30,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@WithUsuarioAutenticado
 class CategoriaControllerIntegrationTest {
 
     @Autowired

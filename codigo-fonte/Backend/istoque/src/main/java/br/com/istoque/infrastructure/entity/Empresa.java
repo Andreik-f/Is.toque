@@ -36,8 +36,8 @@ public class Empresa {
     @Column(name = "telefone")
     private String telefone;
 
-    @Column(name = "dias_alerta_validade")
-    private Integer diasAlertaValidade;
+    @Column(name = "dias_alerta_validade", nullable = false)
+    private Integer diasAlertaValidade = 3; // mesmo padrão que o banco usa
 
     @Column(name = "ativo", nullable = false)
     private Boolean ativo;

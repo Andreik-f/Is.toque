@@ -17,19 +17,23 @@ public class CadastroService {
     private final EmpresaService empresaService;
     private final UsuarioService usuarioService;
     private final PerfilRepository perfilRepository;
+    private final JwtService jwtService;
 
     public CadastroService(EmpresaService empresaService,
                            UsuarioService usuarioService,
-                           PerfilRepository perfilRepository) {
+                           PerfilRepository perfilRepository,
+                           JwtService jwtService) {
         this.empresaService = empresaService;
         this.usuarioService = usuarioService;
         this.perfilRepository = perfilRepository;
+        this.jwtService = jwtService;
     }
 
     /**
      * Cria a empresa (com os perfis padrão) e o administrador dela na mesma
      * transação: se o usuário falhar (por exemplo, e-mail já cadastrado), a
-     * empresa também não é gravada.
+     * empresa também não é gravada. Já devolve o token, para o usuário entrar
+     * logado logo após o cadastro.
      */
     @Transactional
     public CadastroResponseDTO cadastrar(CadastroRequestDTO dto) {
@@ -43,6 +47,9 @@ public class CadastroService {
         UsuarioResponseDTO usuario = usuarioService.criar(
                 new UsuarioCreateDTO(dto.nome(), dto.email(), dto.senha(), administrador.getId(), empresa.id()));
 
-        return new CadastroResponseDTO(empresa, usuario);
+        JwtService.TokenGerado token = jwtService.gerarToken(
+                usuario.email(), usuario.id(), empresa.id(), administrador.getNome());
+
+        return new CadastroResponseDTO(empresa, usuario, token.token(), token.expiraEm());
     }
 }

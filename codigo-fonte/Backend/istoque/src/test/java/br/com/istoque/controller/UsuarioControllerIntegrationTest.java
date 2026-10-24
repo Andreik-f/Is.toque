@@ -1,5 +1,6 @@
 package br.com.istoque.controller;
 
+import br.com.istoque.support.WithUsuarioAutenticado;
 import br.com.istoque.infrastructure.entity.Empresa;
 import br.com.istoque.infrastructure.entity.Perfil;
 import br.com.istoque.infrastructure.entity.Usuario;
@@ -37,6 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@WithUsuarioAutenticado
 class UsuarioControllerIntegrationTest {
 
     @Autowired

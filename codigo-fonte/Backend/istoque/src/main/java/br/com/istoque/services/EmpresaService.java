@@ -95,7 +95,9 @@ public class EmpresaService {
         empresa.setCnpj(dto.cnpj());
         empresa.setEmail(dto.email());
         empresa.setTelefone(dto.telefone());
-        empresa.setDiasAlertaValidade(dto.diasAlertaValidade());
+        if (dto.diasAlertaValidade() != null) {
+            empresa.setDiasAlertaValidade(dto.diasAlertaValidade());
+        }
     }
 
 }
