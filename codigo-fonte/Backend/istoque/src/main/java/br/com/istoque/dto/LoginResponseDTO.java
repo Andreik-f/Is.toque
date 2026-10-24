@@ -1,4 +1,5 @@
 package br.com.istoque.dto;
+
 import java.time.OffsetDateTime;
 
 public record LoginResponseDTO(

@@ -1,5 +1,6 @@
 package br.com.istoque.controller;
 
+import br.com.istoque.support.WithUsuarioAutenticado;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -30,6 +31,7 @@ import com.jayway.jsonpath.JsonPath;
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@WithUsuarioAutenticado
 class EmpresaControllerIntegrationTest {
 
     @Autowired

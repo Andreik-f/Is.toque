@@ -17,4 +17,3 @@ target/
 # Credenciais locais do banco de dados - NUNCA versionar
 application-local.properties
 .env
-/wiki

@@ -1,5 +1,6 @@
 package br.com.istoque.controller;
 
+import br.com.istoque.support.WithUsuarioAutenticado;
 import br.com.istoque.infrastructure.entity.UnidadeMedida;
 import br.com.istoque.infrastructure.repository.ProdutoRepository;
 import br.com.istoque.infrastructure.repository.UnidadeMedidaRepository;
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@WithUsuarioAutenticado
 class UnidadeMedidaControllerIntegrationTest {
 
     @Autowired
