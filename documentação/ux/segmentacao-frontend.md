@@ -2,7 +2,7 @@
 
 ## Ponto de partida
 
-Frontend previsto: **React + Vite, com componentes reutilizáveis**. O backend existente será a fonte dos contratos de API e das regras já implementadas. Esta é uma proposta de organização; não representa uma integração concluída nem presume contratos que ainda não foram conferidos no backend.
+Frontend previsto: **React + Vite, com componentes reutilizáveis**. O backend existente será a fonte dos contratos de API e das regras já implementadas. Esta é a proposta de organização que orientou o front-end. A integração está feita para cadastro, login, produtos, categorias e unidades de medida; receitas, movimentações, produção, relatórios e equipe seguem locais (estado em `codigo-fonte/Frontend/istoque/README.md`).
 
 ## 1. Primeiro levantamento no repositório
 
@@ -43,7 +43,7 @@ Registrar método, caminho, autenticação, corpo, resposta, erros, paginação 
 
 Dentro de cada domínio, separar páginas, componentes próprios e acesso a dados. Não duplicar componentes visuais nem espalhar chamadas HTTP em botões e tabelas. Evitar dependências novas antes de verificar as já usadas no projeto.
 
-A estrutura adotada no código está descrita no README do app, em `codigo-fonte/Frontend/istoque/README.md`.
+A estrutura efetivamente adotada difere em parte desta proposta: o código compartilhado fica em `src/components/`, `src/lib/`, `src/utils/`, `src/stores/` e `src/styles/`, e não em `src/shared/`. Ela está descrita no README do app, em `codigo-fonte/Frontend/istoque/README.md`.
 
 ## 3. Preservação de login e cadastro
 
@@ -53,7 +53,7 @@ A estrutura adotada no código está descrita no README do app, em `codigo-fonte
 4. Adaptar exclusivamente os campos e suas validações ao contrato do backend.
 5. Comparar screenshots nas dimensões dos frames desktop e mobile.
 
-A implementação atual fica em `src/features/auth/`, com os componentes em `components/` e os dois ativos locais em `assets/`. Títulos, textos e controles são HTML real. O cadastro básico tem seis campos em uma etapa, definidos pela modelagem de dados e pelo contrato da API e detalhados em [cadastro-basico.md](cadastro-basico.md). O módulo ainda é demonstrativo e precisa de integração com a API.
+A implementação atual fica em `src/features/auth/`, com os componentes em `components/` e os dois ativos locais em `assets/`. Títulos, textos e controles são HTML real. O cadastro básico tem seis campos em uma etapa, definidos pela modelagem de dados e pelo contrato da API e detalhados em [cadastro-basico.md](cadastro-basico.md). O módulo está integrado à API: o login chama `POST /api/auth/login` e o cadastro chama `POST /api/auth/cadastro`, e a sessão fica em `src/stores/session-store.jsx`.
 
 ## 4. Componentes de domínio
 
@@ -69,7 +69,7 @@ A implementação atual fica em `src/features/auth/`, com os componentes em `com
 | OperationResult | Sucesso ou falha após retorno do servidor |
 | PermissionGate | Apresentação conforme permissões; não substitui autorização da API |
 
-O protótipo já possui componentes de base e `ProductPhotoField`/`ProductVisual`. Sua camada de estado em memória deve ser substituída por integração conforme os contratos reais; não deve ser tratada como banco de dados ou autenticação.
+O front-end já possui componentes de base e `ProductPhotoField`/`ProductVisual`. Produtos, categorias e unidades de medida usam a API; a camada de estado em memória que resta (receitas, movimentações, produção, relatórios, equipe e fotos) deve ser substituída por integração conforme os contratos reais, e não deve ser tratada como banco de dados ou autenticação.
 
 ## 5. Sequência de construção
 
@@ -93,4 +93,4 @@ Para produção: saldo exato, quantidade acima do limite, alteração de estoque
 
 ## Pendências
 
-A integração com o backend ainda não foi feita: os contratos da API precisam ser conferidos no código antes de substituir os dados fictícios do protótipo.
+A integração com o backend cobre cadastro, login, produtos, categorias e unidades de medida. Faltam as rotas de receitas, movimentações, produção, relatórios, equipe e fotos, além do token de autenticação (HT001) e do isolamento entre empresas no servidor (HT002); os contratos devem ser conferidos no código antes de substituir os dados locais.
