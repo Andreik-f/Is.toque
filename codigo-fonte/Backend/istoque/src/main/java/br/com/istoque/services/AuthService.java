@@ -17,16 +17,21 @@ public class AuthService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
-    public AuthService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+    public AuthService(
+            UsuarioRepository usuarioRepository,
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService) {
+
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     @Transactional
     public LoginResponseDTO realizarLogin(LoginRequestDTO loginRequest) {
-        // o e-mail é único no sistema todo, então ele sozinho identifica a conta;
-        // ele é gravado em minúsculas, então a busca também normaliza o digitado
+
         Usuario usuario = usuarioRepository
                 .findByEmail(EmailUtils.normalizar(loginRequest.email()))
                 .orElseThrow(CredenciaisInvalidasException::new);
@@ -35,15 +40,25 @@ public class AuthService {
             throw new CredenciaisInvalidasException();
         }
 
-        if (!passwordEncoder.matches(loginRequest.senha(), usuario.getSenha())) {
+        if (!passwordEncoder.matches(
+                loginRequest.senha(), usuario.getSenha())) {
             throw new CredenciaisInvalidasException();
         }
 
-        usuarioRepository.registrarAcesso(usuario.getId(), OffsetDateTime.now());
+        usuarioRepository.registrarAcesso(
+                usuario.getId(), OffsetDateTime.now());
 
-        String nomeDaEmpresa = usuario.getEmpresa().getNomeFantasia() != null
-                ? usuario.getEmpresa().getNomeFantasia()
-                : usuario.getEmpresa().getRazaoSocial();
+        String nomeDaEmpresa =
+                usuario.getEmpresa().getNomeFantasia() != null
+                        ? usuario.getEmpresa().getNomeFantasia()
+                        : usuario.getEmpresa().getRazaoSocial();
+
+        JwtService.TokenGerado token = jwtService.gerarToken(
+                usuario.getEmail(),
+                usuario.getId(),
+                usuario.getEmpresa().getId(),
+                usuario.getPerfil().getNome()
+        );
 
         return new LoginResponseDTO(
                 usuario.getId(),
@@ -51,6 +66,9 @@ public class AuthService {
                 usuario.getEmail(),
                 usuario.getPerfil().getNome(),
                 usuario.getEmpresa().getId(),
-                nomeDaEmpresa);
+                nomeDaEmpresa,
+                token.token(),
+                token.expiraEm()
+        );
     }
 }
