@@ -16,32 +16,32 @@ Para conferir se a API conectou no banco: http://localhost:8080/actuator/health
 
 ## Endpoints
 
-A API ainda não exige autenticação: o login confere e-mail e senha, mas não gera token, e o `SecurityConfig` libera todas as rotas (HT001). Por isso a coluna "Exige autenticação" é "Não" em todas. Como o isolamento entre empresas no servidor também ainda não existe (HT002), as rotas recebem o `empresaId` por parâmetro ou no corpo.
+O login e o cadastro devolvem um `token` e o `expiraEm` (validade definida em `jwt.expiration-ms`; hoje, 8 horas). As demais rotas, exceto `/actuator/health`, exigem esse token em `Authorization: Bearer <token>` e respondem `401` sem ele ou com ele vencido. Como o isolamento entre empresas no servidor também ainda não existe (HT002), as rotas recebem o `empresaId` por parâmetro ou no corpo.
 
 | Método | Caminho | O que faz | Exige autenticação |
 |---|---|---|---|
 | POST | `/api/auth/login` | Entra com e-mail e senha; devolve os dados do usuário e da empresa | Não |
 | POST | `/api/auth/cadastro` | Cria a empresa, os perfis padrão e o administrador | Não |
-| GET | `/api/empresas` | Lista as empresas | Não |
-| GET | `/api/empresas/{id}` | Busca uma empresa | Não |
-| POST | `/api/empresas` | Cadastra uma empresa (com os perfis padrão) | Não |
-| PUT | `/api/empresas/{id}` | Atualiza uma empresa | Não |
-| DELETE | `/api/empresas/{id}` | Exclui a empresa (exclusão definitiva) | Não |
-| GET | `/api/usuarios` | Lista os usuários | Não |
-| POST | `/api/usuarios` | Cadastra um usuário | Não |
-| PUT | `/api/usuarios/{id}` | Atualiza nome, e-mail, perfil e empresa do usuário | Não |
-| PATCH | `/api/usuarios/{id}/senha` | Altera a senha do usuário (`novaSenha`) | Não |
-| DELETE | `/api/usuarios/{id}` | Desativa o usuário (exclusão lógica) | Não |
-| GET | `/api/perfis?empresaId=` | Lista os perfis da empresa | Não |
-| GET | `/api/categorias?empresaId=` | Lista as categorias da empresa | Não |
-| POST | `/api/categorias` | Cadastra uma categoria | Não |
-| GET | `/api/unidades-medida` | Lista as unidades de medida | Não |
-| GET | `/api/produtos?empresaId=` | Lista os produtos (`empresaId` é opcional e filtra) | Não |
-| GET | `/api/produtos/ativos?empresaId=` | Lista só os produtos ativos | Não |
-| GET | `/api/produtos/{id}` | Busca um produto | Não |
-| POST | `/api/produtos` | Cadastra um produto | Não |
-| PUT | `/api/produtos/{id}` | Atualiza um produto (a quantidade atual enviada é ignorada) | Não |
-| PATCH | `/api/produtos/{id}/desativar` | Desativa o produto (exclusão lógica) | Não |
+| GET | `/api/empresas` | Lista as empresas | Sim |
+| GET | `/api/empresas/{id}` | Busca uma empresa | Sim |
+| POST | `/api/empresas` | Cadastra uma empresa (com os perfis padrão) | Sim |
+| PUT | `/api/empresas/{id}` | Atualiza uma empresa | Sim |
+| DELETE | `/api/empresas/{id}` | Exclui a empresa (exclusão definitiva) | Sim |
+| GET | `/api/usuarios` | Lista os usuários | Sim |
+| POST | `/api/usuarios` | Cadastra um usuário | Sim |
+| PUT | `/api/usuarios/{id}` | Atualiza nome, e-mail, perfil e empresa do usuário | Sim |
+| PATCH | `/api/usuarios/{id}/senha` | Altera a senha do usuário (`novaSenha`) | Sim |
+| DELETE | `/api/usuarios/{id}` | Desativa o usuário (exclusão lógica) | Sim |
+| GET | `/api/perfis?empresaId=` | Lista os perfis da empresa | Sim |
+| GET | `/api/categorias?empresaId=` | Lista as categorias da empresa | Sim |
+| POST | `/api/categorias` | Cadastra uma categoria | Sim |
+| GET | `/api/unidades-medida` | Lista as unidades de medida | Sim |
+| GET | `/api/produtos?empresaId=` | Lista os produtos (`empresaId` é opcional e filtra) | Sim |
+| GET | `/api/produtos/ativos?empresaId=` | Lista só os produtos ativos | Sim |
+| GET | `/api/produtos/{id}` | Busca um produto | Sim |
+| POST | `/api/produtos` | Cadastra um produto | Sim |
+| PUT | `/api/produtos/{id}` | Atualiza um produto (a quantidade atual enviada é ignorada) | Sim |
+| PATCH | `/api/produtos/{id}/desativar` | Desativa o produto (exclusão lógica) | Sim |
 | GET | `/actuator/health` | Situação da API e da conexão com o banco | Não |
 
 Os erros seguem o formato `{ timestamp, status, message, campos }`. Os corpos de requisição e resposta, as regras de validação, as mensagens de erro e os exemplos de cada rota estão na [Wiki do projeto](https://github.com/ICEI-PUC-Minas-PBR-ADS/pbr-ads-2026-2-p1-tidai-t1-8246101-pbr-ads-2026-2-p1-tidai-t-davidwsr1/wiki). A API publicada está em https://is-toque-prod.onrender.com. Ainda não existem rotas para movimentações, receitas, produção e fotos: as tabelas de estoque e receitas já existem no banco, mas sem endpoints.

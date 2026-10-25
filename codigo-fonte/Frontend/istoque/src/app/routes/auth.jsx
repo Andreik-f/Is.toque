@@ -7,11 +7,12 @@ import { useSession } from "@/stores/session-store.jsx";
 // login ou do cadastro, a sessão é guardada e o painel abre com os dados da
 // empresa.
 export function AuthRoute({ route }) {
-  const { signIn } = useSession();
+  const { signIn, notice } = useSession();
   return (
     <AuthScreen
       route={route}
       go={navigate}
+      notice={notice}
       onAuthenticated={(session) => {
         signIn(session);
         navigate("dashboard");

@@ -31,7 +31,7 @@ VITE_API_URL=https://endereco-da-api/api npm run build
 
 A API só aceita chamadas do navegador vindas dos endereços listados na variável de ambiente `CORS_ORIGENS` do backend (separados por vírgula). Em produção, ela precisa conter o endereço do front publicado.
 
-Com login, produtos, categorias e unidades de medida vêm da API e são gravados nela. Receitas, movimentações, produção, relatórios e equipe ainda não têm rota na API: com login, começam vazios, e o que se registra neles vale até recarregar a página. Nesses casos, a tela, o modal e a mensagem de confirmação avisam que o registro ainda não vai para o servidor; o mesmo vale para a foto do produto. A importação de nota continua só na demonstração. A API ainda não usa token (HT001) nem separa as empresas no servidor (HT002): a sessão guarda no navegador os dados do usuário logado, e o front envia o `empresaId` dele.
+Com login, produtos, categorias e unidades de medida vêm da API e são gravados nela. Receitas, movimentações, produção, relatórios e equipe ainda não têm rota na API: com login, começam vazios, e o que se registra neles vale até recarregar a página. Nesses casos, a tela, o modal e a mensagem de confirmação avisam que o registro ainda não vai para o servidor; o mesmo vale para a foto do produto. A importação de nota continua só na demonstração. A API ainda não separa as empresas no servidor (HT002): o front envia o `empresaId` do usuário logado. A sessão guarda no navegador os dados do usuário, o `token` e o `expiraEm`, e o cliente HTTP envia `Authorization: Bearer <token>` em todas as chamadas, menos no login e no cadastro.
 
 Com login, alertas de validade, relatórios e movimentações usam a data de hoje. Sem login, a demonstração usa a data fixa de 26/09/2026, a mesma dos dados de exemplo, e mostra o usuário fictício David Rocha.
 
@@ -82,7 +82,7 @@ Em `features/auth/components/`, `auth-screen.jsx` compõe a tela, `access-form.j
 
 A interface segue a paleta e a composição do Figma. No computador, o cartão tem até 846 px de largura e cresce conforme os campos e os erros; no celular, o layout se reorganiza. A curva lateral é vetorial e decorativa.
 
-A validação verifica obrigatoriedade, e-mail, CNPJ, tamanho mínimo e igualdade das senhas antes de enviar. O login chama `POST /api/auth/login`; o cadastro chama `POST /api/auth/cadastro`, que cria a empresa e o administrador, e já entra no sistema. Erros da API aparecem no campo correspondente ou acima do botão. A sessão fica em `stores/session-store.jsx`, e "Sair", no menu lateral, a encerra.
+A validação verifica obrigatoriedade, e-mail, CNPJ, tamanho mínimo e igualdade das senhas antes de enviar. O login chama `POST /api/auth/login`; o cadastro chama `POST /api/auth/cadastro`, que cria a empresa e o administrador, e já entra no sistema. Erros da API aparecem no campo correspondente ou acima do botão. A sessão fica em `stores/session-store.jsx`, e "Sair", no menu lateral, a encerra e apaga o token. Recarregar a página com o token ainda válido mantém o usuário logado. Uma resposta 401 em qualquer chamada autenticada, ou um token já vencido ao abrir o sistema (`expiraEm`), encerra a sessão e abre `#login` com o aviso "Sua sessão expirou. Entre novamente."; no vencido, nenhum dado é carregado. Um 401 do próprio login ou cadastro significa credencial incorreta e não encerra sessão.
 
 ## Padronização dos campos
 

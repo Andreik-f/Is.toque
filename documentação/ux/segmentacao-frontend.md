@@ -93,4 +93,4 @@ Para produção: saldo exato, quantidade acima do limite, alteração de estoque
 
 ## Pendências
 
-A integração com o backend cobre cadastro, login, produtos, categorias e unidades de medida. Faltam as rotas de receitas, movimentações, produção, relatórios, equipe e fotos, além do token de autenticação (HT001) e do isolamento entre empresas no servidor (HT002); os contratos devem ser conferidos no código antes de substituir os dados locais.
+A integração com o backend cobre cadastro, login, produtos, categorias e unidades de medida. Faltam as rotas de receitas, movimentações, produção, relatórios, equipe e fotos, além do isolamento entre empresas no servidor (HT002); os contratos devem ser conferidos no código antes de substituir os dados locais.

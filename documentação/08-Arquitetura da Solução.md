@@ -34,7 +34,7 @@ flowchart LR
 
 - **Navegador:** carrega o front-end uma vez e passa a chamar a API diretamente, com `fetch`. A navegação usa hash (`#estoque`), sem recarregar a página.
 - **Frontend (Render, site estático):** gerado com `npm run build`. O endereço da API vem da variável `VITE_API_URL`, lida no build; em desenvolvimento, o Vite repassa `/api` para `http://localhost:8080` (`API_PROXY`).
-- **API (Render, Docker):** controllers, serviços e repositórios JPA em `br.com.istoque`. Ela só aceita chamadas do navegador vindas das origens listadas em `CORS_ORIGENS`, que em produção deve conter o endereço do front publicado. Ainda não exige token (HT001).
+- **API (Render, Docker):** controllers, serviços e repositórios JPA em `br.com.istoque`. Ela só aceita chamadas do navegador vindas das origens listadas em `CORS_ORIGENS`, que em produção deve conter o endereço do front publicado. Com exceção do login, do cadastro e de `/actuator/health`, as rotas exigem o token em `Authorization: Bearer <token>`.
 - **Banco (Neon):** PostgreSQL. O Hibernate só valida as entidades (`ddl-auto=validate`); quem cria e altera as tabelas é o Flyway, com as migrações de `src/main/resources/db/migration`. O banco de desenvolvimento e o de produção são separados.
 - **Deploy:** automático, a partir do repositório `erezende544/is.toque_prod`, branch `Release`.
 

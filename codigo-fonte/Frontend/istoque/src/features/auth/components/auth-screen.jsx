@@ -19,7 +19,7 @@ const sameActivity = (a, b) =>
 // Tela de acesso: login, cadastro e recuperação de senha (#login, #cadastro,
 // #recuperar). Login e cadastro chamam a API e entregam a sessão a
 // onAuthenticated.
-export function AuthScreen({ route, go, onAuthenticated }) {
+export function AuthScreen({ route, go, onAuthenticated, notice }) {
   const signup = route === "cadastro";
   const [sent, setSent] = useState(false);
   useEffect(() => setSent(false), [route]);
@@ -66,6 +66,7 @@ export function AuthScreen({ route, go, onAuthenticated }) {
             await mascotRef.current?.sucesso();
             onAuthenticated(session);
           }}
+          notice={notice}
           onFail={() => mascotRef.current?.erro()}
         />
       </div>

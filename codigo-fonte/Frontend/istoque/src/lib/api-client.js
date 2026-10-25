@@ -17,17 +17,25 @@ export class ApiError extends Error {
   }
 }
 
+// Nestas rotas o 401 é "e-mail ou senha incorretos", não sessão expirada.
+const PUBLIC_PATHS = ["/auth/login", "/auth/cadastro"];
+
 export function createApiClient({
   baseUrl = API_URL,
   fetchFn = (...args) => fetch(...args),
+  getToken = () => null,
+  onUnauthorized = () => {},
 } = {}) {
   async function request(method, path, body) {
+    const token = PUBLIC_PATHS.includes(path) ? null : getToken();
+    const headers = {};
+    if (body !== undefined) headers["Content-Type"] = "application/json";
+    if (token) headers.Authorization = `Bearer ${token}`;
     let response;
     try {
       response = await fetchFn(baseUrl + path, {
         method,
-        headers:
-          body === undefined ? undefined : { "Content-Type": "application/json" },
+        headers: Object.keys(headers).length ? headers : undefined,
         body: body === undefined ? undefined : JSON.stringify(body),
       });
     } catch {
@@ -41,6 +49,9 @@ export function createApiClient({
       data = text ? JSON.parse(text) : null;
     } catch {
       // resposta sem JSON (ex.: erro do proxy): fica só o status
+    }
+    if (response.status === 401 && !PUBLIC_PATHS.includes(path)) {
+      onUnauthorized(token);
     }
     if (!response.ok) {
       throw new ApiError(
@@ -60,7 +71,17 @@ export function createApiClient({
   };
 }
 
-export const api = createApiClient();
+const authHandlers = { getToken: () => null, onUnauthorized: () => {} };
+
+export function setAuthHandlers({ getToken, onUnauthorized }) {
+  authHandlers.getToken = getToken;
+  authHandlers.onUnauthorized = onUnauthorized;
+}
+
+export const api = createApiClient({
+  getToken: () => authHandlers.getToken(),
+  onUnauthorized: (token) => authHandlers.onUnauthorized(token),
+});
 
 // Texto para mostrar na tela: as mensagens dos campos, se houver, ou a geral.
 export function errorMessage(error) {

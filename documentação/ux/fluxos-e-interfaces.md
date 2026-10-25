@@ -12,7 +12,7 @@ Os [quatro frames originais](references/figma/) permanecem como referência hist
 
 ![Fluxos de acesso, estoque e produção](images/istoque/fluxos-operacionais.svg)
 
-O diagrama distingue a sequência de telas das validações necessárias no servidor. Cadastro, login, produtos, categorias e unidades de medida já usam a API; a navegação de receitas, movimentações, produção, relatórios e equipe usa dados locais. Token de autenticação (HT001), isolamento entre empresas no servidor (HT002), auditoria e transações ainda não estão implementados.
+O diagrama distingue a sequência de telas das validações necessárias no servidor. Cadastro, login, produtos, categorias e unidades de medida já usam a API; a navegação de receitas, movimentações, produção, relatórios e equipe usa dados locais. Isolamento entre empresas no servidor (HT002), auditoria e transações ainda não estão implementados.
 
 | Área | Requisitos relacionados | Entrega de interface |
 | --- | --- | --- |
@@ -207,7 +207,7 @@ A proposta usa menu lateral recolhido e navegação inferior, mantendo os mesmos
 | Foto ausente | Usar a ilustração padrão |
 | Arquivo rejeitado | Explicar tipo, tamanho ou integridade; preservar foto válida |
 
-Carregamento, falha de rede, sessão expirada e permissões reais ainda dependem da integração. No sistema em modo demonstração foram verificados os limites de produção e saída, recálculo das receitas, busca vazia, vínculo obrigatório da nota e dez cenários de foto de produto.
+Carregamento, falha de rede e permissões reais ainda dependem da integração; a sessão expirada já leva ao login com aviso. No sistema em modo demonstração foram verificados os limites de produção e saída, recálculo das receitas, busca vazia, vínculo obrigatório da nota e dez cenários de foto de produto.
 
 ## 14. Próxima etapa de implementação
 

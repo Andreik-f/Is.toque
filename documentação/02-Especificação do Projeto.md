@@ -12,7 +12,7 @@ As receitas funcionarão como fichas técnicas que relacionam produtos e quantid
 
 O acompanhamento do estoque deverá incluir alertas de quantidade e validade, lista de reposição, histórico e relatórios por período. Os requisitos desta página descrevem o comportamento esperado da solução e orientam sua evolução.
 
-Na implementação atual, o cadastro de empresa e administrador, o login e os cadastros e consultas de produtos e categorias estão integrados à API, assim como a consulta de unidades de medida. Movimentações, receitas, produção, relatórios, equipe e fotos ainda possuem operações locais na interface; a importação de notas fiscais é demonstrativa. A proteção das rotas por token e permissões e o isolamento entre empresas no servidor permanecem em desenvolvimento. Os detalhes de execução e integração estão no [README do frontend](../codigo-fonte/Frontend/istoque/README.md).
+Na implementação atual, o cadastro de empresa e administrador, o login e os cadastros e consultas de produtos e categorias estão integrados à API, assim como a consulta de unidades de medida. Movimentações, receitas, produção, relatórios, equipe e fotos ainda possuem operações locais na interface; a importação de notas fiscais é demonstrativa. As rotas protegidas exigem token, que o front guarda na sessão e envia nas chamadas a essas rotas. As permissões por perfil e o isolamento entre empresas no servidor permanecem em desenvolvimento. Os detalhes de execução e integração estão no [README do frontend](../codigo-fonte/Frontend/istoque/README.md).
 
 ## Perfis de Usuários
 

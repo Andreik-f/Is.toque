@@ -22,7 +22,7 @@ RF-02: O sistema deverá criar o usuário administrador junto com o cadastro da 
 
 #### Estrutura de Dados
 
-Requisição (`CadastroRequestDTO`): `razaoSocial` (obrigatória, até 150 caracteres), `cnpj` (14 caracteres alfanuméricos, com ou sem máscara), `nome` (até 120), `email` (válido, até 150) e `senha` (mínimo de 8 caracteres). Resposta `201`: `{ empresa, usuario }`. Em uma única transação, o sistema grava a empresa (tabela `empresa`), cria os perfis padrão Administrador, Gerente e Funcionário (tabela `perfil`) e grava o usuário administrador (tabela `usuario`, com a senha em BCrypt). CNPJ ou e-mail repetidos retornam `409` e nada é gravado.
+Requisição (`CadastroRequestDTO`): `razaoSocial` (obrigatória, até 150 caracteres), `cnpj` (14 caracteres alfanuméricos, com ou sem máscara), `nome` (até 120), `email` (válido, até 150) e `senha` (mínimo de 8 caracteres). Resposta `201` (`CadastroResponseDTO`): `{ empresa, usuario, token, expiraEm }`; o usuário já sai do cadastro logado. Em uma única transação, o sistema grava a empresa (tabela `empresa`), cria os perfis padrão Administrador, Gerente e Funcionário (tabela `perfil`) e grava o usuário administrador (tabela `usuario`, com a senha em BCrypt). CNPJ ou e-mail repetidos retornam `409` e nada é gravado.
 
 #### Instruções de acesso
 
@@ -48,11 +48,11 @@ RF-03: O sistema deverá permitir a autenticação por e-mail e senha individuai
 
 #### Estrutura de Dados
 
-Requisição: `email` e `senha`. Resposta `200` (`LoginResponseDTO`): `id`, `nome`, `email`, `perfil`, `empresaId` e `nomeEmpresa`. Credenciais incorretas e usuário desativado retornam `401` com a mesma mensagem ("E-mail ou senha incorretos."). O login registra o último acesso do usuário. A API ainda não emite token (HT001); o front guarda os dados do usuário na chave `istoque.sessao` do `localStorage`.
+Requisição: `email` e `senha`. Resposta `200` (`LoginResponseDTO`): `id`, `nome`, `email`, `perfil`, `empresaId`, `nomeEmpresa`, `token` e `expiraEm`. Credenciais incorretas e usuário desativado retornam `401` com a mesma mensagem ("E-mail ou senha incorretos."). O login registra o último acesso do usuário. O front guarda os dados do usuário, o `token` e o `expiraEm` devolvidos pelo login ou pelo cadastro na chave `istoque.sessao` do `localStorage` e envia o token em `Authorization: Bearer` nas demais chamadas.
 
 #### Instruções de acesso
 
-Em `#login` (botão "Entrar" da página inicial), informe e-mail e senha da empresa cadastrada. O botão "Sair" do menu lateral encerra a sessão.
+Em `#login` (botão "Entrar" da página inicial), informe e-mail e senha da empresa cadastrada. O botão "Sair" do menu lateral encerra a sessão. Quando a sessão expira (resposta 401 da API ou token vencido ao abrir o sistema), o login abre com o aviso "Sua sessão expirou. Entre novamente.".
 
 #### Responsável
 

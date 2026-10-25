@@ -33,13 +33,15 @@ test("erros de campo da API usam os nomes do formulário", () => {
 test("a sessão do cadastro tem o mesmo formato da resposta do login", () => {
   const empresa = { id: 7, razaoSocial: "Cozinha da Casa LTDA", nomeFantasia: null };
   const usuario = { id: 3, nome: "Ana Souza", email: "ana@exemplo.com", perfil: "Administrador", empresaId: 7 };
-  assert.deepEqual(sessionFromSignup({ empresa, usuario }), {
+  const acesso = { token: "abc.def.ghi", expiraEm: "2026-10-26T10:00:00-03:00" };
+  assert.deepEqual(sessionFromSignup({ empresa, usuario, ...acesso }), {
     id: 3,
     nome: "Ana Souza",
     email: "ana@exemplo.com",
     perfil: "Administrador",
     empresaId: 7,
     nomeEmpresa: "Cozinha da Casa LTDA",
+    ...acesso,
   });
   assert.equal(
     sessionFromSignup({ empresa: { ...empresa, nomeFantasia: "Casa" }, usuario }).nomeEmpresa,

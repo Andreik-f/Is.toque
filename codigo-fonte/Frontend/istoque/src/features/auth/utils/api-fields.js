@@ -27,7 +27,7 @@ export function formFieldErrors(apiFields) {
 // O cadastro devolve a empresa e o administrador separados; a sessão usa o
 // mesmo formato da resposta do login, com o nome da empresa calculado da
 // mesma forma (nome fantasia ou, sem ele, a razão social).
-export function sessionFromSignup({ empresa, usuario }) {
+export function sessionFromSignup({ empresa, usuario, token, expiraEm }) {
   return {
     id: usuario.id,
     nome: usuario.nome,
@@ -35,5 +35,7 @@ export function sessionFromSignup({ empresa, usuario }) {
     perfil: usuario.perfil,
     empresaId: empresa.id,
     nomeEmpresa: empresa.nomeFantasia ?? empresa.razaoSocial,
+    token,
+    expiraEm,
   };
 }

@@ -1,43 +1,69 @@
-import React, { createContext, useContext, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
+import { setAuthHandlers } from "@/lib/api-client.js";
+import { navigate } from "@/hooks/use-hash-route.js";
+import { readStoredSession, writeStoredSession } from "./session-storage.js";
+import { useUiStore } from "./ui-store.jsx";
 
-// Usuário logado, no formato da resposta do login (id, nome, email, perfil,
-// empresaId e nomeEmpresa). Fica guardado no navegador para a sessão
-// continuar ao recarregar a página. Ainda não há token: a autenticação real
-// das rotas da API entra com o HT001.
 const SessionContext = createContext(null);
-const STORAGE_KEY = "istoque.sessao";
+export const SESSION_EXPIRED_MESSAGE = "Sua sessão expirou. Entre novamente.";
 
-function readSession() {
-  try {
-    const session = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    return session?.empresaId ? session : null;
-  } catch {
-    return null;
-  }
-}
-
-function writeSession(session) {
-  try {
-    if (session) localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-    else localStorage.removeItem(STORAGE_KEY);
-  } catch {
-    // sem acesso ao armazenamento do navegador: a sessão vale só nesta aba
-  }
+function readInitial() {
+  const stored = readStoredSession(localStorage);
+  if (stored.expired) navigate("login");
+  return stored;
 }
 
 export function SessionProvider({ children }) {
-  const [session, setSession] = useState(readSession);
-  const value = {
-    session,
-    signIn: (next) => {
-      writeSession(next);
-      setSession(next);
-    },
-    signOut: () => {
-      writeSession(null);
-      setSession(null);
-    },
-  };
+  const [initial] = useState(readInitial);
+  const [session, setSession] = useState(initial.session);
+  const [notice, setNotice] = useState(
+    initial.expired ? SESSION_EXPIRED_MESSAGE : null,
+  );
+  const sessionRef = useRef(initial.session);
+  const { closeModal } = useUiStore();
+
+  function signIn(next) {
+    sessionRef.current = next;
+    writeStoredSession(localStorage, next);
+    setSession(next);
+    setNotice(null);
+  }
+
+  function signOut() {
+    sessionRef.current = null;
+    writeStoredSession(localStorage, null);
+    setSession(null);
+    setNotice(null);
+  }
+
+  function expireSession(token) {
+    if (!sessionRef.current || sessionRef.current.token !== token) return;
+    sessionRef.current = null;
+    writeStoredSession(localStorage, null);
+    setSession(null);
+    setNotice(SESSION_EXPIRED_MESSAGE);
+    closeModal();
+    navigate("login");
+  }
+
+  useLayoutEffect(() => {
+    if (initial.expired) writeStoredSession(localStorage, null);
+  }, [initial]);
+
+  useLayoutEffect(() => {
+    setAuthHandlers({
+      getToken: () => sessionRef.current?.token ?? null,
+      onUnauthorized: expireSession,
+    });
+  });
+
+  const value = { session, notice, signIn, signOut };
   return (
     <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
   );

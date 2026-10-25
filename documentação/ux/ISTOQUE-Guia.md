@@ -129,7 +129,7 @@ No protótipo, a imagem é lida localmente e permanece na memória até recarreg
 
 | Requisitos | Superfície da proposta | Limite desta entrega |
 | --- | --- | --- |
-| RF01–RF03 | Cadastro da empresa e acesso | Cadastro e login integrados à API; sem token (HT001) e sem isolamento entre empresas no servidor (HT002) |
+| RF01–RF03 | Cadastro da empresa e acesso | Cadastro e login integrados à API, com token Bearer e aviso de sessão expirada (HT001); sem isolamento entre empresas no servidor (HT002) |
 | RF04–RF06 | Equipe, perfis e ativação | Simulação local; autorização depende do backend |
 | RF07–RF10 | Cadastro, edição, detalhe, unidade e limites | Estado em memória; unidade preservada na edição |
 | RF11–RF19 | Entradas, saídas, ajustes, perdas, mínimo e histórico | Regras de quantidade demonstradas; persistência e auditoria dependem do backend |
@@ -189,7 +189,7 @@ Para gerar a distribuição: `npm run build`. Para verificar as regras de domín
 - Acesso: navegação, bloqueio por confirmação de senha divergente, cadastro e login enviados à API, recuperação simulada e fechamento por Escape aprovados. Sem erros JavaScript.
 - Revisão visual das telas de visão geral, ficha técnica, produção e versão móvel; exportação vetorial revisada separadamente.
 
-Produtos, categorias, unidades de medida, cadastro e login usam a API. Receitas, movimentações, produção, relatórios, equipe e foto do produto ainda são locais, e não há token, permissões efetivas, isolamento entre empresas no servidor nem processamento de notas. As capturas em `telas/` são uma referência visual do sistema. Antes da implementação real, confirmar também controle de lotes/validade, conversões de unidades, política de ajustes e concorrência na produção.
+Produtos, categorias, unidades de medida, cadastro e login usam a API. Receitas, movimentações, produção, relatórios, equipe e foto do produto ainda são locais, e não há permissões efetivas, isolamento entre empresas no servidor nem processamento de notas. As capturas em `telas/` são uma referência visual do sistema. Antes da implementação real, confirmar também controle de lotes/validade, conversões de unidades, política de ajustes e concorrência na produção.
 
 ## Padronização dos campos
 

@@ -55,6 +55,7 @@ export function AccessForm({
   onSuccess,
   onFail,
   onActivity,
+  notice,
 }) {
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
@@ -187,6 +188,11 @@ export function AccessForm({
             >
               Esqueceu a senha?
             </a>
+          )}
+          {notice && !signup && !formError && (
+            <p className="access-error" role="alert">
+              {notice}
+            </p>
           )}
           {formError && (
             <p className="access-error" role="alert">
