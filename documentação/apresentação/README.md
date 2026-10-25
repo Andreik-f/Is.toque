@@ -28,7 +28,11 @@ Etapa 5:
 > - Solução Implementada (funcionalidades de software)
 > - Conclusão da elaboração do projeto (pontos positivos, desafios, aprendizado)]
 
-[Adicione os pdfs das apresentações]
+Apresentações de cada sprint:
+
+* **Sprint 1 — Definição do problema (imersão, definição, ideação):** [PDF dos slides](Sprint%201%20-%20Definic%C3%A7%C3%A3o%20do%20problema%20Imers%C3%A3o%2C%20defini%C3%A7%C3%A3o%2C%20idea%C3%A7%C3%A3o.pdf).
+* **Sprint 2 — Projeto de interface:** apresentada por meio de um protótipo interativo publicado no GitHub Pages: [https://erezende544.github.io/istoque-prototipo/](https://erezende544.github.io/istoque-prototipo/). O código do protótipo está na pasta [Sprint 2 - Projeto de interface](Sprint%202%20-%20Projeto%20de%20interface/), no arquivo `istoque-prototipo-main.zip`.
+* **Sprint 3 — Projeto da solução:** [PDF dos slides](Sprint%203%20-%20Projeto%20da%20solu%C3%A7%C3%A3o.pdf).
 
 > **Links Úteis**:
 > - [A regra 10-20-30 para apresentações de sucesso](https://revistapegn.globo.com/Noticias/noticia/2014/07/regra-10-20-30-para-apresentacoes-de-sucesso.html)
@@ -48,4 +52,6 @@ Etapa 5:
 
 ## Hospedagem
 
-[Adicione o endereço eletrônico público onde o site encontra-se hospedado.]
+* Frontend (Render, site estático): [https://istoque-front.onrender.com](https://istoque-front.onrender.com).
+* API (Render, Docker): [https://is-toque-prod.onrender.com](https://is-toque-prod.onrender.com).
+* O deploy é automático a partir do repositório `erezende544/is.toque_prod`, branch `Release`.

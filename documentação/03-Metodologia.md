@@ -21,7 +21,7 @@ Os papéis e as frentes de atuação são descritos da seguinte forma:
 - **Equipe de Desenvolvimento:** os quatro integrantes participam da implementação, dos testes e da documentação, conforme as tarefas atribuídas no repositório.
 - **Equipe de Design:** a frente de identidade visual e padronização das telas possui atividade atribuída a David William da Silva Rocha, conforme a [HT033](https://github.com/ICEI-PUC-Minas-PBR-ADS/pbr-ads-2026-2-p1-tidai-t1-8246101-pbr-ads-2026-2-p1-tidai-t-davidwsr1/issues/62). As implementações de interface também recebem contribuições registradas nos pull requests do projeto.
 
-A distribuição abaixo foi levantada a partir dos responsáveis registrados nas issues em 22/10/2026. As frentes descritas contemplam atividades abertas e contribuições já encerradas; o estado de cada item deve ser consultado na respectiva tarefa.
+A distribuição abaixo foi levantada a partir dos responsáveis registrados nas issues em 23/10/2026. As frentes descritas contemplam atividades abertas e contribuições já encerradas; o estado de cada item deve ser consultado na respectiva tarefa.
 
 | Integrante | Atividades atribuídas no repositório |
 | --- | --- |
@@ -49,7 +49,7 @@ O fluxo de acompanhamento previsto no template da disciplina é utilizado como r
 | **Testing** | Executar a revisão do código e os testes aplicáveis, registrando os resultados e os ajustes necessários. |
 | **Done** | Identificar entregas cujos critérios foram atendidos, verificações foram concluídas e artefatos foram integrados à versão de referência. |
 
-O levantamento das issues do repositório em **22/10/2026** identificou **77 registros: 38 abertos e 39 fechados**. O resumo considera o estado das issues; as colunas específicas do Projects devem ser conferidas no quadro.
+O levantamento das issues do repositório em **23/10/2026** identificou **77 registros: 38 abertos e 39 fechados**. O resumo considera o estado das issues; as colunas específicas do Projects devem ser conferidas no quadro.
 
 | Responsável registrado | Issues abertas | Issues fechadas | Consulta das atividades abertas |
 | --- | --- | --- | --- |
@@ -102,13 +102,14 @@ Os ambientes e ferramentas identificados no projeto estão relacionados abaixo.
 | Projeto de Interface | Figma e documentação de UX | [Protótipo no Figma](https://www.figma.com/design/lzqDPhDmWXvfqF5hGT7hQv/ISTOQUE-%E2%80%94-Prot%C3%B3tipo-de-alta-fidelidade?node-id=8-2) e [fluxos e interfaces](ux/fluxos-e-interfaces.md) |
 | Gerenciamento do Projeto | GitHub Projects e GitHub Issues | [Quadro do projeto](https://github.com/orgs/ICEI-PUC-Minas-PBR-ADS/projects/170) e [tarefas](https://github.com/ICEI-PUC-Minas-PBR-ADS/pbr-ads-2026-2-p1-tidai-t1-8246101-pbr-ads-2026-2-p1-tidai-t-davidwsr1/issues) |
 | Testes e integração contínua | GitHub Actions | [Execuções dos workflows](https://github.com/ICEI-PUC-Minas-PBR-ADS/pbr-ads-2026-2-p1-tidai-t1-8246101-pbr-ads-2026-2-p1-tidai-t-davidwsr1/actions) |
-| Documentação da API | Wiki do GitHub | [Wiki do projeto](https://github.com/ICEI-PUC-Minas-PBR-ADS/pbr-ads-2026-2-p1-tidai-t1-8246101-pbr-ads-2026-2-p1-tidai-t-davidwsr1/wiki) |
-| Hospedagem da API | Render | [API de produção](https://is-toque-prod.onrender.com) |
+| Documentação da API | Wiki do GitHub (endpoints com corpos de requisição e resposta, erros, execução e testes) e tabela de endpoints no README do backend | [Wiki do projeto](https://github.com/ICEI-PUC-Minas-PBR-ADS/pbr-ads-2026-2-p1-tidai-t1-8246101-pbr-ads-2026-2-p1-tidai-t-davidwsr1/wiki) e [README do backend](../codigo-fonte/Backend/istoque/README.md) |
+| Hospedagem do frontend | Render (site estático) | [Frontend em produção](https://istoque-front.onrender.com) |
+| Hospedagem da API | Render (Docker) | [API de produção](https://is-toque-prod.onrender.com) |
 | Banco de dados | PostgreSQL no Neon e H2 para testes | [Configuração e migrações](../codigo-fonte/Backend/istoque/README.md) |
 | Desenvolvimento do backend | Java 21, Spring Boot e Maven Wrapper | [Instruções do backend](../codigo-fonte/Backend/istoque/README.md) |
 | Desenvolvimento do frontend | React, Vite e Node.js | [Instruções do frontend](../codigo-fonte/Frontend/istoque/README.md) |
 
-O endereço público do frontend ainda não está registrado no repositório. A publicação integrada do frontend e da API é acompanhada na [HT034](https://github.com/ICEI-PUC-Minas-PBR-ADS/pbr-ads-2026-2-p1-tidai-t1-8246101-pbr-ads-2026-2-p1-tidai-t-davidwsr1/issues/64).
+O frontend está publicado em [https://istoque-front.onrender.com](https://istoque-front.onrender.com) e a API em [https://is-toque-prod.onrender.com](https://is-toque-prod.onrender.com). O deploy é automático a partir do repositório `erezende544/is.toque_prod`, branch `Release`: o frontend como site estático e o backend em Docker. A manutenção do ambiente de produção é acompanhada na [HT034](https://github.com/ICEI-PUC-Minas-PBR-ADS/pbr-ads-2026-2-p1-tidai-t1-8246101-pbr-ads-2026-2-p1-tidai-t-davidwsr1/issues/64).
 
 ### Estratégia de Organização de Codificação
 

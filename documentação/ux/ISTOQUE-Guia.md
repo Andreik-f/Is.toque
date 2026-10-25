@@ -6,18 +6,18 @@ Esta proposta organiza a operação de estoque de um restaurante em torno de tr�
 
 ## O que foi entregue
 
-- `ISTOQUE-Prototipo.html`: protótipo navegável que funciona ao abrir o arquivo no navegador, sem instalação e sem conexão. Os dados são fictícios e as alterações ficam na memória até recarregar.
-- `requisitos-atualizados.md`: documento principal atualizado com RF-34 e RE-11.
+- `telas/`: capturas do próprio sistema em funcionamento (modo demonstração), em desktop e celular, com a tabela de telas, rotas e requisitos em [telas/README.md](telas/README.md). Elas substituem o protótipo HTML anterior.
+- `requisitos-atualizados.md`: aviso que aponta para a [Especificação do Projeto](../02-Especificação%20do%20Projeto.md), a versão vigente dos requisitos (inclui RF-34 e RE-11).
 - `images/istoque/fluxos-operacionais.svg`: mapa vetorial dos fluxos de acesso, estoque e produção, incluindo condições de bloqueio e responsabilidades do servidor.
-- `images/istoque/`: 31 capturas de telas e estados, incluindo desktop e celular. As telas móveis representam o primeiro viewport; o restante pode ser explorado no protótipo.
+- `images/istoque/`: 31 capturas de telas e estados, incluindo desktop e celular. As telas móveis representam o primeiro viewport; o restante pode ser explorado no sistema em modo demonstração.
 - `svg/`: 26 telas operacionais e três fluxos individuais. As telas atuais de acesso são documentadas em PNG e implementadas em React/CSS. Não há Auto Layout ou ligações nativas de protótipo nos SVGs exportados.
-- `codigo-fonte/Frontend/istoque/`: código-fonte do protótipo, organizado por features, com dependências fixadas e testes das regras de saldo e produção.
+- `codigo-fonte/Frontend/istoque/`: código-fonte do front-end, organizado por features, com dependências fixadas e testes das regras de saldo e produção.
 
 ## Login e cadastro básico — atualização de 28/09
 
-Login e cadastro foram reconstruídos com elementos React e CSS responsivo. O mascote PNG e a textura JPG são os dois únicos ativos de imagem; a tela inteira não é utilizada como imagem. Textos, títulos, campos e botões são elementos reais. Foram removidas as anotações de dimensão. O layout mantém a paleta e a composição do Figma, com campos legíveis em telas menores.
+Login e cadastro foram reconstruídos com elementos React e CSS responsivo. O mascote é um SVG inline e as texturas são uma imagem JPG (login) e um SVG (cadastro); a tela inteira não é utilizada como imagem. Textos, títulos, campos e botões são elementos reais. Foram removidas as anotações de dimensão. O layout mantém a paleta e a composição do Figma, com campos legíveis em telas menores.
 
-Login: e-mail do usuário e senha. Cadastro básico em uma etapa: razão social, CNPJ, nome do responsável, e-mail do usuário, senha e confirmação. Todos obrigatórios. Nome fantasia, telefone e e-mail da empresa ficam para depois. A modelagem de dados distingue os dados da empresa das credenciais do usuário. Os campos seguem o contrato da API (`POST /api/auth/login` e `POST /api/auth/cadastro`), mas as telas ainda não enviam os dados para ela.
+Login: e-mail do usuário e senha. Cadastro básico em uma etapa: razão social, CNPJ, nome do responsável, e-mail do usuário, senha e confirmação. Todos obrigatórios. Nome fantasia, telefone e e-mail da empresa ficam para depois. A modelagem de dados distingue os dados da empresa das credenciais do usuário. Os campos seguem o contrato da API (`POST /api/auth/login` e `POST /api/auth/cadastro`), e as telas enviam os dados para ela.
 
 O relatório anterior de igualdade de pixels correspondia à camada SVG pronta e não se aplica à reconstrução atual. A nova versão foi revisada visualmente e testada em desktop e celular. Detalhes e mapeamento: [cadastro-basico.md](cadastro-basico.md).
 
@@ -44,7 +44,7 @@ A base funcional é o documento de requisitos do projeto, com RF01–RF34. As te
 | Aplicativo médico | Listas, datas e estados legíveis | Histórico e alertas |
 | Aplicativo preto e laranja | Escolha, revisão e confirmação | Revisão de consumo e sucesso de produção |
 
-As ilustrações das telas operacionais foram criadas para o protótipo. O mascote e a textura do acesso usam os arquivos PNG/JPG originais do projeto.
+As ilustrações das telas operacionais foram criadas para o protótipo. O mascote é um SVG inline e a textura do acesso usa os arquivos de `features/auth/assets/`.
 
 Não foi incluído módulo de vendas nem 2FA, pois eles não constam dos requisitos disponíveis. Recuperação de senha, importação de notas, relatórios por período e a matriz de perfis abaixo são propostas para validação.
 
@@ -101,7 +101,7 @@ O fluxo mostra a quantidade, o consumo total por ingrediente e o saldo após a p
 
 ### Acesso e equipe
 
-O acesso visual leva à demonstração sem verificar credenciais. O formulário de recuperação não envia mensagens. Os usuários criados ou desativados existem apenas na sessão local do protótipo.
+Sem login, o sistema abre na demonstração, com dados fictícios. Com login, a API verifica as credenciais. O formulário de recuperação de senha é só uma simulação e não envia mensagens. Na demonstração, os usuários criados ou desativados existem apenas na sessão local.
 
 | Perfil padrão | Responsabilidade sugerida |
 | --- | --- |
@@ -129,7 +129,7 @@ No protótipo, a imagem é lida localmente e permanece na memória até recarreg
 
 | Requisitos | Superfície da proposta | Limite desta entrega |
 | --- | --- | --- |
-| RF01–RF03 | Cadastro da empresa e acesso | Apenas experiência visual; autenticação e isolamento não implementados |
+| RF01–RF03 | Cadastro da empresa e acesso | Cadastro e login integrados à API; sem token (HT001) e sem isolamento entre empresas no servidor (HT002) |
 | RF04–RF06 | Equipe, perfis e ativação | Simulação local; autorização depende do backend |
 | RF07–RF10 | Cadastro, edição, detalhe, unidade e limites | Estado em memória; unidade preservada na edição |
 | RF11–RF19 | Entradas, saídas, ajustes, perdas, mínimo e histórico | Regras de quantidade demonstradas; persistência e auditoria dependem do backend |
@@ -142,7 +142,7 @@ No protótipo, a imagem é lida localmente e permanece na memória até recarreg
 
 ## Componentes e implementação React + Vite
 
-O projeto usa React com Vite, CSS responsivo, ícones e ilustrações SVG. A navegação por hash evita dependências extras nesta demonstração. A camada de dados é deliberadamente pequena e pode ser substituída por serviços de API.
+O projeto usa React com Vite, CSS responsivo, ícones e ilustrações SVG. A navegação por hash evita dependências extras. Produtos, categorias e unidades de medida vêm da API (`src/lib/api-client.js` e `src/features/*/api/`); os demais dados da demonstração ficam em memória.
 
 | Pasta | Responsabilidade |
 | --- | --- |
@@ -186,11 +186,11 @@ Para gerar a distribuição: `npm run build`. Para verificar as regras de domín
 - Testes de domínio aprovados: limites de produção, baixa sem alterar a origem, recálculo de outras receitas, mínimo inclusivo, saída sem saldo, ajuste a zero e unidades inteiras.
 - Navegação e interações verificadas em Chromium: confirmação de produção, bloqueio por capacidade, importação sem vínculo, busca vazia e saída excessiva.
 - Galeria com 31 capturas. As telas operacionais foram conferidas em desktop de 1440 px e celular de 390 px; o acesso foi revisado em 1440 × 900, 1440 × 894 e 375 × 812. A navegação de acesso também foi conferida sem transbordamento em 320, 390, 768, 1024 e 1920 px. Tabelas preservam rolagem interna.
-- Acesso: navegação, bloqueio por confirmação de senha divergente, cadastro/login demonstrativos, recuperação simulada e fechamento por Escape aprovados. Sem erros JavaScript.
+- Acesso: navegação, bloqueio por confirmação de senha divergente, cadastro e login enviados à API, recuperação simulada e fechamento por Escape aprovados. Sem erros JavaScript.
 - Revisão visual das telas de visão geral, ficha técnica, produção e versão móvel; exportação vetorial revisada separadamente.
 
-Não há backend, persistência, autenticação, permissões efetivas, multiempresa, processamento de notas ou integração com o repositório. As capturas são uma referência visual; o HTML é a referência de comportamento da demonstração. Antes da implementação real, confirmar também controle de lotes/validade, conversões de unidades, política de ajustes e concorrência na produção.
+Produtos, categorias, unidades de medida, cadastro e login usam a API. Receitas, movimentações, produção, relatórios, equipe e foto do produto ainda são locais, e não há token, permissões efetivas, isolamento entre empresas no servidor nem processamento de notas. As capturas em `telas/` são uma referência visual do sistema. Antes da implementação real, confirmar também controle de lotes/validade, conversões de unidades, política de ajustes e concorrência na produção.
 
 ## Padronização dos campos
 
-Login e cadastro compartilham o componente AuthField: rótulo acima do controle que desaparece ao preencher e reaparece ao apagar, mantendo o espaço e o nome acessível; placeholder nativo que some durante a digitação; altura de 48 px, raio de 10 px, texto alinhado à esquerda, espaçamento uniforme e borda neutra. Senhas têm botão de mostrar/ocultar, sem submissão do formulário. Foco usa um único contorno no controle; o input não cria um segundo outline. Erros são ligados por aria-describedby e aparecem abaixo do campo correspondente; a submissão direciona o foco ao primeiro inválido. O preenchimento automático permanece habilitado. Sugestões de senha do navegador pertencem ao navegador, e não são uma imagem ou parte do layout.
+Login e cadastro compartilham o componente AuthField: o rótulo fica dentro do campo e, com foco ou texto, sobe e encolhe (só CSS, com `:placeholder-shown`, por isso o input leva `placeholder=" "`, e o rótulo faz o papel de dica); altura de 54 px, raio de 10 px, texto alinhado à esquerda, espaçamento uniforme e borda neutra. Senhas têm botão de mostrar/ocultar, sem submissão do formulário. Foco usa um único contorno no controle; o input não cria um segundo outline. Erros são ligados por aria-describedby e aparecem abaixo do campo correspondente; a submissão direciona o foco ao primeiro inválido. O preenchimento automático permanece habilitado. Sugestões de senha do navegador pertencem ao navegador, e não são uma imagem ou parte do layout.

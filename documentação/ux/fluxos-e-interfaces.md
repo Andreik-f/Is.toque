@@ -1,6 +1,6 @@
 # ISTOQUE — fluxos e interfaces
 
-> Proposta de UX para revisão. Data: 26/09/2026. Base: documentação de requisitos de estoque, receitas e produção, com inclusão da foto opcional de produto. O código atual do backend e a documentação do repositório ainda precisam ser confrontados com esta proposta.
+> Proposta de UX, atualizada em 23/10/2026 com o estado do sistema implementado. Base: documentação de requisitos de estoque, receitas e produção, com inclusão da foto opcional de produto. As capturas atuais do sistema estão em [telas/README.md](telas/README.md).
 
 ## 1. Referência visual e implementação
 
@@ -12,7 +12,7 @@ Os [quatro frames originais](references/figma/) permanecem como referência hist
 
 ![Fluxos de acesso, estoque e produção](images/istoque/fluxos-operacionais.svg)
 
-O diagrama distingue a sequência de telas das validações necessárias no servidor. A navegação demonstrada usa dados fictícios; autenticação, persistência, isolamento entre empresas, auditoria e transações não estão implementados no protótipo.
+O diagrama distingue a sequência de telas das validações necessárias no servidor. Cadastro, login, produtos, categorias e unidades de medida já usam a API; a navegação de receitas, movimentações, produção, relatórios e equipe usa dados locais. Token de autenticação (HT001), isolamento entre empresas no servidor (HT002), auditoria e transações ainda não estão implementados.
 
 | Área | Requisitos relacionados | Entrega de interface |
 | --- | --- | --- |
@@ -28,7 +28,7 @@ O diagrama distingue a sequência de telas das validações necessárias no serv
 
 O login solicita e-mail do usuário e senha: o e-mail é único no sistema e identifica a conta. O cadastro inicial, em uma etapa, solicita razão social, CNPJ, nome do responsável, e-mail do usuário, senha e confirmação. Os seis campos são obrigatórios. O CNPJ entrou no cadastro porque é obrigatório e único na API. Nome fantasia, e-mail da empresa e telefone ficam para depois. Ver [mapeamento dos campos e limites](cadastro-basico.md).
 
-Campos vazios, CNPJ fora do formato, senha com menos de 8 caracteres ou confirmação divergente impedem a submissão. O protótipo apenas abre a demonstração após validação local: não cria contas, não autentica e não envia informações. Os contratos reais dependem do backend. Não há requisito de 2FA na documentação utilizada.
+Campos vazios, CNPJ fora do formato, senha com menos de 8 caracteres ou confirmação divergente impedem a submissão. Após a validação local, o cadastro envia os dados para `POST /api/auth/cadastro`, que cria a empresa e o administrador, e o login envia e-mail e senha para `POST /api/auth/login`. Erros da API aparecem no campo correspondente ou acima do botão.
 
 ![Login React](images/istoque/16-acesso.png)
 
@@ -207,10 +207,10 @@ A proposta usa menu lateral recolhido e navegação inferior, mantendo os mesmos
 | Foto ausente | Usar a ilustração padrão |
 | Arquivo rejeitado | Explicar tipo, tamanho ou integridade; preservar foto válida |
 
-Carregamento, falha de rede, sessão expirada e permissões reais ainda dependem da integração. No protótipo foram verificados os limites de produção e saída, recálculo das receitas, busca vazia, vínculo obrigatório da nota e dez cenários de foto de produto.
+Carregamento, falha de rede, sessão expirada e permissões reais ainda dependem da integração. No sistema em modo demonstração foram verificados os limites de produção e saída, recálculo das receitas, busca vazia, vínculo obrigatório da nota e dez cenários de foto de produto.
 
 ## 14. Próxima etapa de implementação
 
-Seguir a [segmentação do frontend e o roteiro de análise do backend](segmentacao-frontend.md). O arquivo [requisitos-atualizados.md](requisitos-atualizados.md) registra a versão dos requisitos com RF-34 e RE-11; reconciliar com a documentação atual antes de substituir arquivos do repositório.
+Seguir a [segmentação do frontend e o roteiro de análise do backend](segmentacao-frontend.md). Os requisitos vigentes, com RF-34 e RE-11, estão na [Especificação do Projeto](../02-Especificação%20do%20Projeto.md); o arquivo [requisitos-atualizados.md](requisitos-atualizados.md) apenas aponta para ela.
 
 Os SVGs das 26 telas operacionais estão em [`svg/`](svg/). São referências sem Auto Layout, componentes nativos ou ligações de protótipo. As cinco capturas de acesso e recuperação atuais estão em PNG; as versões SVG antigas foram retiradas para evitar referências desatualizadas.
