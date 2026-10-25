@@ -75,14 +75,14 @@ class CadastroIntegrationTest {
     }
 
     /**
-     * O cadastro não pede os dias de alerta de validade: a empresa nasce com 7,
-     * o mesmo padrão que o banco usa (DEFAULT 7 na migração V1).
+     * O cadastro não pede os dias de alerta de validade: a empresa nasce com 3,
+     * o mesmo padrão que o banco usa (DEFAULT 3 na migração V4).
      */
     @Test
-    void cadastro_semDiasAlertaValidade_usaOPadraoDe7() throws Exception {
+    void cadastro_semDiasAlertaValidade_usaOPadraoDe3() throws Exception {
         cadastrar("11444777000161", "dono@restaurante.com")
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.empresa.diasAlertaValidade").value(7));
+                .andExpect(jsonPath("$.empresa.diasAlertaValidade").value(3));
     }
 
     /** CNPJ já cadastrado devolve 409, e nenhum usuário é criado. */

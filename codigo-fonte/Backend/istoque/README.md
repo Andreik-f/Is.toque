@@ -74,9 +74,23 @@ Ao subir, a aplicação roda o Flyway antes de tudo. Ele lê a tabela `flyway_sc
 - Se duas branches criarem a mesma versão (duas `V2`, por exemplo), quem fizer o merge por último renomeia a sua para o próximo número antes de juntar.
 - Os testes usam H2, que não aceita os tipos enum do PostgreSQL. Por isso eles não rodam as migrações (`spring.flyway.enabled=false` em `src/test/resources/application.properties`); o Hibernate cria as tabelas a partir das entidades.
 
+### Notas para os próximos cards de estoque (HT035)
+
+O `ddl-auto=validate` não confere nulabilidade, CHECKs nem índices, e o CI não roda o SQL das migrações (os testes usam H2 com o Flyway desligado). Ao criar as entidades das tabelas novas, vale lembrar:
+
+- **`produto_foto`**
+  - Mapear `conteudo` como `byte[]` **sem `@Lob`**: no Hibernate 7 com PostgreSQL, `@Lob` mapeia para `oid` (o `byte[]` simples vira `bytea`), e o `validate` reprova a coluna `bytea`.
+  - Gravar `tamanho_bytes` igual ao tamanho real do conteúdo: o banco recusa se forem diferentes (`ck_foto_tamanho_confere`). Validar o tipo (`image/jpeg`, `image/png` ou `image/webp`) e o limite de 5 MB no back-end antes de gravar, para devolver uma mensagem clara em vez do 409 genérico.
+  - Ao devolver a foto, usar o `tipo_arquivo` gravado como `Content-Type` e enviar `X-Content-Type-Options: nosniff`. O CHECK só vê o texto do tipo, não os bytes da imagem.
+- **`receita`**
+  - `categoria` e `rendimento` são `varchar(60)`: validar `@Size(max = 60)` no DTO, senão o erro do banco vira o 409 genérico.
+  - O nome é único só entre as receitas ativas, e a comparação diferencia maiúsculas de minúsculas (igual à de produto). Reativar uma receita cujo nome já foi usado por outra ativa dá 409, e a tela precisa tratar.
+- **`movimentacao`:** nos motivos `ajuste` e `outro`, e em `motivo_perda = outro`, a justificativa precisa ter ao menos um caractere que não seja espaço, tab ou quebra de linha (`ck_mov_justificativa`).
+- **Novas migrações** (inclusive o `permissao` do HU007): usar **V8 ou maior**, e quem tiver uma branch com migração faz rebase depois do merge do HT035. As versões V2 a V7 são deste card.
+
 ### Bancos
 
 | Banco | Situação |
 |---|---|
-| Desenvolvimento (Neon, compartilhado) | Baseline na V1 feito em 09/10/2026. |
-| Produção (Neon `is-toque-prod`, repositório `is.toque_prod`) | Esquema igualado ao da V1 em 09/10/2026, com os dados que já existiam, e baseline na V1 feito no mesmo dia. A API publicada ainda roda o código antigo, sem Flyway; quando receber o código atual, o Flyway encontra a V1 marcada e não roda nada. |
+| Desenvolvimento (Neon, compartilhado) | Baseline na V1 feito em 09/10/2026. V2 a V7 (HT035) aplicadas em 20/10/2026, por isso esses arquivos não podem mais ser editados. |
+| Produção (Neon `is-toque-prod`, repositório `is.toque_prod`) | Esquema igualado ao da V1 em 09/10/2026, com os dados que já existiam, e baseline na V1 feito no mesmo dia. A API publicada já roda o backend da `main` com Flyway: no boot, o Flyway encontra a V1 marcada e não roda nada. |

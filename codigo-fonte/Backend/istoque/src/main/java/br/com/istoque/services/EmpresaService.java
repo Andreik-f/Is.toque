@@ -95,6 +95,8 @@ public class EmpresaService {
         empresa.setCnpj(dto.cnpj());
         empresa.setEmail(dto.email());
         empresa.setTelefone(dto.telefone());
+        // Campo vazio não apaga o valor: a coluna é obrigatória. Na criação a empresa ainda
+        // não tem valor e o padrão é definido ao gravar (Empresa.aoCriar).
         if (dto.diasAlertaValidade() != null) {
             empresa.setDiasAlertaValidade(dto.diasAlertaValidade());
         }

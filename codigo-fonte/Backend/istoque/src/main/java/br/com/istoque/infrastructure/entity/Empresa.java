@@ -17,6 +17,9 @@ import java.time.temporal.ChronoUnit;
 @Table(name = "empresa")
 public class Empresa {
 
+    // Mesmo padrão da coluna no banco (V4).
+    private static final int DIAS_ALERTA_VALIDADE_PADRAO = 3;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -36,8 +39,8 @@ public class Empresa {
     @Column(name = "telefone")
     private String telefone;
 
-    @Column(name = "dias_alerta_validade")
-    private Integer diasAlertaValidade = 7; // mesmo padrão que o banco usa (DEFAULT 7 na V1)
+    @Column(name = "dias_alerta_validade", nullable = false)
+    private Integer diasAlertaValidade;
 
     @Column(name = "ativo", nullable = false)
     private Boolean ativo;
@@ -55,6 +58,10 @@ public class Empresa {
     protected void aoCriar() {
         if (this.ativo == null) {
             this.ativo = true;
+        }
+        // O Hibernate grava NULL explícito, então o DEFAULT do banco não age: o padrão é definido aqui.
+        if (this.diasAlertaValidade == null) {
+            this.diasAlertaValidade = DIAS_ALERTA_VALIDADE_PADRAO;
         }
         this.criadoEm = OffsetDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         this.atualizadoEm = this.criadoEm;

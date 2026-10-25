@@ -133,7 +133,7 @@ Chave primária sublinhada, chave estrangeira com `#` e a tabela de destino entr
 - `movimentacao.quantidade > 0`, `receita_item.quantidade > 0` e `producao.quantidade_produzida > 0`.
 - `receita.tempo_preparo_minutos > 0`.
 - `empresa.dias_alerta_validade` é obrigatório, com padrão 3.
-- `produto_foto.tipo_arquivo` aceita `image/jpeg`, `image/png` ou `image/webp`, e `tamanho_bytes` vai de 1 a 5.242.880 (5 MB).
+- `produto_foto.tipo_arquivo` aceita `image/jpeg`, `image/png` ou `image/webp`, e `tamanho_bytes` vai de 1 a 5.242.880 (5 MB). O `tamanho_bytes` tem de ser igual ao tamanho do conteúdo (`octet_length(conteudo)`), para o limite de 5 MB valer de fato no banco.
 - As regras de `movimentacao` que dependem do motivo estão na tabela da próxima seção.
 
 **Regras que ficam na aplicação**
