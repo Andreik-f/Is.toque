@@ -1,9 +1,11 @@
 package br.com.istoque.controller;
 
 import br.com.istoque.dto.TrocaSenhaRequestDTO;
+import br.com.istoque.dto.TrocarSenhaPropriaRequestDTO;
 import br.com.istoque.dto.UsuarioCreateDTO;
 import br.com.istoque.dto.UsuarioResponseDTO;
 import br.com.istoque.dto.UsuarioUpdateDTO;
+import br.com.istoque.security.UsuarioLogado;
 import br.com.istoque.services.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +20,11 @@ public class UsuarioController {
 
     private final UsuarioService usuarioService;
 
-    public UsuarioController(UsuarioService usuarioService) {
+    private final UsuarioLogado usuarioLogado;
+
+    public UsuarioController(UsuarioService usuarioService, UsuarioLogado usuarioLogado) {
         this.usuarioService = usuarioService;
+        this.usuarioLogado = usuarioLogado;
     }
 
     @PostMapping
@@ -52,6 +57,13 @@ public class UsuarioController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> inativar(@PathVariable Integer id) {
         usuarioService.inativarUsuario(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // O usuário vem do token, não da URL: cada um só troca a própria senha
+    @PatchMapping("/me/senha")
+    public ResponseEntity<Void> trocarMinhaSenha(@RequestBody @Valid TrocarSenhaPropriaRequestDTO dto) {
+        usuarioService.trocarSenhaPropria(usuarioLogado.id(), dto);
         return ResponseEntity.noContent().build();
     }
 }

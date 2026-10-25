@@ -7,15 +7,25 @@ import br.com.istoque.infrastructure.entity.Usuario;
 import br.com.istoque.infrastructure.repository.EmpresaRepository;
 import br.com.istoque.infrastructure.repository.PerfilRepository;
 import br.com.istoque.infrastructure.repository.UsuarioRepository;
+import br.com.istoque.security.UsuarioAutenticado;
+import br.com.istoque.services.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -25,7 +35,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Testes de integração do cadastro de usuários (POST /api/usuarios), da
  * edição (PUT /api/usuarios/{id}) e da troca de senha
- * (PATCH /api/usuarios/{id}/senha).
+ * (PATCH /api/usuarios/{id}/senha), além da troca da própria senha
+ * (PATCH /api/usuarios/me/senha).
  *
  * Cobre os critérios de aceite de HU001 (#11), HT006 (#20), HT005 (#27),
  * HT013 (#37), HT016 (#40) e HT018 (#42): cadastro de usuário sem vazar senha,
@@ -33,6 +44,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * diferenciar maiúsculas), edição sem senha, 404/400 em vez de 500 para
  * empresa/perfil inexistentes ou de outra empresa, e troca de senha via
  * TrocaSenhaRequestDTO com validação de campo obrigatório.
+ *
+ * Cobre também o HU020 (#65): o usuário logado troca a própria senha informando a
+ * atual. O usuário vem do token (aqui um JWT de verdade, pelo filtro, e não um
+ * usuário simulado), a senha atual errada, a nova igual à atual ou curta
+ * devolvem 400, e sem login a rota responde 401.
  *
  * Roda com banco H2 em memória e MockMvc, como os demais testes de controller.
  */
@@ -55,6 +71,9 @@ class UsuarioControllerIntegrationTest {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtService jwtService;
 
     private Empresa empresaA;
     private Empresa empresaB;
@@ -339,5 +358,152 @@ class UsuarioControllerIntegrationTest {
         return """
                 {"email":"%s","senha":"%s"}
                 """.formatted(email, senha);
+    }
+
+    /** Token de verdade do usuário, o mesmo que o login devolve: passa pelo JwtAuthenticationFilter. */
+    private String tokenDe(Usuario usuario) {
+        return jwtService.gerarToken(usuario.getEmail(), usuario.getId(),
+                usuario.getEmpresa().getId(), usuario.getPerfil().getNome()).token();
+    }
+
+    /** PATCH /api/usuarios/me/senha autenticado como o usuário, com o JSON informado. */
+    private ResultActions trocarMinhaSenha(Usuario usuario, String json) throws Exception {
+        return mockMvc.perform(patch("/api/usuarios/me/senha")
+                .header("Authorization", "Bearer " + tokenDe(usuario))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json));
+    }
+
+    /**
+     * HU020: troca de senha própria com sucesso devolve 204. O usuário é o do
+     * token, e o login passa a funcionar com a nova senha e a falhar com a antiga.
+     */
+    @Test
+    void trocarMinhaSenha_comDadosValidos_devolve204EPermiteLoginComNovaSenha() throws Exception {
+        Usuario usuario = criarUsuarioPersistido("Admin A", "propria@empresaa.com", "SenhaAntiga123",
+                perfilAdminEmpresaA, empresaA);
+
+        trocarMinhaSenha(usuario, """
+                {"senhaAtual":"SenhaAntiga123","novaSenha":"SenhaNova456"}
+                """)
+                .andExpect(status().isNoContent());
+
+        // a nova senha é gravada criptografada, nunca em texto
+        String senhaGravada = usuarioRepository.findById(usuario.getId()).orElseThrow().getSenha();
+        assertNotEquals("SenhaNova456", senhaGravada);
+        assertTrue(passwordEncoder.matches("SenhaNova456", senhaGravada));
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoLogin("propria@empresaa.com", "SenhaNova456")))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoLogin("propria@empresaa.com", "SenhaAntiga123")))
+                .andExpect(status().isUnauthorized());
+    }
+
+    /** HU020: a rota vale para qualquer usuário logado, não só para o administrador. */
+    @Test
+    void trocarMinhaSenha_comPerfilQueNaoEAdministrador_devolve204() throws Exception {
+        Perfil perfilOperador = perfilRepository.save(new Perfil("Operador", "Acesso básico", empresaA));
+        Usuario usuario = criarUsuarioPersistido("Operador A", "operador@empresaa.com", "SenhaAntiga123",
+                perfilOperador, empresaA);
+
+        trocarMinhaSenha(usuario, """
+                {"senhaAtual":"SenhaAntiga123","novaSenha":"SenhaNova456"}
+                """)
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoLogin("operador@empresaa.com", "SenhaNova456")))
+                .andExpect(status().isOk());
+    }
+
+    /** HU020: a senha atual informada errada devolve 400 e não troca a senha. */
+    @Test
+    void trocarMinhaSenha_comSenhaAtualIncorreta_devolve400() throws Exception {
+        Usuario usuario = criarUsuarioPersistido("Admin A", "propria2@empresaa.com", "SenhaAntiga123",
+                perfilAdminEmpresaA, empresaA);
+
+        trocarMinhaSenha(usuario, """
+                {"senhaAtual":"SenhaErrada","novaSenha":"SenhaNova456"}
+                """)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Senha atual incorreta."));
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoLogin("propria2@empresaa.com", "SenhaAntiga123")))
+                .andExpect(status().isOk());
+    }
+
+    /** HU020: nova senha igual à atual devolve 400. */
+    @Test
+    void trocarMinhaSenha_comNovaSenhaIgualAAtual_devolve400() throws Exception {
+        Usuario usuario = criarUsuarioPersistido("Admin A", "propria3@empresaa.com", "SenhaAntiga123",
+                perfilAdminEmpresaA, empresaA);
+
+        trocarMinhaSenha(usuario, """
+                {"senhaAtual":"SenhaAntiga123","novaSenha":"SenhaAntiga123"}
+                """)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("A nova senha não pode ser igual à atual."));
+    }
+
+    /** HU020: nova senha com menos de 8 caracteres devolve 400 apontando o campo. */
+    @Test
+    void trocarMinhaSenha_comNovaSenhaCurta_devolve400() throws Exception {
+        Usuario usuario = criarUsuarioPersistido("Admin A", "propria4@empresaa.com", "SenhaAntiga123",
+                perfilAdminEmpresaA, empresaA);
+
+        trocarMinhaSenha(usuario, """
+                {"senhaAtual":"SenhaAntiga123","novaSenha":"1234567"}
+                """)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.novaSenha").value("A nova senha deve ter no mínimo 8 caracteres"));
+    }
+
+    /** HU020: senha atual em branco devolve 400 apontando o campo. */
+    @Test
+    void trocarMinhaSenha_comSenhaAtualEmBranco_devolve400() throws Exception {
+        Usuario usuario = criarUsuarioPersistido("Admin A", "propria5@empresaa.com", "SenhaAntiga123",
+                perfilAdminEmpresaA, empresaA);
+
+        trocarMinhaSenha(usuario, """
+                {"senhaAtual":" ","novaSenha":"SenhaNova456"}
+                """)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.senhaAtual").value("A senha atual não pode estar vazia"));
+    }
+
+    /** HU020: sem estar logado a rota responde 401, não 500. */
+    @Test
+    void trocarMinhaSenha_semEstarLogado_devolve401() throws Exception {
+        mockMvc.perform(patch("/api/usuarios/me/senha")
+                        .with(anonymous())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"senhaAtual":"SenhaAntiga123","novaSenha":"SenhaNova456"}
+                                """))
+                .andExpect(status().isUnauthorized());
+    }
+
+    /** HU020: usuário do contexto que não existe mais no banco devolve 404, não 500. */
+    @Test
+    void trocarMinhaSenha_comUsuarioInexistente_devolve404() throws Exception {
+        UsuarioAutenticado fantasma = new UsuarioAutenticado(Integer.MAX_VALUE, "fantasma@empresaa.com",
+                empresaA.getId(), "Administrador");
+
+        mockMvc.perform(patch("/api/usuarios/me/senha")
+                        .with(authentication(UsernamePasswordAuthenticationToken.authenticated(
+                                fantasma, null, List.of())))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"senhaAtual":"SenhaAntiga123","novaSenha":"SenhaNova456"}
+                                """))
+                .andExpect(status().isNotFound());
     }
 }

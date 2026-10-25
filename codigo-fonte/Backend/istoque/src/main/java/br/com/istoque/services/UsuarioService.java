@@ -1,11 +1,13 @@
 package br.com.istoque.services;
 
+import br.com.istoque.dto.TrocarSenhaPropriaRequestDTO;
 import br.com.istoque.dto.UsuarioCreateDTO;
 import br.com.istoque.dto.UsuarioResponseDTO;
 import br.com.istoque.dto.UsuarioUpdateDTO;
 import br.com.istoque.exception.EmailJaCadastradoException;
 import br.com.istoque.exception.EmpresaNaoEncontradaException;
 import br.com.istoque.exception.PerfilNaoEncontradoException;
+import br.com.istoque.exception.SenhaAtualIncorretaException;
 import br.com.istoque.exception.UsuarioNaoEncontradoException;
 import br.com.istoque.infrastructure.entity.Empresa;
 import br.com.istoque.infrastructure.entity.Perfil;
@@ -102,6 +104,22 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException(id));
         usuario.setAtivo(false);
+        usuarioRepository.save(usuario);
+    }
+
+    public void trocarSenhaPropria(Integer usuarioId, TrocarSenhaPropriaRequestDTO dto) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException(usuarioId));
+
+        if (!passwordEncoder.matches(dto.senhaAtual(), usuario.getSenha())) {
+            throw new SenhaAtualIncorretaException("Senha atual incorreta.");
+        }
+
+        if (passwordEncoder.matches(dto.novaSenha(), usuario.getSenha())) {
+            throw new SenhaAtualIncorretaException("A nova senha não pode ser igual à atual.");
+        }
+
+        usuario.setSenha(passwordEncoder.encode(dto.novaSenha()));
         usuarioRepository.save(usuario);
     }
 }

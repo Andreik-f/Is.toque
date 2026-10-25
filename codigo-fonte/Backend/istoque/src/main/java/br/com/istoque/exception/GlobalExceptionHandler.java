@@ -193,4 +193,11 @@ public class GlobalExceptionHandler {
                         HttpStatus.INTERNAL_SERVER_ERROR.value(),
                         "Ocorreu um erro inesperado. Tente novamente mais tarde."));
     }
+
+    @ExceptionHandler(SenhaAtualIncorretaException.class)
+    public ResponseEntity<ApiErrorResponse> tratarSenhaAtualIncorreta(SenhaAtualIncorretaException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiErrorResponse.de(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
+    }
 }
