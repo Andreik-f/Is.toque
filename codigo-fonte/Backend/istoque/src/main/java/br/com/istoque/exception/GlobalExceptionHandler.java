@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.jackson.core.JacksonException;
@@ -175,7 +176,16 @@ public class GlobalExceptionHandler {
     // o cliente recebe a mensagem genérica; a restrição que falhou fica só no log
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiErrorResponse> tratarIntegridade(DataIntegrityViolationException ex) {
-        log.warn("Violação de integridade dos dados: {}", ex.getMostSpecificCause().getMessage());
+        String nome = "desconhecida";
+        for (Throwable t = ex.getCause(); t != null; t = t.getCause()) {
+            if (t instanceof ConstraintViolationException cve) {
+                if (cve.getConstraintName() != null && !cve.getConstraintName().isBlank()) {
+                    nome = cve.getConstraintName();
+                }
+                break;
+            }
+        }
+        log.warn("Violação de integridade dos dados: restrição {}", nome);
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
                 .body(ApiErrorResponse.de(

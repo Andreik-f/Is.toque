@@ -1,5 +1,8 @@
 package br.com.istoque.exception;
 
+import java.sql.SQLException;
+
+import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.system.CapturedOutput;
@@ -39,13 +42,44 @@ class GlobalExceptionHandlerTest {
     /** Um 409 de integridade grava no log qual restrição do banco falhou. */
     @Test
     void violacaoDeIntegridade_registraARestricaoNoLog(CapturedOutput output) {
-        DataIntegrityViolationException ex = new DataIntegrityViolationException("falha ao gravar",
-                new RuntimeException("duplicate key value violates unique constraint \"usuarios_email_key\""));
+        ConstraintViolationException causa = new ConstraintViolationException(
+                "duplicate key value violates unique constraint \"usuarios_email_key\"",
+                new SQLException("duplicate key value violates unique constraint \"usuarios_email_key\""),
+                "usuarios_email_key");
+        DataIntegrityViolationException ex = new DataIntegrityViolationException("falha ao gravar", causa);
 
         ResponseEntity<ApiErrorResponse> resposta = handler.tratarIntegridade(ex);
 
         assertEquals(409, resposta.getStatusCode().value());
         assertTrue(output.getOut().contains("usuarios_email_key"));
         assertFalse(resposta.getBody().message().contains("usuarios_email_key"));
+    }
+
+    @Test
+    void violacaoDeIntegridade_naoExpoeDadosSensiveisNoLog(CapturedOutput output) {
+        String mensagemDriver = "Key (email)=(pessoa@exemplo.com) already exists";
+        ConstraintViolationException causa = new ConstraintViolationException(
+                mensagemDriver,
+                new SQLException(mensagemDriver),
+                "usuarios_email_key");
+        DataIntegrityViolationException ex = new DataIntegrityViolationException("falha ao gravar", causa);
+
+        ResponseEntity<ApiErrorResponse> resposta = handler.tratarIntegridade(ex);
+
+        assertEquals(409, resposta.getStatusCode().value());
+        assertTrue(output.getOut().contains("usuarios_email_key"));
+        assertFalse(output.getOut().contains("pessoa@exemplo.com"));
+        assertFalse(output.getOut().contains("exemplo.com"));
+    }
+
+    @Test
+    void violacaoDeIntegridade_semConstraintViolationException_registraRestricaoDesconhecida(CapturedOutput output) {
+        DataIntegrityViolationException ex = new DataIntegrityViolationException("falha ao gravar",
+                new RuntimeException("falha generica de integridade"));
+
+        ResponseEntity<ApiErrorResponse> resposta = handler.tratarIntegridade(ex);
+
+        assertEquals(409, resposta.getStatusCode().value());
+        assertTrue(output.getOut().contains("desconhecida"));
     }
 }
