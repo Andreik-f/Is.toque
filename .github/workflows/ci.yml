@@ -5,6 +5,16 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      primeira_publicacao:
+        description: 'Aceitar a Release atual como base da publicação (só na primeira vez)'
+        type: boolean
+        default: false
+      simular:
+        description: 'Montar a árvore e mostrar o que mudaria, sem publicar'
+        type: boolean
+        default: false
 
 jobs:
   backend:
@@ -57,3 +67,94 @@ jobs:
 
       - name: Executar Build do Frontend
         run: npm run build
+
+  # Publica na branch Release do is.toque_prod, de onde o Render faz o deploy
+  # (HT034). Só roda na main, depois dos testes do back e do front.
+  publicar-producao:
+    name: Publicar em produção (Release do is.toque_prod)
+    needs: [ backend, frontend ]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    concurrency:
+      group: publicar-producao
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout do código testado
+        uses: actions/checkout@v4
+        with:
+          path: equipe
+          fetch-depth: 0
+
+      # Compara o conteúdo, não o SHA: o Contribution Tracker põe commits
+      # [skip ci] em cima da main, e eles não mudam o que vai para produção
+      - name: Conferir se a main ainda tem o mesmo código deste commit
+        id: ponta
+        working-directory: equipe
+        run: |
+          git fetch origin main
+          if git diff --quiet "$GITHUB_SHA" origin/main -- codigo-fonte/Backend/istoque codigo-fonte/Frontend/istoque deploy/producao; then
+            echo "publicar=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Entrou código mais novo na main depois deste commit; a execução dele é quem publica"
+            echo "publicar=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout da Release do is.toque_prod
+        if: steps.ponta.outputs.publicar == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: erezende544/is.toque_prod
+          ref: Release
+          token: ${{ secrets.PRODUCAO_TOKEN }}
+          path: producao
+          fetch-depth: 0
+
+      - name: Conferir que só este workflow mexeu nas pastas espelhadas
+        if: steps.ponta.outputs.publicar == 'true'
+        working-directory: producao
+        env:
+          PRIMEIRA: ${{ inputs.primeira_publicacao }}
+        run: bash ../equipe/deploy/producao/conferir-release.sh
+
+      - name: Montar a árvore de produção
+        if: steps.ponta.outputs.publicar == 'true'
+        run: |
+          rsync -a --delete equipe/codigo-fonte/Frontend/istoque/ producao/codigo-fonte/Frontend/istoque/
+          rsync -a --delete equipe/codigo-fonte/Backend/istoque/ producao/codigo-fonte/Backend/
+          cp equipe/deploy/producao/Dockerfile equipe/deploy/producao/.dockerignore producao/codigo-fonte/Backend/
+          cp equipe/deploy/producao/application-prod.properties producao/codigo-fonte/Backend/src/main/resources/
+
+      - name: Commit e push na Release
+        if: steps.ponta.outputs.publicar == 'true'
+        working-directory: producao
+        env:
+          SIMULAR: ${{ inputs.simular }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A codigo-fonte/Backend codigo-fonte/Frontend/istoque
+          if [ "$SIMULAR" = "true" ]; then
+            git diff --cached --stat
+            echo "::notice::Simulação: a árvore foi montada e nada foi publicado"
+            exit 0
+          fi
+          if git diff --cached --quiet; then
+            echo "Nada a publicar: o código de produção já está igual a este commit"
+            exit 0
+          fi
+          git commit -m "deploy: main@${GITHUB_SHA:0:7}" \
+            -m "Origem: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$GITHUB_SHA" \
+            -m "Publicado-por: publicar-producao"
+          if git push origin HEAD:Release; then
+            exit 0
+          fi
+          # a Release andou durante a execução (ex.: o relatório semanal do
+          # Contribution Tracker do is.toque_prod): confere de novo e tenta uma vez
+          echo "::warning::Push recusado; buscando a Release e tentando uma vez mais"
+          git fetch origin Release
+          bash ../equipe/deploy/producao/conferir-release.sh origin/Release
+          git rebase origin/Release
+          git push origin HEAD:Release

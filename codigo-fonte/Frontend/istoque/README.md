@@ -21,15 +21,15 @@ Use uma versão recente do Node compatível com Vite 8 (a entrega foi validada e
 
 ## Conectar à API
 
-Em desenvolvimento, suba o backend na porta 8080 e rode `npm run dev`. O Vite repassa as chamadas a `/api` para `http://localhost:8080`, sem configuração extra. Para usar outra API (por exemplo, a publicada), crie um `.env.local` com `API_PROXY=https://endereco-da-api`.
+Em desenvolvimento, suba o backend na porta 8080 e rode `npm run dev`. O Vite repassa as chamadas a `/api` para `http://localhost:8080`, sem configuração extra. Para usar outra API (por exemplo, a publicada), crie um `.env.local` com `API_PROXY=https://is-toque-prod.onrender.com`.
 
 No build de produção, o endereço da API vem da variável `VITE_API_URL`, lida no momento do build:
 
 ```bash
-VITE_API_URL=https://endereco-da-api/api npm run build
+VITE_API_URL=https://is-toque-prod.onrender.com/api npm run build
 ```
 
-A API só aceita chamadas do navegador vindas dos endereços listados na variável de ambiente `CORS_ORIGENS` do backend (separados por vírgula). Em produção, ela precisa conter o endereço do front publicado.
+A API só aceita chamadas do navegador vindas dos endereços listados na variável de ambiente `CORS_ORIGENS` do backend (separados por vírgula). Em produção, ela precisa conter o endereço do front publicado, `https://istoque-front.onrender.com`.
 
 Com login, produtos, categorias e unidades de medida vêm da API e são gravados nela. Receitas, movimentações, produção, relatórios e equipe ainda não têm rota na API: com login, começam vazios, e o que se registra neles vale até recarregar a página. Nesses casos, a tela, o modal e a mensagem de confirmação avisam que o registro ainda não vai para o servidor; o mesmo vale para a foto do produto. A importação de nota continua só na demonstração. A API ainda não separa as empresas no servidor (HT002): o front envia o `empresaId` do usuário logado. A sessão guarda no navegador os dados do usuário, o `token` e o `expiraEm`, e o cliente HTTP envia `Authorization: Bearer <token>` em todas as chamadas, menos no login e no cadastro.
 

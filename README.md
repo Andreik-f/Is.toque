@@ -42,6 +42,10 @@ As interfaces de movimentações, receitas, produção, relatórios e equipe est
 * API de produção (Render, Docker): [https://is-toque-prod.onrender.com](https://is-toque-prod.onrender.com).
 * O deploy é automático a partir do repositório `erezende544/is.toque_prod`, branch `Release`. A manutenção do ambiente de produção é acompanhada na [tarefa HT034](https://github.com/ICEI-PUC-Minas-PBR-ADS/pbr-ads-2026-2-p1-tidai-t1-8246101-pbr-ads-2026-2-p1-tidai-t-davidwsr1/issues/64).
 
+A publicação acontece sozinha a cada merge na `main`. O workflow "CI - Testes e Build" roda os testes do backend e do frontend e, se eles passarem, copia o código para a branch `Release` do `erezende544/is.toque_prod`, de onde o Render faz o deploy dos dois serviços. A primeira publicação é feita à mão, em Actions, "CI - Testes e Build", Run workflow, com a opção `primeira_publicacao` marcada.
+
+As migrações (`V*.sql`) rodam direto no banco de produção quando o backend sobe, por isso um PR com migração pede uma branch de segurança no Neon antes do merge. Correções não devem ser feitas direto na `Release`: um commit manual nas pastas do backend ou do frontend faz a próxima publicação abortar até que alguém resolva a diferença.
+
 # Código-Fonte
 
 * <a href="codigo-fonte/README.md">Código Fonte</a>
