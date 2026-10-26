@@ -1,6 +1,6 @@
 # 📊 Relatório de Contribuições do Projeto
 
-**Última atualização:** 26/10/2026 02:26
+**Última atualização:** 26/10/2026 19:10
 
 ---
 
@@ -8,25 +8,25 @@
 
 | Aluno               |   Commits |   Linhas+ |   Linhas- |   Arquivos |   Docs Commits |   Docs Arquivos |
 |---------------------|-----------|-----------|-----------|------------|----------------|-----------------|
-| AmauriMartinez      |        11 |      1061 |        87 |         27 |              0 |               0 |
+| AmauriMartinez      |        10 |       913 |        86 |         25 |              0 |               0 |
 | Andreik Fernandes   |         7 |      2292 |        45 |         34 |              0 |               0 |
 | Andreik-f           |         1 |        30 |         0 |          2 |              0 |               0 |
 | David               |         9 |      1136 |       215 |         24 |              4 |               1 |
-| Eduardo Rezende     |       120 |    140840 |     44161 |        502 |              6 |               1 |
-| github-actions[bot] |        27 |       239 |       179 |          3 |             27 |               1 |
+| Eduardo Rezende     |        60 |    135323 |     43765 |        500 |              4 |               1 |
+| github-actions[bot] |        28 |       246 |       186 |          3 |             28 |               1 |
 
 
 ## 📅 Contribuições Semanais (Todo o Semestre)
 
-**2026-10-19**: AmauriMartinez: 1, Andreik Fernandes: 3, David: 4, Eduardo Rezende: 77, github-actions[bot]: 10
+**2026-10-19**: AmauriMartinez: 1, Andreik Fernandes: 3, David: 4, Eduardo Rezende: 20, github-actions[bot]: 11
 
-**2026-10-12**: AmauriMartinez: 4, Eduardo Rezende: 18, github-actions[bot]: 3
+**2026-10-12**: AmauriMartinez: 1, Eduardo Rezende: 18, github-actions[bot]: 3
 
-**2026-10-05**: Eduardo Rezende: 8, github-actions[bot]: 5
+**2026-10-05**: AmauriMartinez: 2, Eduardo Rezende: 5, github-actions[bot]: 5
 
-**2026-09-28**: Eduardo Rezende: 5, github-actions[bot]: 6
+**2026-09-28**: Eduardo Rezende: 3, github-actions[bot]: 4
 
-**2026-09-21**: AmauriMartinez: 2, Andreik Fernandes: 2, Eduardo Rezende: 3, github-actions[bot]: 1
+**2026-09-21**: AmauriMartinez: 2, Andreik Fernandes: 2, Eduardo Rezende: 5, github-actions[bot]: 3
 
 **2026-09-14**: AmauriMartinez: 4, Andreik Fernandes: 2, Andreik-f: 1, David: 1, Eduardo Rezende: 4, github-actions[bot]: 1
 
