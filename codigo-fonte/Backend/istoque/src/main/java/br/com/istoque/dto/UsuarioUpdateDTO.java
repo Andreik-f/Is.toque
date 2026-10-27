@@ -16,9 +16,6 @@ public record UsuarioUpdateDTO(
     String email,
 
     @NotNull(message = "O perfil é obrigatório")
-    Integer perfilId,
-
-    @NotNull(message = "A empresa é obrigatória")
-    Integer empresaId
+    Integer perfilId
 
 ) {}

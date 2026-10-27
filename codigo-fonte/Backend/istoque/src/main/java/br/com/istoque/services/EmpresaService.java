@@ -1,7 +1,5 @@
 package br.com.istoque.services;
 
-import java.util.List;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,14 +21,6 @@ public class EmpresaService {
     public EmpresaService(EmpresaRepository empresaRepository, PerfilService perfilService) {
         this.empresaRepository = empresaRepository;
         this.perfilService = perfilService;
-    }
-
-    @Transactional(readOnly = true)
-    public List<EmpresaResponseDTO> listarTodas() {
-        return empresaRepository.findAll()
-                .stream()
-                .map(EmpresaResponseDTO::fromEntity)
-                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -72,16 +62,6 @@ public class EmpresaService {
         // resposta.
         Empresa empresaAtualizada = empresaRepository.saveAndFlush(empresa);
         return EmpresaResponseDTO.fromEntity(empresaAtualizada);
-    }
-
-    public void deletar(Integer id) {
-        Empresa empresa = buscarEntidadePorId(id);
-        // Os perfis padrão são criados junto com a empresa, então saem junto com ela.
-        // Se a empresa tiver usuários, produtos ou outros dados, o banco recusa a
-        // exclusão, a API devolve 409 e a transação desfaz tudo, inclusive a
-        // exclusão dos perfis.
-        perfilService.excluirPerfisDaEmpresa(empresa);
-        empresaRepository.delete(empresa);
     }
 
     private Empresa buscarEntidadePorId(Integer id) {

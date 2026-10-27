@@ -15,12 +15,12 @@ class UsuarioAutenticadoSecurityContextFactory
 
     @Override
     public SecurityContext createSecurityContext(WithUsuarioAutenticado anotacao) {
-        UsuarioAutenticado principal =
-                new UsuarioAutenticado(1, "logado@teste.com", 1, "Administrador");
+        UsuarioAutenticado principal = new UsuarioAutenticado(
+                anotacao.id(), "logado@teste.com", anotacao.empresaId(), anotacao.perfil());
 
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
-                principal, null, List.of(new SimpleGrantedAuthority("PERFIL_Administrador"))));
+                principal, null, List.of(new SimpleGrantedAuthority("PERFIL_" + principal.perfil()))));
         return context;
     }
 }

@@ -1,5 +1,7 @@
 package br.com.istoque.controller;
 
+import br.com.istoque.security.RestAuthenticationEntryPoint;
+import br.com.istoque.support.UsuarioDeTeste;
 import br.com.istoque.support.WithUsuarioAutenticado;
 import br.com.istoque.infrastructure.entity.Categoria;
 import br.com.istoque.infrastructure.entity.Empresa;
@@ -10,15 +12,22 @@ import br.com.istoque.infrastructure.repository.UsuarioRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
@@ -94,17 +103,25 @@ class CategoriaControllerIntegrationTest {
         salvarCategoria("Bebidas", empresaA);
         salvarCategoria("Hortifruti", empresaB);
 
-        mockMvc.perform(get("/api/categorias").param("empresaId", empresaA.getId().toString()))
+        mockMvc.perform(get("/api/categorias").param("empresaId", empresaA.getId().toString())
+                        .with(UsuarioDeTeste.autenticadoComo(empresaA.getId(), "Administrador")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].nome").value("Bebidas"))
                 .andExpect(jsonPath("$[1].nome").value("Laticínios"));
+
+        mockMvc.perform(get("/api/categorias")
+                        .with(UsuarioDeTeste.autenticadoComo(empresaB.getId(), "Administrador")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].nome").value("Hortifruti"));
     }
 
     /** Sem nome devolve 400 com a mensagem do campo. */
     @Test
     void criarCategoria_semNome_devolve400() throws Exception {
         mockMvc.perform(post("/api/categorias")
+                        .with(UsuarioDeTeste.autenticadoComo(empresaA.getId(), "Administrador"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"empresaId":%d}
@@ -113,23 +130,45 @@ class CategoriaControllerIntegrationTest {
                 .andExpect(jsonPath("$.campos.nome").value("O nome é obrigatório"));
     }
 
-    /** Empresa que não existe devolve 404, tanto no cadastro quanto na listagem. */
     @Test
-    void categorias_comEmpresaInexistente_devolve404() throws Exception {
-        criarCategoria(999999, "Bebidas")
-                .andExpect(status().isNotFound());
+    void categorias_comEmpresaIdDeOutraEmpresa_ignoraEUsaADoToken() throws Exception {
+        mockMvc.perform(post("/api/categorias")
+                        .with(UsuarioDeTeste.autenticadoComo(empresaA.getId(), "Administrador"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"empresaId":%d,"nome":"Bebidas"}
+                                """.formatted(empresaB.getId())))
+                .andExpect(status().isCreated());
 
-        mockMvc.perform(get("/api/categorias").param("empresaId", "999999"))
-                .andExpect(status().isNotFound());
+        assertEquals(1, categoriaRepository.findByEmpresaIdOrderByNome(empresaA.getId()).size());
+        assertTrue(categoriaRepository.findByEmpresaIdOrderByNome(empresaB.getId()).isEmpty());
+
+        mockMvc.perform(get("/api/categorias").param("empresaId", empresaB.getId().toString())
+                        .with(UsuarioDeTeste.autenticadoComo(empresaA.getId(), "Administrador")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].nome").value("Bebidas"));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"GET, /api/categorias", "POST, /api/categorias"})
+    void rotaDeCategorias_semToken_devolve401(String metodo, String rota) throws Exception {
+        mockMvc.perform(request(HttpMethod.valueOf(metodo), rota)
+                        .with(anonymous())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value(RestAuthenticationEntryPoint.MENSAGEM));
     }
 
     /** Chama POST /api/categorias com a empresa e o nome informados. */
     private ResultActions criarCategoria(Integer empresaId, String nome) throws Exception {
         return mockMvc.perform(post("/api/categorias")
+                .with(UsuarioDeTeste.autenticadoComo(empresaId, "Administrador"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                        {"empresaId":%d,"nome":"%s"}
-                        """.formatted(empresaId, nome)));
+                        {"nome":"%s"}
+                        """.formatted(nome)));
     }
 
     /** Grava uma categoria direto pelo repositório, para montar o cenário. */

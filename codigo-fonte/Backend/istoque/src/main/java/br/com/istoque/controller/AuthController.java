@@ -37,7 +37,7 @@ public class AuthController {
     public ResponseEntity<CadastroResponseDTO> cadastrar(@Valid @RequestBody CadastroRequestDTO dto) {
         CadastroResponseDTO cadastro = cadastroService.cadastrar(dto);
         return ResponseEntity
-                .created(URI.create("/api/empresas/" + cadastro.empresa().id()))
+                .created(URI.create("/api/empresas/minha"))
                 .body(cadastro);
     }
 }

@@ -33,9 +33,9 @@ public class CategoriaService {
                 .toList();
     }
 
-    public CategoriaResponseDTO criar(CategoriaRequestDTO dto) {
+    public CategoriaResponseDTO criar(CategoriaRequestDTO dto, Integer empresaId) {
         Categoria categoria = new Categoria();
-        categoria.setEmpresa(buscarEmpresa(dto.empresaId()));
+        categoria.setEmpresa(buscarEmpresa(empresaId));
         categoria.setNome(dto.nome());
         categoria.setDescricao(dto.descricao());
         return CategoriaResponseDTO.fromEntity(categoriaRepository.save(categoria));

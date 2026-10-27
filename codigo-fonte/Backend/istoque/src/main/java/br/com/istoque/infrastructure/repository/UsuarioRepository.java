@@ -7,11 +7,18 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     Optional<Usuario> findByEmail(String email);
+
+    Optional<Usuario> findByIdAndEmpresaId(Integer id, Integer empresaId);
+
+    List<Usuario> findByEmpresaIdOrderByNome(Integer empresaId);
+
+    long countByEmpresaIdAndPerfilNomeAndAtivoTrue(Integer empresaId, String perfilNome);
 
     boolean existsByEmail(String email);
 

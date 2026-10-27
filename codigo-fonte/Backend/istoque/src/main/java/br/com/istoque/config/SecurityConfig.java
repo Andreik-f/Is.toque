@@ -2,6 +2,7 @@ package br.com.istoque.config;
 
 import br.com.istoque.infrastructure.repository.UsuarioRepository;
 import br.com.istoque.security.JwtAuthenticationFilter;
+import br.com.istoque.security.RestAccessDeniedHandler;
 import br.com.istoque.security.RestAuthenticationEntryPoint;
 import br.com.istoque.services.JwtService;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,11 +29,14 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http,
                                            JwtService jwtService,
                                            UsuarioRepository usuarioRepository,
-                                           RestAuthenticationEntryPoint entryPoint) throws Exception {
+                                           RestAuthenticationEntryPoint entryPoint,
+                                           RestAccessDeniedHandler accessDeniedHandler) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults()) // usa o corsConfigurationSource abaixo
                 .sessionManagement(sessao -> sessao.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(erros -> erros.authenticationEntryPoint(entryPoint))
+                .exceptionHandling(erros -> erros
+                        .authenticationEntryPoint(entryPoint)
+                        .accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // pré-requisição do CORS
                         .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/cadastro").permitAll()

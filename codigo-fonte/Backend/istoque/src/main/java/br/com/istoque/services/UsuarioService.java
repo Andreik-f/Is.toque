@@ -6,6 +6,7 @@ import br.com.istoque.dto.UsuarioResponseDTO;
 import br.com.istoque.dto.UsuarioUpdateDTO;
 import br.com.istoque.exception.EmailJaCadastradoException;
 import br.com.istoque.exception.EmpresaNaoEncontradaException;
+import br.com.istoque.exception.OperacaoNaoPermitidaException;
 import br.com.istoque.exception.PerfilNaoEncontradoException;
 import br.com.istoque.exception.SenhaAtualIncorretaException;
 import br.com.istoque.exception.UsuarioNaoEncontradoException;
@@ -15,6 +16,7 @@ import br.com.istoque.infrastructure.entity.Usuario;
 import br.com.istoque.infrastructure.repository.EmpresaRepository;
 import br.com.istoque.infrastructure.repository.PerfilRepository;
 import br.com.istoque.infrastructure.repository.UsuarioRepository;
+import br.com.istoque.security.Autorizacao;
 import br.com.istoque.util.EmailUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,20 +32,23 @@ public class UsuarioService {
     private final EmpresaRepository empresaRepository;
     private final PerfilRepository perfilRepository;
     private final PasswordEncoder passwordEncoder;
+    private final Autorizacao autorizacao;
 
     public UsuarioService(UsuarioRepository usuarioRepository,
                            EmpresaRepository empresaRepository,
                            PerfilRepository perfilRepository,
-                           PasswordEncoder passwordEncoder) {
+                           PasswordEncoder passwordEncoder,
+                           Autorizacao autorizacao) {
         this.usuarioRepository = usuarioRepository;
         this.empresaRepository = empresaRepository;
         this.perfilRepository = perfilRepository;
         this.passwordEncoder = passwordEncoder;
+        this.autorizacao = autorizacao;
     }
 
-    public UsuarioResponseDTO criar(UsuarioCreateDTO dto) {
-        Empresa empresa = empresaRepository.findById(dto.empresaId())
-                .orElseThrow(() -> new EmpresaNaoEncontradaException(dto.empresaId()));
+    public UsuarioResponseDTO criar(UsuarioCreateDTO dto, Integer empresaId) {
+        Empresa empresa = empresaRepository.findById(empresaId)
+                .orElseThrow(() -> new EmpresaNaoEncontradaException(empresaId));
 
         Perfil perfil = perfilRepository.findByIdAndEmpresaId(dto.perfilId(), empresa.getId())
                 .orElseThrow(() -> new PerfilNaoEncontradoException(dto.perfilId()));
@@ -63,15 +68,16 @@ public class UsuarioService {
         return UsuarioResponseDTO.fromEntity(usuarioRepository.save(usuario));
     }
 
-    public UsuarioResponseDTO atualizar(Integer id, UsuarioUpdateDTO dto) {
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new UsuarioNaoEncontradoException(id));
+    public UsuarioResponseDTO atualizar(Integer id, UsuarioUpdateDTO dto, Integer empresaId) {
+        Usuario usuario = buscarUsuario(id, empresaId);
 
-        Empresa empresa = empresaRepository.findById(dto.empresaId())
-                .orElseThrow(() -> new EmpresaNaoEncontradaException(dto.empresaId()));
-
-        Perfil perfil = perfilRepository.findByIdAndEmpresaId(dto.perfilId(), empresa.getId())
+        Perfil perfil = perfilRepository.findByIdAndEmpresaId(dto.perfilId(), empresaId)
                 .orElseThrow(() -> new PerfilNaoEncontradoException(dto.perfilId()));
+
+        if (!autorizacao.ehAdministrador(perfil.getNome()) && ehUltimoAdministradorAtivo(usuario)) {
+            throw new OperacaoNaoPermitidaException(
+                    "Não é possível alterar o perfil do último administrador ativo da empresa.");
+        }
 
         String email = EmailUtils.normalizar(dto.email());
         if (usuarioRepository.existsByEmailAndIdNot(email, id)) {
@@ -80,31 +86,47 @@ public class UsuarioService {
 
         usuario.setNome(dto.nome());
         usuario.setEmail(dto.email());
-        usuario.setEmpresa(empresa);
         usuario.setPerfil(perfil);
 
         return UsuarioResponseDTO.fromEntity(usuarioRepository.saveAndFlush(usuario));
     }
 
     @Transactional(readOnly = true)
-    public List<UsuarioResponseDTO> listarTodos() {
-        return usuarioRepository.findAll().stream()
+    public List<UsuarioResponseDTO> listarPorEmpresa(Integer empresaId) {
+        return usuarioRepository.findByEmpresaIdOrderByNome(empresaId).stream()
                 .map(UsuarioResponseDTO::fromEntity)
                 .toList();
     }
 
-    public void alterarSenha(Integer id, String novaSenha) {
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new UsuarioNaoEncontradoException(id));
+    public void alterarSenha(Integer id, String novaSenha, Integer empresaId) {
+        Usuario usuario = buscarUsuario(id, empresaId);
         usuario.setSenha(passwordEncoder.encode(novaSenha));
         usuarioRepository.save(usuario);
     }
 
-    public void inativarUsuario(Integer id) {
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new UsuarioNaoEncontradoException(id));
+    public void inativarUsuario(Integer id, Integer empresaId, Integer usuarioLogadoId) {
+        Usuario usuario = buscarUsuario(id, empresaId);
+        if (usuario.getId().equals(usuarioLogadoId)) {
+            throw new OperacaoNaoPermitidaException("Você não pode inativar o seu próprio usuário.");
+        }
+        if (ehUltimoAdministradorAtivo(usuario)) {
+            throw new OperacaoNaoPermitidaException(
+                    "Não é possível inativar o último administrador ativo da empresa.");
+        }
         usuario.setAtivo(false);
         usuarioRepository.save(usuario);
+    }
+
+    private Usuario buscarUsuario(Integer id, Integer empresaId) {
+        return usuarioRepository.findByIdAndEmpresaId(id, empresaId)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException(id));
+    }
+
+    private boolean ehUltimoAdministradorAtivo(Usuario usuario) {
+        return Boolean.TRUE.equals(usuario.getAtivo())
+                && autorizacao.ehAdministrador(usuario.getPerfil().getNome())
+                && usuarioRepository.countByEmpresaIdAndPerfilNomeAndAtivoTrue(
+                        usuario.getEmpresa().getId(), autorizacao.perfilAdministrador()) <= 1;
     }
 
     public void trocarSenhaPropria(Integer usuarioId, TrocarSenhaPropriaRequestDTO dto) {

@@ -16,4 +16,10 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 @WithSecurityContext(factory = UsuarioAutenticadoSecurityContextFactory.class)
 public @interface WithUsuarioAutenticado {
+
+    int id() default 1;
+
+    int empresaId() default 1;
+
+    String perfil() default "Administrador";
 }

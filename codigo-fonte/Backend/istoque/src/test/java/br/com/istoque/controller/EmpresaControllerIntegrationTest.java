@@ -1,21 +1,33 @@
 package br.com.istoque.controller;
 
+import br.com.istoque.security.RestAccessDeniedHandler;
+import br.com.istoque.security.RestAuthenticationEntryPoint;
+import br.com.istoque.support.UsuarioDeTeste;
 import br.com.istoque.support.WithUsuarioAutenticado;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import br.com.istoque.infrastructure.repository.EmpresaRepository;
@@ -24,10 +36,9 @@ import br.com.istoque.infrastructure.repository.UsuarioRepository;
 import com.jayway.jsonpath.JsonPath;
 
 /**
- * Testes de integração do cadastro e da exclusão de empresas (/api/empresas).
+ * Testes de integração do cadastro de empresas (/api/empresas).
  *
- * Cobrem os perfis padrão: toda empresa nova já nasce com eles, e eles saem
- * junto quando a empresa é excluída, sem apagar dados de quem já usa o sistema.
+ * Cobrem os perfis padrão: toda empresa nova já nasce com eles.
  *
  * Cobre também o HT035 (#63): os dias de alerta de validade são obrigatórios no
  * banco (V4). Sem o campo, a empresa nasce com o padrão 3, e um PUT sem o campo
@@ -76,48 +87,6 @@ class EmpresaControllerIntegrationTest {
     }
 
     /**
-     * Uma empresa que só tem os perfis padrão pode ser excluída: os perfis
-     * saem junto com ela, em vez de travar a exclusão.
-     */
-    @Test
-    void deletarEmpresa_semOutrosDados_apagaAEmpresaEOsPerfis() throws Exception {
-        Integer empresaId = criarEmpresa();
-
-        mockMvc.perform(delete("/api/empresas/{id}", empresaId))
-                .andExpect(status().isOk());
-
-        assertFalse(empresaRepository.existsById(empresaId));
-        assertTrue(perfilRepository.findByNomeAndEmpresaId("Administrador", empresaId).isEmpty());
-    }
-
-    /**
-     * Com um usuário cadastrado, a exclusão devolve 409 e nada é apagado, nem
-     * a empresa nem os perfis: excluir a empresa não pode levar junto os dados
-     * de quem já usa o sistema. O usuário é criado pela API com o perfil
-     * Administrador da empresa nova, como no primeiro cadastro de verdade.
-     */
-    @Test
-    void deletarEmpresa_comUsuario_devolve409ENaoApagaNada() throws Exception {
-        Integer empresaId = criarEmpresa();
-        Integer perfilAdminId = perfilRepository.findByNomeAndEmpresaId("Administrador", empresaId)
-                .orElseThrow()
-                .getId();
-
-        mockMvc.perform(post("/api/usuarios")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                        {"nome":"Admin","email":"admin@empresanova.com","senha":"SenhaValida123","perfilId":%d,"empresaId":%d}
-                        """.formatted(perfilAdminId, empresaId)))
-                .andExpect(status().isCreated());
-
-        mockMvc.perform(delete("/api/empresas/{id}", empresaId))
-                .andExpect(status().isConflict());
-
-        assertTrue(empresaRepository.existsById(empresaId));
-        assertTrue(perfilRepository.findByNomeAndEmpresaId("Administrador", empresaId).isPresent());
-    }
-
-    /**
      * Os dias de alerta de validade são obrigatórios no banco (padrão 3). O cadastro
      * não informa o campo, e a empresa nova precisa sair com o padrão em vez de ser
      * recusada pelo banco.
@@ -129,12 +98,14 @@ class EmpresaControllerIntegrationTest {
         assertEquals(3, empresaRepository.findById(empresaId).orElseThrow().getDiasAlertaValidade());
     }
 
-    /** Se o cadastro informa os dias de alerta, o valor informado é gravado. */
     @Test
     void criarEmpresa_comDiasDeAlerta_gravaOValorInformado() throws Exception {
-        Integer empresaId = criarEmpresa("""
+        Integer empresaId = criarEmpresa();
+
+        atualizarMinhaEmpresa(empresaId, """
                 {"razaoSocial":"Empresa Nova LTDA","cnpj":"11444777000161","diasAlertaValidade":10}
-                """);
+                """)
+                .andExpect(status().isOk());
 
         assertEquals(10, empresaRepository.findById(empresaId).orElseThrow().getDiasAlertaValidade());
     }
@@ -145,43 +116,191 @@ class EmpresaControllerIntegrationTest {
      */
     @Test
     void atualizarEmpresa_semDiasDeAlerta_mantemOValorAtual() throws Exception {
-        Integer empresaId = criarEmpresa("""
+        Integer empresaId = criarEmpresa();
+        atualizarMinhaEmpresa(empresaId, """
                 {"razaoSocial":"Empresa Nova LTDA","cnpj":"11444777000161","diasAlertaValidade":10}
-                """);
+                """)
+                .andExpect(status().isOk());
 
-        mockMvc.perform(put("/api/empresas/{id}", empresaId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                        {"razaoSocial":"Empresa Renomeada LTDA","cnpj":"11444777000161"}
-                        """))
+        atualizarMinhaEmpresa(empresaId, """
+                {"razaoSocial":"Empresa Renomeada LTDA","cnpj":"11444777000161"}
+                """)
                 .andExpect(status().isOk());
 
         assertEquals(10, empresaRepository.findById(empresaId).orElseThrow().getDiasAlertaValidade());
 
-        mockMvc.perform(put("/api/empresas/{id}", empresaId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                        {"razaoSocial":"Empresa Renomeada LTDA","cnpj":"11444777000161","diasAlertaValidade":5}
-                        """))
+        atualizarMinhaEmpresa(empresaId, """
+                {"razaoSocial":"Empresa Renomeada LTDA","cnpj":"11444777000161","diasAlertaValidade":5}
+                """)
                 .andExpect(status().isOk());
 
         assertEquals(5, empresaRepository.findById(empresaId).orElseThrow().getDiasAlertaValidade());
     }
 
-    /** Cadastra uma empresa pela API e devolve o id dela. */
-    private Integer criarEmpresa() throws Exception {
-        return criarEmpresa("""
-                {"razaoSocial":"Empresa Nova LTDA","cnpj":"11444777000161"}
-                """);
+    @Test
+    void buscarMinhaEmpresa_devolveAEmpresaDoToken() throws Exception {
+        Integer empresaA = criarEmpresa();
+        Integer empresaB = criarEmpresa("22333444000155", "dono@empresab.com");
+
+        mockMvc.perform(get("/api/empresas/minha")
+                        .with(UsuarioDeTeste.autenticadoComo(empresaA, "Administrador")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(empresaA))
+                .andExpect(jsonPath("$.cnpj").value("11.444.777/0001-61"));
+
+        mockMvc.perform(get("/api/empresas/minha")
+                        .with(UsuarioDeTeste.autenticadoComo(empresaB, "Administrador")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(empresaB));
     }
 
-    /** Cadastra uma empresa pela API com o corpo informado e devolve o id dela. */
-    private Integer criarEmpresa(String json) throws Exception {
-        String resposta = mockMvc.perform(post("/api/empresas")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(json))
+    @Test
+    void atualizarMinhaEmpresa_alteraSoAEmpresaDoToken() throws Exception {
+        Integer empresaA = criarEmpresa();
+        Integer empresaB = criarEmpresa("22333444000155", "dono@empresab.com");
+
+        atualizarMinhaEmpresa(empresaA, """
+                {"razaoSocial":"Empresa A Renomeada LTDA","cnpj":"11444777000161"}
+                """)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(empresaA))
+                .andExpect(jsonPath("$.razaoSocial").value("Empresa A Renomeada LTDA"));
+
+        assertEquals("Empresa Nova LTDA", empresaRepository.findById(empresaB).orElseThrow().getRazaoSocial());
+    }
+
+    @Test
+    void atualizarMinhaEmpresa_comCnpjDeOutraEmpresa_devolve409() throws Exception {
+        Integer empresaA = criarEmpresa();
+        criarEmpresa("22333444000155", "dono@empresab.com");
+
+        atualizarMinhaEmpresa(empresaA, """
+                {"razaoSocial":"Empresa Nova LTDA","cnpj":"22333444000155"}
+                """)
+                .andExpect(status().isConflict());
+
+        assertEquals("11.444.777/0001-61", empresaRepository.findById(empresaA).orElseThrow().getCnpj());
+    }
+
+    @Test
+    void atualizarMinhaEmpresa_comRazaoSocialAcimaDe255Caracteres_devolve400ENaoAltera() throws Exception {
+        Integer empresaId = criarEmpresa();
+        String razaoSocial256 = "A".repeat(256);
+
+        atualizarMinhaEmpresa(empresaId, """
+                {"razaoSocial":"%s","cnpj":"11444777000161"}
+                """.formatted(razaoSocial256))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.razaoSocial").value("A razão social deve ter no máximo 255 caracteres"));
+
+        assertEquals("Empresa Nova LTDA", empresaRepository.findById(empresaId).orElseThrow().getRazaoSocial());
+    }
+
+    @Test
+    void atualizarMinhaEmpresa_comRazaoSocialNoLimiteDe255Caracteres_devolve200() throws Exception {
+        Integer empresaId = criarEmpresa();
+        String razaoSocial255 = "A".repeat(255);
+
+        atualizarMinhaEmpresa(empresaId, """
+                {"razaoSocial":"%s","cnpj":"11444777000161"}
+                """.formatted(razaoSocial255))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.razaoSocial").value(razaoSocial255));
+
+        assertEquals(razaoSocial255, empresaRepository.findById(empresaId).orElseThrow().getRazaoSocial());
+    }
+
+    @Test
+    void rotasGlobaisDeEmpresa_naoExistemMais() throws Exception {
+        Integer empresaA = criarEmpresa();
+        Integer empresaB = criarEmpresa("22333444000155", "dono@empresab.com");
+        RequestPostProcessor comoEmpresaA = UsuarioDeTeste.autenticadoComo(empresaA, "Administrador");
+
+        mockMvc.perform(get("/api/empresas").with(comoEmpresaA))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(get("/api/empresas/{id}", empresaB).with(comoEmpresaA))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(post("/api/empresas").with(comoEmpresaA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"razaoSocial":"Empresa C LTDA","cnpj":"33444555000166"}
+                                """))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(put("/api/empresas/{id}", empresaB).with(comoEmpresaA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"razaoSocial":"Invadida LTDA","cnpj":"22333444000155"}
+                                """))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(delete("/api/empresas/{id}", empresaB).with(comoEmpresaA))
+                .andExpect(status().isNotFound());
+
+        assertEquals(2, empresaRepository.count());
+        assertEquals("Empresa Nova LTDA", empresaRepository.findById(empresaB).orElseThrow().getRazaoSocial());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Gerente", "Funcionário"})
+    void atualizarMinhaEmpresa_semSerAdministrador_devolve403ENaoAltera(String perfil) throws Exception {
+        Integer empresaId = criarEmpresa();
+
+        mockMvc.perform(put("/api/empresas/minha")
+                        .with(UsuarioDeTeste.autenticadoComo(empresaId, perfil))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"razaoSocial":"Empresa Renomeada LTDA","cnpj":"11444777000161"}
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value(RestAccessDeniedHandler.MENSAGEM));
+
+        assertEquals("Empresa Nova LTDA", empresaRepository.findById(empresaId).orElseThrow().getRazaoSocial());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Gerente", "Funcionário"})
+    void buscarMinhaEmpresa_semSerAdministrador_devolve200(String perfil) throws Exception {
+        Integer empresaId = criarEmpresa();
+
+        mockMvc.perform(get("/api/empresas/minha").with(UsuarioDeTeste.autenticadoComo(empresaId, perfil)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(empresaId));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"GET, /api/empresas/minha", "PUT, /api/empresas/minha"})
+    void minhaEmpresa_semToken_devolve401(String metodo, String rota) throws Exception {
+        mockMvc.perform(request(HttpMethod.valueOf(metodo), rota)
+                        .with(anonymous())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value(RestAuthenticationEntryPoint.MENSAGEM));
+    }
+
+    private Integer criarEmpresa() throws Exception {
+        return criarEmpresa("11444777000161", "dono@empresanova.com");
+    }
+
+    private Integer criarEmpresa(String cnpj, String email) throws Exception {
+        String resposta = mockMvc.perform(post("/api/auth/cadastro")
+                        .with(anonymous())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"razaoSocial":"Empresa Nova LTDA","cnpj":"%s","nome":"Dono","email":"%s","senha":"SenhaValida123"}
+                                """.formatted(cnpj, email)))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        return JsonPath.read(resposta, "$.id");
+        return JsonPath.read(resposta, "$.empresa.id");
+    }
+
+    private ResultActions atualizarMinhaEmpresa(Integer empresaId, String json) throws Exception {
+        return mockMvc.perform(put("/api/empresas/minha")
+                .with(UsuarioDeTeste.autenticadoComo(empresaId, "Administrador"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json));
     }
 }

@@ -1,8 +1,10 @@
 package br.com.istoque.controller;
 
+import br.com.istoque.infrastructure.entity.Usuario;
 import br.com.istoque.infrastructure.repository.EmpresaRepository;
 import br.com.istoque.infrastructure.repository.PerfilRepository;
 import br.com.istoque.infrastructure.repository.UsuarioRepository;
+import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +74,23 @@ class CadastroIntegrationTest {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nomeEmpresa").value("Restaurante Exemplo LTDA"));
+    }
+
+    @Test
+    void cadastro_semToken_criaAdministradorComPerfilDaEmpresaNova() throws Exception {
+        cadastrar("22333444000155", "outro@restaurante.com").andExpect(status().isCreated());
+
+        String resposta = cadastrar("11444777000161", "dono@restaurante.com")
+                .andExpect(status().isCreated())
+                .andExpect(header().string("Location", "/api/empresas/minha"))
+                .andReturn().getResponse().getContentAsString();
+        Integer empresaId = JsonPath.read(resposta, "$.empresa.id");
+
+        Usuario administrador = usuarioRepository.findByEmail("dono@restaurante.com").orElseThrow();
+        assertEquals(empresaId, administrador.getEmpresa().getId());
+        assertEquals(empresaId, administrador.getPerfil().getEmpresa().getId());
+        assertEquals("Administrador", administrador.getPerfil().getNome());
+        assertEquals(empresaId, JsonPath.read(resposta, "$.usuario.empresaId"));
     }
 
     /**

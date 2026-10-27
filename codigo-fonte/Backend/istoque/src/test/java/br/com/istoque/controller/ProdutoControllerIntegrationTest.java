@@ -1,5 +1,7 @@
 package br.com.istoque.controller;
 
+import br.com.istoque.security.RestAuthenticationEntryPoint;
+import br.com.istoque.support.UsuarioDeTeste;
 import br.com.istoque.support.WithUsuarioAutenticado;
 import tools.jackson.databind.ObjectMapper;
 import br.com.istoque.infrastructure.entity.Categoria;
@@ -15,12 +17,17 @@ import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import java.math.BigDecimal;
 import java.util.LinkedHashMap;
@@ -33,14 +40,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * Testes de integração do CRUD de produtos (/api/produtos).
  *
  * Cobre o mapeamento de erros do CRUD de produtos (HU005): 404 para produto
- * ou empresa inexistente, 400 com mensagem por campo para validação,
+ * inexistente, 400 com mensagem por campo para validação,
  * referências inválidas (unidade/categoria) e corpo ou parâmetro mal
  * formatado, e 405/404 para método ou rota inexistente — nenhum desses casos
  * pode cair no 500 genérico. Também garante que editar um produto não muda o
@@ -145,7 +154,6 @@ class ProdutoControllerIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Dados inválidos"))
                 .andExpect(jsonPath("$.campos.nome").value("O nome é obrigatório"))
                 .andExpect(jsonPath("$.campos.tipo").value("O tipo é obrigatório"))
-                .andExpect(jsonPath("$.campos.empresaId").value("A empresa é obrigatória"))
                 .andExpect(jsonPath("$.campos.unidadeMedidaId").value("A unidade de medida é obrigatória"));
     }
 
@@ -213,19 +221,15 @@ class ProdutoControllerIntegrationTest {
                 .andExpect(jsonPath("$.message").value("O corpo da requisição está ausente ou mal formatado"));
     }
 
-    /**
-     * empresaId que não existe devolve 404. A categoria sai do corpo para
-     * isolar o erro: o teste confere só a empresa inexistente.
-     */
     @Test
-    void criarProduto_comEmpresaInexistente_devolve404() throws Exception {
+    void criarProduto_comEmpresaIdDeOutraEmpresaNoCorpo_devolve201EGravaNaEmpresaDoToken() throws Exception {
         Map<String, Object> corpo = corpoValido();
-        corpo.put("empresaId", 999999);
+        corpo.put("empresaId", empresaB.getId());
         corpo.remove("categoriaId");
 
         criarProduto(corpo)
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Empresa não encontrada com o id: 999999"));
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.empresaId").value(empresaA.getId()));
     }
 
     /** unidadeMedidaId que não existe devolve 400 com mensagem. */
@@ -286,13 +290,13 @@ class ProdutoControllerIntegrationTest {
     @Test
     void atualizarProduto_desativado_mantemAtivoFalse() throws Exception {
         Integer id = criarProdutoValido();
-        mockMvc.perform(patch("/api/produtos/{id}/desativar", id))
+        mockMvc.perform(patch("/api/produtos/{id}/desativar", id).with(comoEmpresaA()))
                 .andExpect(status().isOk());
 
         Map<String, Object> corpo = corpoValido();
         corpo.put("nome", "Queijo minas frescal");
 
-        mockMvc.perform(put("/api/produtos/{id}", id)
+        mockMvc.perform(put("/api/produtos/{id}", id).with(comoEmpresaA())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(corpo)))
                 .andExpect(status().isOk())
@@ -312,7 +316,7 @@ class ProdutoControllerIntegrationTest {
         corpo.put("nome", "Queijo minas padrão");
         corpo.put("quantidadeAtual", 50);
 
-        mockMvc.perform(put("/api/produtos/{id}", id)
+        mockMvc.perform(put("/api/produtos/{id}", id).with(comoEmpresaA())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(corpo)))
                 .andExpect(status().isOk())
@@ -332,7 +336,7 @@ class ProdutoControllerIntegrationTest {
         Map<String, Object> corpo = corpoValido();
         corpo.remove("quantidadeAtual");
 
-        mockMvc.perform(put("/api/produtos/{id}", id)
+        mockMvc.perform(put("/api/produtos/{id}", id).with(comoEmpresaA())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(corpo)))
                 .andExpect(status().isOk());
@@ -345,7 +349,7 @@ class ProdutoControllerIntegrationTest {
     void desativarProduto_existente_devolve200ComAtivoFalse() throws Exception {
         Integer id = criarProdutoValido();
 
-        mockMvc.perform(patch("/api/produtos/{id}/desativar", id))
+        mockMvc.perform(patch("/api/produtos/{id}/desativar", id).with(comoEmpresaA()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.ativo").value(false));
     }
@@ -365,21 +369,71 @@ class ProdutoControllerIntegrationTest {
     void listarProdutos_comEmpresaId_devolveSoOsDaEmpresaEmOrdemDeNome() throws Exception {
         criarProdutosDasDuasEmpresas();
 
-        mockMvc.perform(get("/api/produtos").param("empresaId", empresaA.getId().toString()))
+        mockMvc.perform(get("/api/produtos").param("empresaId", empresaA.getId().toString()).with(comoEmpresaA()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].nome").value("Manteiga"))
                 .andExpect(jsonPath("$[1].nome").value("Queijo minas"));
     }
 
-    /** Sem ?empresaId=, a listagem continua trazendo os produtos de todas as empresas. */
     @Test
-    void listarProdutos_semEmpresaId_devolveTodos() throws Exception {
+    void listarProdutos_semEmpresaId_devolveSoOsDaEmpresaDoToken() throws Exception {
         criarProdutosDasDuasEmpresas();
 
-        mockMvc.perform(get("/api/produtos"))
+        mockMvc.perform(get("/api/produtos").with(comoEmpresaA()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(3));
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[*].empresaId", not(hasItem(empresaB.getId()))));
+
+        mockMvc.perform(get("/api/produtos").with(comoEmpresaB()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].nome").value("Água mineral"));
+    }
+
+    @Test
+    void listarProdutos_comEmpresaIdDeOutraEmpresaNaUrl_ignoraEUsaADoToken() throws Exception {
+        criarProdutosDasDuasEmpresas();
+
+        mockMvc.perform(get("/api/produtos").param("empresaId", empresaB.getId().toString()).with(comoEmpresaA()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[*].empresaId", not(hasItem(empresaB.getId()))));
+
+        mockMvc.perform(get("/api/produtos/ativos").param("empresaId", empresaB.getId().toString()).with(comoEmpresaA()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[*].empresaId", not(hasItem(empresaB.getId()))));
+    }
+
+    @Test
+    void produtoDeOutraEmpresa_buscarAtualizarEDesativar_devolve404ENaoAltera() throws Exception {
+        Map<String, Object> daEmpresaB = corpoValido();
+        daEmpresaB.put("categoriaId", categoriaEmpresaB.getId());
+        daEmpresaB.put("nome", "Água mineral");
+        String resposta = criarProduto(daEmpresaB, comoEmpresaB())
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        Integer idDaEmpresaB = JsonPath.read(resposta, "$.id");
+
+        mockMvc.perform(get("/api/produtos/{id}", idDaEmpresaB).with(comoEmpresaA()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Produto não encontrado com o id: " + idDaEmpresaB));
+
+        Map<String, Object> alteracao = corpoValido();
+        alteracao.put("nome", "Nome trocado");
+        mockMvc.perform(put("/api/produtos/{id}", idDaEmpresaB).with(comoEmpresaA())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(alteracao)))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(patch("/api/produtos/{id}/desativar", idDaEmpresaB).with(comoEmpresaA()))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(get("/api/produtos/{id}", idDaEmpresaB).with(comoEmpresaB()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nome").value("Água mineral"))
+                .andExpect(jsonPath("$.ativo").value(true));
     }
 
     /** A listagem de ativos com ?empresaId= não traz os desativados nem os de outra empresa. */
@@ -387,10 +441,10 @@ class ProdutoControllerIntegrationTest {
     void listarAtivos_comEmpresaId_naoTrazDesativadosNemDeOutraEmpresa() throws Exception {
         criarProdutosDasDuasEmpresas();
         Integer desativado = criarProdutoValido();
-        mockMvc.perform(patch("/api/produtos/{id}/desativar", desativado))
+        mockMvc.perform(patch("/api/produtos/{id}/desativar", desativado).with(comoEmpresaA()))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(get("/api/produtos/ativos").param("empresaId", empresaA.getId().toString()))
+        mockMvc.perform(get("/api/produtos/ativos").param("empresaId", empresaA.getId().toString()).with(comoEmpresaA()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[*].id", not(hasItem(desativado))));
@@ -414,13 +468,40 @@ class ProdutoControllerIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
+    @ParameterizedTest
+    @CsvSource({
+            "POST, /api/produtos",
+            "GET, /api/produtos",
+            "GET, /api/produtos/ativos",
+            "GET, /api/produtos/1",
+            "PUT, /api/produtos/1",
+            "PATCH, /api/produtos/1/desativar"
+    })
+    void rotaDeProdutos_semToken_devolve401(String metodo, String rota) throws Exception {
+        mockMvc.perform(request(HttpMethod.valueOf(metodo), rota)
+                        .with(anonymous())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value(RestAuthenticationEntryPoint.MENSAGEM));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Gerente", "Funcionário"})
+    void produtos_comPerfilQueNaoEAdministrador_continuamAbertos(String perfil) throws Exception {
+        criarProdutoValido();
+
+        mockMvc.perform(get("/api/produtos").with(UsuarioDeTeste.autenticadoComo(empresaA.getId(), perfil)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1));
+    }
+
     /**
      * Corpo de um produto válido da empresa A. Os testes de erro partem dele e
      * mudam só o campo que querem testar.
      */
     private Map<String, Object> corpoValido() {
         Map<String, Object> corpo = new LinkedHashMap<>();
-        corpo.put("empresaId", empresaA.getId());
         corpo.put("categoriaId", categoriaEmpresaA.getId());
         corpo.put("unidadeMedidaId", quilo.getId());
         corpo.put("codigo", "QJ-001");
@@ -435,9 +516,22 @@ class ProdutoControllerIntegrationTest {
 
     /** Chama POST /api/produtos com o corpo informado. */
     private ResultActions criarProduto(Map<String, Object> corpo) throws Exception {
+        return criarProduto(corpo, comoEmpresaA());
+    }
+
+    private ResultActions criarProduto(Map<String, Object> corpo, RequestPostProcessor usuario) throws Exception {
         return mockMvc.perform(post("/api/produtos")
+                .with(usuario)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(corpo)));
+    }
+
+    private RequestPostProcessor comoEmpresaA() {
+        return UsuarioDeTeste.autenticadoComo(empresaA.getId(), "Administrador");
+    }
+
+    private RequestPostProcessor comoEmpresaB() {
+        return UsuarioDeTeste.autenticadoComo(empresaB.getId(), "Administrador");
     }
 
     /** Cria um produto válido pela API e devolve o id dele. */
@@ -460,10 +554,9 @@ class ProdutoControllerIntegrationTest {
         criarProduto(manteiga).andExpect(status().isCreated());
 
         Map<String, Object> daEmpresaB = corpoValido();
-        daEmpresaB.put("empresaId", empresaB.getId());
         daEmpresaB.put("categoriaId", categoriaEmpresaB.getId());
         daEmpresaB.put("nome", "Água mineral");
-        criarProduto(daEmpresaB).andExpect(status().isCreated());
+        criarProduto(daEmpresaB, comoEmpresaB()).andExpect(status().isCreated());
     }
 
     /** Confere no banco o saldo do produto (compareTo ignora a escala: 5 = 5.000). */

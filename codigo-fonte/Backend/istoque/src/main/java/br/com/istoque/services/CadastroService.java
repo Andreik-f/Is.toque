@@ -45,7 +45,7 @@ public class CadastroService {
                 .orElseThrow();
 
         UsuarioResponseDTO usuario = usuarioService.criar(
-                new UsuarioCreateDTO(dto.nome(), dto.email(), dto.senha(), administrador.getId(), empresa.id()));
+                new UsuarioCreateDTO(dto.nome(), dto.email(), dto.senha(), administrador.getId()), empresa.id());
 
         JwtService.TokenGerado token = jwtService.gerarToken(
                 usuario.email(), usuario.id(), empresa.id(), administrador.getNome());

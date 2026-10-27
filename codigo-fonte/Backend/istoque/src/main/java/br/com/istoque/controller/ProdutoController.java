@@ -2,6 +2,7 @@ package br.com.istoque.controller;
 
 import br.com.istoque.dto.ProdutoRequestDTO;
 import br.com.istoque.dto.ProdutoResponseDTO;
+import br.com.istoque.security.UsuarioLogado;
 import br.com.istoque.services.ProdutoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +13,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
@@ -24,49 +24,48 @@ public class ProdutoController {
 
     private final ProdutoService produtoService;
 
-    public ProdutoController(ProdutoService produtoService) {
+    private final UsuarioLogado usuarioLogado;
+
+    public ProdutoController(ProdutoService produtoService, UsuarioLogado usuarioLogado) {
         this.produtoService = produtoService;
+        this.usuarioLogado = usuarioLogado;
     }
 
     // endpoint de cadastro
     @PostMapping
     public ResponseEntity<ProdutoResponseDTO> salvar(@RequestBody @Valid ProdutoRequestDTO dto) {
-        ProdutoResponseDTO criado = produtoService.salvar(dto);
+        ProdutoResponseDTO criado = produtoService.salvar(dto, usuarioLogado.empresaId());
         return ResponseEntity
                 .created(URI.create("/api/produtos/" + criado.id()))
                 .body(criado);
     }
 
-    // endpoint de listagem: ?empresaId= filtra os produtos da empresa, até o
-    // isolamento por empresa (HT002) passar a usar a empresa do usuário autenticado
     @GetMapping
-    public ResponseEntity<List<ProdutoResponseDTO>> listarTodos(
-            @RequestParam(required = false) Integer empresaId) {
-        return ResponseEntity.ok(produtoService.listarTodos(empresaId));
+    public ResponseEntity<List<ProdutoResponseDTO>> listarTodos() {
+        return ResponseEntity.ok(produtoService.listarTodos(usuarioLogado.empresaId()));
     }
 
     @GetMapping("/ativos")
-    public ResponseEntity<List<ProdutoResponseDTO>> listarAtivos(
-            @RequestParam(required = false) Integer empresaId) {
-        return ResponseEntity.ok(produtoService.listarAtivos(empresaId));
+    public ResponseEntity<List<ProdutoResponseDTO>> listarAtivos() {
+        return ResponseEntity.ok(produtoService.listarAtivos(usuarioLogado.empresaId()));
     }
 
     // endpoint de busca pelo ID
     @GetMapping("/{id}")
     public ResponseEntity<ProdutoResponseDTO> buscarPorId(@PathVariable Integer id) {
-        return ResponseEntity.ok(produtoService.buscarPorId(id));
+        return ResponseEntity.ok(produtoService.buscarPorId(id, usuarioLogado.empresaId()));
     }
 
     // endpoint de atualização
     @PutMapping("/{id}")
     public ResponseEntity<ProdutoResponseDTO> atualizar(@PathVariable Integer id,
             @RequestBody @Valid ProdutoRequestDTO dto) {
-        return ResponseEntity.ok(produtoService.atualizar(id, dto));
+        return ResponseEntity.ok(produtoService.atualizar(id, dto, usuarioLogado.empresaId()));
     }
 
     //endpoint para desativar
     @PatchMapping("/{id}/desativar")
     public ResponseEntity<ProdutoResponseDTO> desativar(@PathVariable Integer id) {
-        return ResponseEntity.ok(produtoService.desativar(id));
+        return ResponseEntity.ok(produtoService.desativar(id, usuarioLogado.empresaId()));
     }
 }

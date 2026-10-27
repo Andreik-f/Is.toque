@@ -5,6 +5,7 @@ import br.com.istoque.dto.TrocarSenhaPropriaRequestDTO;
 import br.com.istoque.dto.UsuarioCreateDTO;
 import br.com.istoque.dto.UsuarioResponseDTO;
 import br.com.istoque.dto.UsuarioUpdateDTO;
+import br.com.istoque.security.Autorizacao;
 import br.com.istoque.security.UsuarioLogado;
 import br.com.istoque.services.UsuarioService;
 import jakarta.validation.Valid;
@@ -22,14 +23,18 @@ public class UsuarioController {
 
     private final UsuarioLogado usuarioLogado;
 
-    public UsuarioController(UsuarioService usuarioService, UsuarioLogado usuarioLogado) {
+    private final Autorizacao autorizacao;
+
+    public UsuarioController(UsuarioService usuarioService, UsuarioLogado usuarioLogado, Autorizacao autorizacao) {
         this.usuarioService = usuarioService;
         this.usuarioLogado = usuarioLogado;
+        this.autorizacao = autorizacao;
     }
 
     @PostMapping
     public ResponseEntity<UsuarioResponseDTO> criar(@RequestBody @Valid UsuarioCreateDTO dto) {
-        UsuarioResponseDTO criado = usuarioService.criar(dto);
+        autorizacao.exigirAdministrador();
+        UsuarioResponseDTO criado = usuarioService.criar(dto, usuarioLogado.empresaId());
         return ResponseEntity
                 .created(URI.create("/api/usuarios/" + criado.id()))
                 .body(criado);
@@ -38,25 +43,28 @@ public class UsuarioController {
     @PutMapping("/{id}")
     public ResponseEntity<UsuarioResponseDTO> atualizar(@PathVariable Integer id,
             @RequestBody @Valid UsuarioUpdateDTO dto) {
-        return ResponseEntity.ok(usuarioService.atualizar(id, dto));
+        autorizacao.exigirAdministrador();
+        return ResponseEntity.ok(usuarioService.atualizar(id, dto, usuarioLogado.empresaId()));
     }
 
     @PatchMapping("/{id}/senha")
     public ResponseEntity<Void> alterarSenha(
            @PathVariable Integer id,
            @RequestBody @Valid TrocaSenhaRequestDTO dto) {
-       usuarioService.alterarSenha(id, dto.novaSenha());
+       autorizacao.exigirAdministrador();
+       usuarioService.alterarSenha(id, dto.novaSenha(), usuarioLogado.empresaId());
         return ResponseEntity.noContent().build();
      }
 
     @GetMapping
     public ResponseEntity<List<UsuarioResponseDTO>> listar() {
-        return ResponseEntity.ok(usuarioService.listarTodos());
+        return ResponseEntity.ok(usuarioService.listarPorEmpresa(usuarioLogado.empresaId()));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> inativar(@PathVariable Integer id) {
-        usuarioService.inativarUsuario(id);
+        autorizacao.exigirAdministrador();
+        usuarioService.inativarUsuario(id, usuarioLogado.empresaId(), usuarioLogado.id());
         return ResponseEntity.noContent().build();
     }
 

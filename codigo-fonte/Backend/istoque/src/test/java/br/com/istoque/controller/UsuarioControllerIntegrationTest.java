@@ -1,5 +1,6 @@
 package br.com.istoque.controller;
 
+import br.com.istoque.support.UsuarioDeTeste;
 import br.com.istoque.support.WithUsuarioAutenticado;
 import br.com.istoque.infrastructure.entity.Empresa;
 import br.com.istoque.infrastructure.entity.Perfil;
@@ -7,29 +8,41 @@ import br.com.istoque.infrastructure.entity.Usuario;
 import br.com.istoque.infrastructure.repository.EmpresaRepository;
 import br.com.istoque.infrastructure.repository.PerfilRepository;
 import br.com.istoque.infrastructure.repository.UsuarioRepository;
+import br.com.istoque.security.RestAccessDeniedHandler;
+import br.com.istoque.security.RestAuthenticationEntryPoint;
 import br.com.istoque.security.UsuarioAutenticado;
 import br.com.istoque.services.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
@@ -204,6 +217,7 @@ class UsuarioControllerIntegrationTest {
                 perfilAdminEmpresaA, empresaA);
 
         mockMvc.perform(put("/api/usuarios/{id}", usuario.getId())
+                        .with(comoAdministradorDe(empresaA))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"nome":"Admin A","email":"admin@empresaa.com","senha":"SenhaNova456","perfilId":%d,"empresaId":%d}
@@ -216,11 +230,268 @@ class UsuarioControllerIntegrationTest {
                 .andExpect(status().isOk());
     }
 
-    /** empresaId que não existe devolve 404, e não um erro 500. */
     @Test
-    void criarUsuario_comEmpresaInexistente_devolve404() throws Exception {
-        criarUsuario("Sem Empresa", "semempresa@teste.com", perfilAdminEmpresaA.getId(), 999999)
+    void criarUsuario_comEmpresaIdDeOutraEmpresaNoCorpo_ignoraEUsaADoToken() throws Exception {
+        mockMvc.perform(post("/api/usuarios")
+                        .with(comoAdministradorDe(empresaA))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nome":"Outra Empresa","email":"outra@teste.com","senha":"SenhaValida123","perfilId":%d,"empresaId":%d}
+                                """.formatted(perfilAdminEmpresaA.getId(), empresaB.getId())))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.empresaId").value(empresaA.getId()));
+    }
+
+    @Test
+    void atualizarUsuario_comEmpresaIdDeOutraEmpresaNoCorpo_mantemAEmpresaDoToken() throws Exception {
+        Usuario usuario = criarUsuarioPersistido("Admin A", "fica@empresaa.com", "SenhaValida123",
+                perfilAdminEmpresaA, empresaA);
+
+        mockMvc.perform(put("/api/usuarios/{id}", usuario.getId())
+                        .with(comoAdministradorDe(empresaA))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nome":"Admin A","email":"fica@empresaa.com","perfilId":%d,"empresaId":%d}
+                                """.formatted(perfilAdminEmpresaA.getId(), empresaB.getId())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.empresaId").value(empresaA.getId()));
+    }
+
+    @Test
+    void listarUsuarios_devolveSoOsDaEmpresaDoTokenEmOrdemDeNome() throws Exception {
+        criarUsuarioPersistido("Bruno", "bruno@empresaa.com", "SenhaValida123", perfilAdminEmpresaA, empresaA);
+        criarUsuarioPersistido("Ana", "ana@empresaa.com", "SenhaValida123", perfilAdminEmpresaA, empresaA);
+        criarUsuarioPersistido("Carlos", "carlos@empresab.com", "SenhaValida123", perfilAdminEmpresaB, empresaB);
+
+        mockMvc.perform(get("/api/usuarios").with(comoAdministradorDe(empresaA)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].nome").value("Ana"))
+                .andExpect(jsonPath("$[1].nome").value("Bruno"));
+
+        mockMvc.perform(get("/api/usuarios").param("empresaId", empresaA.getId().toString())
+                        .with(comoAdministradorDe(empresaB)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].nome").value("Carlos"));
+    }
+
+    @Test
+    void usuarioDeOutraEmpresa_editarTrocarSenhaEInativar_devolve404ENaoAltera() throws Exception {
+        Usuario usuarioB = criarUsuarioPersistido("Admin B", "adminb@empresab.com", "SenhaAntiga123",
+                perfilAdminEmpresaB, empresaB);
+
+        atualizarUsuario(usuarioB.getId(), "Nome Trocado", "trocado@empresab.com",
+                perfilAdminEmpresaA.getId(), empresaA.getId())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Usuário não encontrado com ID: " + usuarioB.getId()));
+
+        mockMvc.perform(patch("/api/usuarios/{id}/senha", usuarioB.getId())
+                        .with(comoAdministradorDe(empresaA))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"novaSenha":"SenhaNova456"}
+                                """))
                 .andExpect(status().isNotFound());
+
+        mockMvc.perform(delete("/api/usuarios/{id}", usuarioB.getId()).with(comoAdministradorDe(empresaA)))
+                .andExpect(status().isNotFound());
+
+        Usuario gravado = usuarioRepository.findById(usuarioB.getId()).orElseThrow();
+        assertEquals("Admin B", gravado.getNome());
+        assertTrue(gravado.getAtivo());
+        assertTrue(passwordEncoder.matches("SenhaAntiga123", gravado.getSenha()));
+    }
+
+    @Test
+    void inativarUsuario_daPropriaEmpresa_devolve204EDesativa() throws Exception {
+        Perfil perfilFuncionario = perfilRepository.save(new Perfil("Funcionário", "Movimentações", empresaA));
+        Usuario usuario = criarUsuarioPersistido("Funcionario A", "func@empresaa.com", "SenhaValida123",
+                perfilFuncionario, empresaA);
+
+        mockMvc.perform(delete("/api/usuarios/{id}", usuario.getId()).with(comoAdministradorDe(empresaA)))
+                .andExpect(status().isNoContent());
+
+        assertFalse(usuarioRepository.findById(usuario.getId()).orElseThrow().getAtivo());
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "POST, /api/usuarios",
+            "GET, /api/usuarios",
+            "PUT, /api/usuarios/1",
+            "PATCH, /api/usuarios/1/senha",
+            "DELETE, /api/usuarios/1"
+    })
+    void rotaDeUsuarios_semToken_devolve401(String metodo, String rota) throws Exception {
+        mockMvc.perform(request(HttpMethod.valueOf(metodo), rota)
+                        .with(anonymous())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value(RestAuthenticationEntryPoint.MENSAGEM));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Gerente", "Funcionário"})
+    void criarUsuario_semSerAdministrador_devolve403ENaoCria(String perfil) throws Exception {
+        mockMvc.perform(post("/api/usuarios")
+                        .with(UsuarioDeTeste.autenticadoComo(empresaA.getId(), perfil))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nome":"Novo","email":"novo@empresaa.com","senha":"SenhaValida123","perfilId":%d}
+                                """.formatted(perfilAdminEmpresaA.getId())))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value(RestAccessDeniedHandler.MENSAGEM));
+
+        assertTrue(usuarioRepository.findByEmail("novo@empresaa.com").isEmpty());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Gerente", "Funcionário"})
+    void atualizarUsuario_semSerAdministrador_devolve403ENaoAltera(String perfil) throws Exception {
+        Usuario alvo = criarUsuarioPersistido("Admin A", "alvo@empresaa.com", "SenhaValida123",
+                perfilAdminEmpresaA, empresaA);
+
+        mockMvc.perform(put("/api/usuarios/{id}", alvo.getId())
+                        .with(UsuarioDeTeste.autenticadoComo(empresaA.getId(), perfil))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nome":"Nome Trocado","email":"alvo@empresaa.com","perfilId":%d}
+                                """.formatted(perfilAdminEmpresaA.getId())))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value(RestAccessDeniedHandler.MENSAGEM));
+
+        assertEquals("Admin A", usuarioRepository.findById(alvo.getId()).orElseThrow().getNome());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Gerente", "Funcionário"})
+    void alterarSenha_semSerAdministrador_devolve403ENaoTroca(String perfil) throws Exception {
+        Usuario alvo = criarUsuarioPersistido("Admin A", "alvo@empresaa.com", "SenhaAntiga123",
+                perfilAdminEmpresaA, empresaA);
+
+        mockMvc.perform(patch("/api/usuarios/{id}/senha", alvo.getId())
+                        .with(UsuarioDeTeste.autenticadoComo(empresaA.getId(), perfil))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"novaSenha":"SenhaNova456"}
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value(RestAccessDeniedHandler.MENSAGEM));
+
+        assertTrue(passwordEncoder.matches("SenhaAntiga123",
+                usuarioRepository.findById(alvo.getId()).orElseThrow().getSenha()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Gerente", "Funcionário"})
+    void inativarUsuario_semSerAdministrador_devolve403ENaoInativa(String perfil) throws Exception {
+        Usuario alvo = criarUsuarioPersistido("Admin A", "alvo@empresaa.com", "SenhaValida123",
+                perfilAdminEmpresaA, empresaA);
+
+        mockMvc.perform(delete("/api/usuarios/{id}", alvo.getId())
+                        .with(UsuarioDeTeste.autenticadoComo(empresaA.getId(), perfil)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value(RestAccessDeniedHandler.MENSAGEM));
+
+        assertTrue(usuarioRepository.findById(alvo.getId()).orElseThrow().getAtivo());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Gerente", "Funcionário"})
+    void listarUsuarios_semSerAdministrador_devolve200(String perfil) throws Exception {
+        criarUsuarioPersistido("Admin A", "admin@empresaa.com", "SenhaValida123", perfilAdminEmpresaA, empresaA);
+
+        mockMvc.perform(get("/api/usuarios").with(UsuarioDeTeste.autenticadoComo(empresaA.getId(), perfil)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @Test
+    void inativarUsuario_aSiMesmo_devolve409ENaoInativa() throws Exception {
+        Usuario admin = criarUsuarioPersistido("Admin A", "admin@empresaa.com", "SenhaValida123",
+                perfilAdminEmpresaA, empresaA);
+        criarUsuarioPersistido("Admin A2", "admin2@empresaa.com", "SenhaValida123", perfilAdminEmpresaA, empresaA);
+
+        mockMvc.perform(delete("/api/usuarios/{id}", admin.getId())
+                        .header("Authorization", "Bearer " + tokenDe(admin)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("Você não pode inativar o seu próprio usuário."));
+
+        assertTrue(usuarioRepository.findById(admin.getId()).orElseThrow().getAtivo());
+    }
+
+    @Test
+    void inativarUsuario_ultimoAdministradorAtivo_devolve409ENaoInativa() throws Exception {
+        Usuario unicoAdminAtivo = criarUsuarioPersistido("Admin A", "admin@empresaa.com", "SenhaValida123",
+                perfilAdminEmpresaA, empresaA);
+        Usuario adminInativo = criarUsuarioPersistido("Admin Antigo", "antigo@empresaa.com", "SenhaValida123",
+                perfilAdminEmpresaA, empresaA);
+        adminInativo.setAtivo(false);
+        usuarioRepository.save(adminInativo);
+        criarUsuarioPersistido("Admin B", "admin@empresab.com", "SenhaValida123", perfilAdminEmpresaB, empresaB);
+
+        mockMvc.perform(delete("/api/usuarios/{id}", unicoAdminAtivo.getId())
+                        .with(comoAdministradorDe(empresaA)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message")
+                        .value("Não é possível inativar o último administrador ativo da empresa."));
+
+        assertTrue(usuarioRepository.findById(unicoAdminAtivo.getId()).orElseThrow().getAtivo());
+    }
+
+    @Test
+    void atualizarUsuario_trocandoPerfilDoUltimoAdministradorAtivo_devolve409ENaoAltera() throws Exception {
+        Perfil perfilGerente = perfilRepository.save(new Perfil("Gerente", "Gerencia estoque", empresaA));
+        Usuario admin = criarUsuarioPersistido("Admin A", "admin@empresaa.com", "SenhaValida123",
+                perfilAdminEmpresaA, empresaA);
+
+        mockMvc.perform(put("/api/usuarios/{id}", admin.getId())
+                        .header("Authorization", "Bearer " + tokenDe(admin))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nome":"Admin A","email":"admin@empresaa.com","perfilId":%d}
+                                """.formatted(perfilGerente.getId())))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message")
+                        .value("Não é possível alterar o perfil do último administrador ativo da empresa."));
+
+        assertEquals("Administrador",
+                usuarioRepository.findById(admin.getId()).orElseThrow().getPerfil().getNome());
+    }
+
+    @Test
+    void comDoisAdministradores_inativarOOutro_devolve204() throws Exception {
+        Usuario admin1 = criarUsuarioPersistido("Admin A1", "admin1@empresaa.com", "SenhaValida123",
+                perfilAdminEmpresaA, empresaA);
+        Usuario admin2 = criarUsuarioPersistido("Admin A2", "admin2@empresaa.com", "SenhaValida123",
+                perfilAdminEmpresaA, empresaA);
+
+        mockMvc.perform(delete("/api/usuarios/{id}", admin2.getId())
+                        .header("Authorization", "Bearer " + tokenDe(admin1)))
+                .andExpect(status().isNoContent());
+
+        assertFalse(usuarioRepository.findById(admin2.getId()).orElseThrow().getAtivo());
+        assertTrue(usuarioRepository.findById(admin1.getId()).orElseThrow().getAtivo());
+    }
+
+    @Test
+    void comDoisAdministradores_trocarOPerfilDeUm_devolve200() throws Exception {
+        Perfil perfilGerente = perfilRepository.save(new Perfil("Gerente", "Gerencia estoque", empresaA));
+        Usuario admin1 = criarUsuarioPersistido("Admin A1", "admin1@empresaa.com", "SenhaValida123",
+                perfilAdminEmpresaA, empresaA);
+        Usuario admin2 = criarUsuarioPersistido("Admin A2", "admin2@empresaa.com", "SenhaValida123",
+                perfilAdminEmpresaA, empresaA);
+
+        mockMvc.perform(put("/api/usuarios/{id}", admin2.getId())
+                        .header("Authorization", "Bearer " + tokenDe(admin1))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nome":"Admin A2","email":"admin2@empresaa.com","perfilId":%d}
+                                """.formatted(perfilGerente.getId())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.perfil").value("Gerente"));
     }
 
     /** perfilId que não existe devolve 400: o problema está no dado enviado. */
@@ -260,6 +531,7 @@ class UsuarioControllerIntegrationTest {
                 perfilAdminEmpresaA, empresaA);
 
         mockMvc.perform(patch("/api/usuarios/{id}/senha", usuario.getId())
+                        .with(comoAdministradorDe(empresaA))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"novaSenha":"SenhaNova456"}
@@ -284,6 +556,7 @@ class UsuarioControllerIntegrationTest {
                 perfilAdminEmpresaA, empresaA);
 
         mockMvc.perform(patch("/api/usuarios/{id}/senha", usuario.getId())
+                        .with(comoAdministradorDe(empresaA))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"novaSenha":""}
@@ -299,6 +572,7 @@ class UsuarioControllerIntegrationTest {
                 perfilAdminEmpresaA, empresaA);
 
         mockMvc.perform(patch("/api/usuarios/{id}/senha", usuario.getId())
+                        .with(comoAdministradorDe(empresaA))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isBadRequest());
@@ -321,9 +595,10 @@ class UsuarioControllerIntegrationTest {
      */
     private ResultActions criarUsuario(String nome, String email, Integer perfilId, Integer empresaId) throws Exception {
         String corpo = """
-                {"nome":"%s","email":"%s","senha":"SenhaValida123","perfilId":%d,"empresaId":%d}
-                """.formatted(nome, email, perfilId, empresaId);
+                {"nome":"%s","email":"%s","senha":"SenhaValida123","perfilId":%d}
+                """.formatted(nome, email, perfilId);
         return mockMvc.perform(post("/api/usuarios")
+                .with(UsuarioDeTeste.autenticadoComo(empresaId, "Administrador"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(corpo));
     }
@@ -332,11 +607,16 @@ class UsuarioControllerIntegrationTest {
     private ResultActions atualizarUsuario(Integer id, String nome, String email, Integer perfilId, Integer empresaId)
             throws Exception {
         String corpo = """
-                {"nome":"%s","email":"%s","perfilId":%d,"empresaId":%d}
-                """.formatted(nome, email, perfilId, empresaId);
+                {"nome":"%s","email":"%s","perfilId":%d}
+                """.formatted(nome, email, perfilId);
         return mockMvc.perform(put("/api/usuarios/{id}", id)
+                .with(UsuarioDeTeste.autenticadoComo(empresaId, "Administrador"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(corpo));
+    }
+
+    private RequestPostProcessor comoAdministradorDe(Empresa empresa) {
+        return UsuarioDeTeste.autenticadoComo(empresa.getId(), "Administrador");
     }
 
     /**

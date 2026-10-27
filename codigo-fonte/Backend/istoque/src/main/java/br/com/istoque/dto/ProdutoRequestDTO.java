@@ -15,9 +15,6 @@ import java.math.BigDecimal;
  */
 public record ProdutoRequestDTO(
 
-        @NotNull(message = "A empresa é obrigatória")
-        Integer empresaId,
-
         Integer categoriaId,
 
         @NotNull(message = "A unidade de medida é obrigatória")

@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import br.com.istoque.security.RestAccessDeniedHandler;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -64,6 +66,13 @@ public class GlobalExceptionHandler {
                 .body(ApiErrorResponse.de(HttpStatus.CONFLICT.value(), ex.getMessage()));
     }
 
+    @ExceptionHandler(OperacaoNaoPermitidaException.class)
+    public ResponseEntity<ApiErrorResponse> tratarOperacaoNaoPermitida(OperacaoNaoPermitidaException ex) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ApiErrorResponse.de(HttpStatus.CONFLICT.value(), ex.getMessage()));
+    }
+
     @ExceptionHandler(ProdutoNaoEncontradoException.class)
     public ResponseEntity<ApiErrorResponse> tratarProdutoNaoEncontrado(ProdutoNaoEncontradoException ex) {
         return ResponseEntity
@@ -93,6 +102,13 @@ public class GlobalExceptionHandler {
                 .body(ApiErrorResponse.de(HttpStatus.UNAUTHORIZED.value(), ex.getMessage()));
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiErrorResponse> tratarAcessoNegado(AccessDeniedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ApiErrorResponse.de(HttpStatus.FORBIDDEN.value(), RestAccessDeniedHandler.MENSAGEM));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> tratarValidacao(MethodArgumentNotValidException ex) {
         Map<String, String> campos = new HashMap<>();
@@ -107,7 +123,7 @@ public class GlobalExceptionHandler {
                         campos));
     }
 
-    // JSON mal formatado, corpo ausente ou valor com tipo errado (ex.: "tipo": "xyz", "empresaId": "abc")
+    // JSON mal formatado, corpo ausente ou valor com tipo errado (ex.: "tipo": "xyz", "quantidadeAtual": "abc")
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiErrorResponse> tratarCorpoInvalido(HttpMessageNotReadableException ex) {
         if (ex.getCause() instanceof InvalidFormatException invalido) {
@@ -145,7 +161,7 @@ public class GlobalExceptionHandler {
                         "Valor inválido para o parâmetro '" + ex.getName() + "': " + ex.getValue()));
     }
 
-    // parâmetro obrigatório ausente na URL (ex.: /api/perfis sem ?empresaId=)
+    // parâmetro obrigatório ausente na URL (ex.: um @RequestParam sem valor)
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ApiErrorResponse> tratarParametroAusente(MissingServletRequestParameterException ex) {
         return ResponseEntity
