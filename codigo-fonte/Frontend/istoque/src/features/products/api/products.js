@@ -1,18 +1,15 @@
 import { api } from "@/lib/api-client.js";
 
 // Rotas usadas pelo cadastro de produto: produtos, categorias e unidades de
-// medida. A empresa vai por parâmetro até o isolamento por empresa (HT002)
-// passar a usar a do usuário autenticado.
+// medida.
 
-export const getProducts = (empresaId) =>
-  api.get(`/produtos/ativos?empresaId=${empresaId}`);
+export const getProducts = () => api.get("/produtos/ativos");
 
 export const createProduct = (body) => api.post("/produtos", body);
 
 export const updateProduct = (id, body) => api.put(`/produtos/${id}`, body);
 
-export const getCategories = (empresaId) =>
-  api.get(`/categorias?empresaId=${empresaId}`);
+export const getCategories = () => api.get("/categorias");
 
 export const createCategory = (body) => api.post("/categorias", body);
 

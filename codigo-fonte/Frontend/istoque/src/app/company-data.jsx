@@ -44,8 +44,8 @@ function CompanyData({ session, children }) {
     let current = true;
     setError("");
     Promise.all([
-      getProducts(session.empresaId),
-      getCategories(session.empresaId),
+      getProducts(),
+      getCategories(),
       getUnits(),
     ])
       .then(([products, categories, units]) => {
@@ -76,7 +76,7 @@ function CompanyData({ session, children }) {
 
   const persist = {
     saveProduct: async (product) => {
-      const body = productToApi(product, session.empresaId);
+      const body = productToApi(product);
       const saved = productFromApi(
         product.id
           ? await updateProduct(product.id, body)
@@ -92,8 +92,7 @@ function CompanyData({ session, children }) {
         art: product.art ?? saved.art,
       };
     },
-    createCategory: (nome) =>
-      createCategory({ empresaId: session.empresaId, nome }),
+    createCategory: (nome) => createCategory({ nome }),
   };
 
   if (!data)

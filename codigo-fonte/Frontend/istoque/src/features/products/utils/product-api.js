@@ -57,9 +57,8 @@ export function productFromForm({ product, form, category, unit, photo }) {
 
 // Corpo do cadastro e da edição. O saldo não vai: no cadastro ele começa em
 // zero e, depois, só muda por movimentação (HT014).
-export function productToApi(product, empresaId) {
+export function productToApi(product) {
   return {
-    empresaId,
     categoriaId: product.categoryId ?? null,
     unidadeMedidaId: product.unitId,
     codigo: product.code || null,

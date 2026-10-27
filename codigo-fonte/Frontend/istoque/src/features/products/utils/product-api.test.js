@@ -46,8 +46,7 @@ test("produto sem categoria nem estoque máximo", () => {
 });
 
 test("ida e volta preserva os campos que a tela não edita (código e descrição)", () => {
-  assert.deepEqual(productToApi(productFromApi({ ...dto, descricao: "Peça de 1 kg" }), 7), {
-    empresaId: 7,
+  assert.deepEqual(productToApi(productFromApi({ ...dto, descricao: "Peça de 1 kg" })), {
     categoriaId: 3,
     unidadeMedidaId: 1,
     codigo: "QJ-001",
@@ -61,7 +60,11 @@ test("ida e volta preserva os campos que a tela não edita (código e descriçã
 });
 
 test("o corpo enviado não leva o saldo", () => {
-  assert.equal("quantidadeAtual" in productToApi(productFromApi(dto), 7), false);
+  assert.equal("quantidadeAtual" in productToApi(productFromApi(dto)), false);
+});
+
+test("o corpo enviado não leva o empresaId", () => {
+  assert.equal("empresaId" in productToApi(productFromApi(dto)), false);
 });
 
 test("o máximo não pode ser menor que o mínimo", () => {
