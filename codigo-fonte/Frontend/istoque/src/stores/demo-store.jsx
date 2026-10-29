@@ -1,5 +1,12 @@
-import React, { createContext, useContext, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { DEMO_PROFILE, DEMO_TODAY, demoNow } from "@/config/demo.js";
+import { mergeLoadedProducts } from "@/features/products/utils/product-merge.js";
 import { navigate } from "@/hooks/use-hash-route.js";
 import {
   productsSeed,
@@ -45,6 +52,14 @@ export function DemoStoreProvider({ children, initial = DEMO_DATA, persist }) {
   const [users, setUsers] = useState(initial.users);
   const [categories, setCategories] = useState(initial.categories);
   const [onlyLow, setOnlyLow] = useState(false);
+
+  const lastInitialRef = useRef(initial);
+  useEffect(() => {
+    if (lastInitialRef.current === initial) return;
+    lastInitialRef.current = initial;
+    setProducts((current) => mergeLoadedProducts(current, initial.products));
+    setCategories(initial.categories);
+  }, [initial]);
   // último produto e última receita abertos (o primeiro da lista, até abrir
   // algum): valem para #produto e #receita sem id na URL e para o botão
   // "Registrar produção" do painel

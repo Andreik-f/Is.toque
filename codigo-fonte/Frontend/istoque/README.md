@@ -31,9 +31,81 @@ VITE_API_URL=https://is-toque-prod.onrender.com/api npm run build
 
 A API só aceita chamadas do navegador vindas dos endereços listados na variável de ambiente `CORS_ORIGENS` do backend (separados por vírgula). Em produção, ela precisa conter o endereço do front publicado, `https://istoque-front.onrender.com`.
 
-Com login, produtos, categorias e unidades de medida vêm da API e são gravados nela. Receitas, movimentações, produção, relatórios e equipe ainda não têm rota na API: com login, começam vazios, e o que se registra neles vale até recarregar a página. Nesses casos, a tela, o modal e a mensagem de confirmação avisam que o registro ainda não vai para o servidor; o mesmo vale para a foto do produto. A importação de nota continua só na demonstração. A API ainda não separa as empresas no servidor (HT002): o front envia o `empresaId` do usuário logado. A sessão guarda no navegador os dados do usuário, o `token` e o `expiraEm`, e o cliente HTTP envia `Authorization: Bearer <token>` em todas as chamadas, menos no login e no cadastro.
+Com login, produtos, categorias e unidades de medida vêm da API e são gravados nela. Receitas, movimentações, produção, relatórios e equipe ainda não têm rota na API: com login, começam vazios, e o que se registra neles vale até recarregar a página. Nesses casos, a tela, o modal e a mensagem de confirmação avisam que o registro ainda não vai para o servidor; o mesmo vale para a foto do produto. A importação de nota continua só na demonstração. A API separa os dados por empresa a partir do token (HT002): o front não envia `empresaId` nas chamadas de produtos, categorias e unidades. A sessão guarda no navegador os dados do usuário, o `token` e o `expiraEm`, e o cliente HTTP envia `Authorization: Bearer <token>` em todas as chamadas, menos no login e no cadastro.
 
 Com login, alertas de validade, relatórios e movimentações usam a data de hoje. Sem login, a demonstração usa a data fixa de 26/09/2026, a mesma dos dados de exemplo, e mostra o usuário fictício David Rocha.
+
+## Acesso à API por funcionalidade
+
+As chamadas à API ficam organizadas por funcionalidade em `src/features/<nome>/api/` (como `src/features/products/api/products.js`), consumindo a instância do cliente HTTP definida em `src/lib/api-client.js`.
+
+### Hook `useApiData` e controlador
+
+O hook `useApiData(fetcher, { enabled = true, deps = [] })` gerencia o carregamento de dados e retorna `{ data, loading, error, reload }`:
+- `fetcher`: função assíncrona `() => Promise` responsável por buscar os dados;
+- Execução: dispara a busca ao montar o componente e sempre que `enabled` ou qualquer dependência em `deps` sofrer alteração;
+- `enabled: false`: não executa o `fetcher` e retorna `data: null`, `loading: false` e `error: ""`;
+- `loading`: permanece `true` durante a primeira busca e em chamadas de `reload`;
+- `data`: durante o `reload`, os dados da consulta anterior são preservados em `data` até a chegada da nova resposta;
+- `error`: recebe a mensagem de erro já formatada (`errorMessage`) em falhas ou `""` em caso de sucesso;
+- Concorrência e descarte: a lógica é controlada por `createApiDataController` em `src/lib/api-data-controller.js`. Apenas a resposta da busca mais recente é considerada; respostas de requisições anteriores ou de componentes desmontados são ignoradas e descartadas.
+- Criação: `createApiDataSource(fetcher, { enabled })`, em `src/lib/api-data-controller.js`, devolve o controlador; com `enabled: false` devolve um controlador inerte que não chama o `fetcher`. O hook cria o controlador dentro do `useEffect` (com `dispose` no cleanup), então funciona sob StrictMode.
+
+### Apresentação com `DataState`
+
+O componente `DataState` padroniza os estados de carregamento e falha a partir das props `loading`, `error`, `onRetry`, `loadingText`, `errorTitle`, `extraActions` e `children`:
+- Carregamento: exibe a mensagem de `loadingText` acompanhada do mascote animado em modo de espera;
+- Erro: exibe a mensagem de erro com o título `errorTitle` (por padrão, "Não foi possível carregar os dados"), o botão "Tentar de novo" vinculado a `onRetry` e os botões adicionais informados em `extraActions`;
+- Sucesso: renderiza `children` quando não há carregamento pendente nem erro.
+
+### Atualização pós-gravação e mesclagem de dados
+
+Após operações de escrita na API, a aplicação não recalcula a lista localmente: invoca `reload()` para obter o estado atualizado do servidor, conforme executado por `persist.saveProduct` e `persist.createCategory` em `src/app/company-data.jsx`.
+Ao receber os dados atualizados em `initial`, o `DemoStoreProvider` utiliza `mergeLoadedProducts` (`src/features/products/utils/product-merge.js`) para mesclar pelo identificador (`id`) os campos de saldo (`stock`), validade (`expiry`), foto (`photo`) e ilustração (`art`) que já estavam na tela, visto que a API ainda não persiste essas informações. Se o `reload()` falhar com dados já na tela, a tela continua montada (nada do que está só na memória se perde) e `CompanyData` mostra o erro num aviso (`notify` do `ui-store`).
+
+### Demonstração sem login
+
+Sem login, não há chamadas à API: `CompanyDataProvider` em `src/app/company-data.jsx` verifica a inexistência de sessão e monta diretamente o `DemoStoreProvider` com dados fictícios (`DEMO_DATA`). O componente `CompanyData` nem chega a ser instanciado. Portanto, a opção `enabled: false` do `useApiData`, embora implementada no hook e no controlador, não é utilizada no aplicativo.
+
+### Exemplo de integração
+
+Exemplo extraído de `src/app/company-data.jsx` demonstrando a composição entre `useApiData` e `DataState` (o cálculo de `initial` com `useMemo` e a definição de `persist` foram omitidos):
+
+```jsx
+function CompanyData({ session, children }) {
+  const { signOut } = useSession();
+
+  const { data, loading, error, reload } = useApiData(
+    () => Promise.all([getProducts(), getCategories(), getUnits()])
+      .then(([products, categories, units]) => ({
+        products: products.map(productFromApi),
+        categories,
+        units,
+      })),
+    { deps: [session] },
+  );
+
+  return (
+    <DataState
+      loading={loading && !data}
+      error={data ? "" : error}
+      onRetry={reload}
+      loadingText={`Carregando os dados de ${session.nomeEmpresa}...`}
+      extraActions={
+        <Button variant="secondary" onClick={() => { signOut(); navigate("login"); }}>
+          Sair
+        </Button>
+      }
+    >
+      {data && (
+        <DemoStoreProvider initial={initial} persist={persist}>
+          {children}
+        </DemoStoreProvider>
+      )}
+    </DataState>
+  );
+}
+```
 
 ## Organização
 
@@ -47,8 +119,8 @@ src/
 ├── components/          → componentes compartilhados (ui/ e layouts/)
 ├── config/              → rotas e menu, data de referência, empresa e usuário da demonstração
 ├── features/            → auth, products, stock, recipes, production, users, reports, imports, landing (cada uma com api/ quando chama a API)
-├── hooks/               → navegação por hash (#estoque, #produto/12...)
-├── lib/                 → cliente HTTP da API e apoio às animações (com testes)
+├── hooks/               → navegação por hash (#estoque, #produto/12...) e useApiData
+├── lib/                 → cliente HTTP da API, controlador do useApiData e apoio às animações (com testes)
 ├── stores/              → sessão, estado das telas e da interface (modal e aviso)
 ├── testing/mocks/       → dados fictícios
 └── utils/               → formatação, CSV, regras de estoque e expressão do mascote (com testes)
