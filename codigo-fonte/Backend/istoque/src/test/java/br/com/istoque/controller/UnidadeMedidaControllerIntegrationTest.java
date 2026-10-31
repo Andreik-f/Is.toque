@@ -60,6 +60,7 @@ class UnidadeMedidaControllerIntegrationTest {
                 .andExpect(jsonPath("$.length()").value(3))
                 .andExpect(jsonPath("$[0].nome").value("Litro"))
                 .andExpect(jsonPath("$[0].sigla").value("L"))
+                .andExpect(jsonPath("$[0].fracionavel").value(true))
                 .andExpect(jsonPath("$[0].id").exists())
                 .andExpect(jsonPath("$[1].nome").value("Quilograma"))
                 .andExpect(jsonPath("$[2].nome").value("Unidade"));

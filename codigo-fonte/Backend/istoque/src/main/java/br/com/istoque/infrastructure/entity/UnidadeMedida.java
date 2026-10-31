@@ -21,6 +21,10 @@ public class UnidadeMedida {
     @Column(name = "nome", nullable = false, length = 40)
     private String nome;
 
+    // false para unidades que contam objetos inteiros (ex.: un); a receita só aceita fração quando é true
+    @Column(name = "fracionavel", nullable = false)
+    private Boolean fracionavel = true;
+
     public UnidadeMedida() {
     }
 
@@ -46,5 +50,13 @@ public class UnidadeMedida {
 
     public void setNome(String nome) {
         this.nome = nome;
+    }
+
+    public Boolean getFracionavel() {
+        return fracionavel;
+    }
+
+    public void setFracionavel(Boolean fracionavel) {
+        this.fracionavel = fracionavel;
     }
 }

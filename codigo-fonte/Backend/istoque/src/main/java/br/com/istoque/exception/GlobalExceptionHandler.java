@@ -98,7 +98,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponse> tratarProdutoRepetidoNaReceita(ProdutoRepetidoNaReceitaException ex) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(ApiErrorResponse.de(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
+                .body(ApiErrorResponse.deValidacao(
+                        HttpStatus.BAD_REQUEST.value(),
+                        "Dados inválidos",
+                        Map.of("itens", ex.getMessage())));
+    }
+
+    @ExceptionHandler(QuantidadeFracionadaNaoPermitidaException.class)
+    public ResponseEntity<ApiErrorResponse> tratarQuantidadeFracionadaNaoPermitida(QuantidadeFracionadaNaoPermitidaException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiErrorResponse.deValidacao(
+                        HttpStatus.BAD_REQUEST.value(),
+                        "Dados inválidos",
+                        Map.of(ex.getCampo(), ex.getMessage())));
     }
 
     @ExceptionHandler(CategoriaNaoEncontradaException.class)

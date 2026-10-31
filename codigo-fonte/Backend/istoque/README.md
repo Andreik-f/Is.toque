@@ -96,9 +96,9 @@ O `ddl-auto=validate` não confere nulabilidade, CHECKs nem índices, e o CI nã
   - Ao devolver a foto, usar o `tipo_arquivo` gravado como `Content-Type` e enviar `X-Content-Type-Options: nosniff`. O CHECK só vê o texto do tipo, não os bytes da imagem.
 - **`receita`**
   - `categoria` e `rendimento` são `varchar(60)`: validar `@Size(max = 60)` no DTO, senão o erro do banco vira o 409 genérico.
-  - O nome é único só entre as receitas ativas, e a comparação diferencia maiúsculas de minúsculas (igual à de produto). Reativar uma receita cujo nome já foi usado por outra ativa dá 409, e a tela precisa tratar.
+  - O nome é único só entre as receitas ativas, e a comparação **não** diferencia maiúsculas de minúsculas: "Bolo" e "bolo" são o mesmo nome (índice `uk_receita_empresa_nome_ativa_ci`, em `lower(nome)`). Reativar uma receita cujo nome já foi usado por outra ativa dá 409, e a tela precisa tratar.
 - **`movimentacao`:** nos motivos `ajuste` e `outro`, e em `motivo_perda = outro`, a justificativa precisa ter ao menos um caractere que não seja espaço, tab ou quebra de linha (`ck_mov_justificativa`).
-- **Novas migrações** (inclusive o `permissao` do HU007): usar **V8 ou maior**, e quem tiver uma branch com migração faz rebase depois do merge do HT035. As versões V2 a V7 são deste card.
+- **Novas migrações** (inclusive o `permissao` do HU007): usar **V10 ou maior**, e quem tiver uma branch com migração faz rebase depois do merge do HT035. As versões V2 a V7 são do HT035; V8 e V9 são da HU015 (receitas).
 
 ### Bancos
 

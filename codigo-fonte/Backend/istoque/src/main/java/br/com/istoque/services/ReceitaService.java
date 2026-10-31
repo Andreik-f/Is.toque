@@ -7,12 +7,14 @@ import br.com.istoque.dto.ReceitaResponseDTO;
 import br.com.istoque.exception.EmpresaNaoEncontradaException;
 import br.com.istoque.exception.ProdutoNaoEncontradoException;
 import br.com.istoque.exception.ProdutoRepetidoNaReceitaException;
+import br.com.istoque.exception.QuantidadeFracionadaNaoPermitidaException;
 import br.com.istoque.exception.ReceitaJaCadastradaException;
 import br.com.istoque.exception.ReceitaNaoEncontradaException;
 import br.com.istoque.infrastructure.entity.Empresa;
 import br.com.istoque.infrastructure.entity.ItemReceita;
 import br.com.istoque.infrastructure.entity.Produto;
 import br.com.istoque.infrastructure.entity.Receita;
+import br.com.istoque.infrastructure.entity.UnidadeMedida;
 import br.com.istoque.infrastructure.repository.EmpresaRepository;
 import br.com.istoque.infrastructure.repository.ProdutoRepository;
 import br.com.istoque.infrastructure.repository.ReceitaRepository;
@@ -147,6 +149,20 @@ public class ReceitaService {
                 .filter(p -> Boolean.TRUE.equals(p.getAtivo()))
                 .collect(Collectors.toMap(Produto::getId, Function.identity()));
 
+        // Valida tudo antes de mexer nos itens da receita
+        for (int i = 0; i < itensDto.size(); i++) {
+            ItemReceitaRequestDTO itemDto = itensDto.get(i);
+            Produto produto = produtos.get(itemDto.produtoId());
+            if (produto == null) {
+                throw new ProdutoNaoEncontradoException(itemDto.produtoId());
+            }
+            UnidadeMedida unidade = produto.getUnidadeMedida();
+            boolean temParteDecimal = itemDto.quantidade().stripTrailingZeros().scale() > 0;
+            if (temParteDecimal && !Boolean.TRUE.equals(unidade.getFracionavel())) {
+                throw new QuantidadeFracionadaNaoPermitidaException(i, produto.getNome(), unidade.getSigla());
+            }
+        }
+
         Map<Integer, ItemReceita> existentes = receita.getItens().stream()
                 .collect(Collectors.toMap(i -> i.getProduto().getId(), Function.identity()));
 
@@ -154,9 +170,6 @@ public class ReceitaService {
 
         for (ItemReceitaRequestDTO itemDto : itensDto) {
             Produto produto = produtos.get(itemDto.produtoId());
-            if (produto == null) {
-                throw new ProdutoNaoEncontradoException(itemDto.produtoId());
-            }
             ItemReceita item = existentes.get(itemDto.produtoId());
             if (item == null) {
                 item = new ItemReceita();

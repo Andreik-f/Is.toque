@@ -8,10 +8,12 @@ import br.com.istoque.infrastructure.entity.UnidadeMedida;
 public record UnidadeMedidaResponseDTO(
         Integer id,
         String sigla,
-        String nome
+        String nome,
+        Boolean fracionavel
 ) {
 
     public static UnidadeMedidaResponseDTO fromEntity(UnidadeMedida unidade) {
-        return new UnidadeMedidaResponseDTO(unidade.getId(), unidade.getSigla(), unidade.getNome());
+        return new UnidadeMedidaResponseDTO(unidade.getId(), unidade.getSigla(), unidade.getNome(),
+                unidade.getFracionavel());
     }
 }

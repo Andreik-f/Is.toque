@@ -23,7 +23,9 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.hamcrest.Matchers.contains;
@@ -73,6 +75,8 @@ class ReceitaControllerIntegrationTest {
     private Empresa empresaA;
     private Empresa empresaB;
     private UnidadeMedida unidade;
+    private UnidadeMedida unidadeInteira;
+    private Produto ovo;
     private Produto farinha;
     private Produto acucar;
     private Produto produtoInativo;
@@ -88,6 +92,13 @@ class ReceitaControllerIntegrationTest {
         unidade.setNome("Quilograma de receita");
         unidade = unidadeMedidaRepository.save(unidade);
 
+        unidadeInteira = new UnidadeMedida();
+        unidadeInteira.setSigla("unR");
+        unidadeInteira.setNome("Unidade de receita");
+        unidadeInteira.setFracionavel(false);
+        unidadeInteira = unidadeMedidaRepository.save(unidadeInteira);
+
+        ovo = criarProduto("Ovo", true, empresaA, unidadeInteira);
         farinha = criarProduto("Farinha", true, empresaA);
         acucar = criarProduto("Açúcar", true, empresaA);
         produtoInativo = criarProduto("Fermento", false, empresaA);
@@ -109,13 +120,15 @@ class ReceitaControllerIntegrationTest {
     @Test
     void cadastrar_semItens_devolve400() throws Exception {
         cadastrar(empresaA, corpo("Bolo", "[]"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.itens").exists());
     }
 
     @Test
     void cadastrar_comQuantidadeZero_devolve400() throws Exception {
         cadastrar(empresaA, corpo("Bolo", itens(farinha, "0")))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos['itens[0].quantidade']").exists());
     }
 
     @Test
@@ -129,7 +142,8 @@ class ReceitaControllerIntegrationTest {
     @Test
     void cadastrar_comProdutoRepetido_devolve400() throws Exception {
         cadastrar(empresaA, corpo("Pão", itens(farinha, "1", farinha, "2")))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.itens").exists());
     }
 
     @Test
@@ -266,7 +280,248 @@ class ReceitaControllerIntegrationTest {
         assertEquals(0, new BigDecimal("10").compareTo(saldo));
     }
 
+    // --- produto inexistente e validações no PUT ---
+
+    @Test
+    void cadastrar_comProdutoInexistente_devolve404() throws Exception {
+        String itens = "[{\"produtoId\": 999999, \"quantidade\": 1}]";
+
+        cadastrar(empresaA, corpo("Bolo", itens))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void atualizar_semItens_devolve400() throws Exception {
+        Integer id = idCriada(empresaA, corpo("Bolo", itens(farinha, "1")));
+        limparCache();
+
+        atualizar(empresaA, id, corpo("Bolo", "[]"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.itens").exists());
+    }
+
+    @Test
+    void atualizar_comQuantidadeZero_devolve400() throws Exception {
+        Integer id = idCriada(empresaA, corpo("Bolo", itens(farinha, "1")));
+        limparCache();
+
+        atualizar(empresaA, id, corpo("Bolo", itens(farinha, "0")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos['itens[0].quantidade']").exists());
+    }
+
+    @Test
+    void atualizar_comProdutoRepetido_devolve400() throws Exception {
+        Integer id = idCriada(empresaA, corpo("Bolo", itens(farinha, "1")));
+        limparCache();
+
+        atualizar(empresaA, id, corpo("Bolo", itens(farinha, "1", farinha, "2")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.itens").exists());
+    }
+
+    @Test
+    void atualizar_comProdutoDeOutraEmpresa_devolve404() throws Exception {
+        Integer id = idCriada(empresaA, corpo("Bolo", itens(farinha, "1")));
+        limparCache();
+
+        atualizar(empresaA, id, corpo("Bolo", itens(produtoEmpresaB, "1")))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void atualizar_comProdutoInativo_devolve404() throws Exception {
+        Integer id = idCriada(empresaA, corpo("Bolo", itens(farinha, "1")));
+        limparCache();
+
+        atualizar(empresaA, id, corpo("Bolo", itens(produtoInativo, "1")))
+                .andExpect(status().isNotFound());
+    }
+
+    // --- unidade de medida e casas decimais ---
+
+    @Test
+    void cadastrar_comFracaoEmUnidadeInteira_devolve400ComOCampo() throws Exception {
+        cadastrar(empresaA, corpo("Omelete", itens(ovo, "2.5")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos['itens[0].quantidade']").exists());
+    }
+
+    @Test
+    void cadastrar_comFracaoEmUnidadeInteiraNaSegundaPosicao_apontaOIndiceCerto() throws Exception {
+        cadastrar(empresaA, corpo("Omelete", itens(farinha, "1", ovo, "1.5")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos['itens[1].quantidade']").exists());
+    }
+
+    @Test
+    void cadastrar_comQuantidadeInteiraEmUnidadeInteira_devolve201() throws Exception {
+        cadastrar(empresaA, corpo("Omelete", itens(ovo, "3")))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void cadastrar_comZerosAposAVirgulaEmUnidadeInteira_devolve201() throws Exception {
+        cadastrar(empresaA, corpo("Omelete", itens(ovo, "3.000")))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void cadastrar_comFracaoEmUnidadeFracionavel_devolve201() throws Exception {
+        cadastrar(empresaA, corpo("Bolo", itens(farinha, "0.125")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.itens[0].quantidade").value(0.125));
+    }
+
+    @Test
+    void atualizar_comFracaoEmUnidadeInteira_devolve400ComOCampo() throws Exception {
+        Integer id = idCriada(empresaA, corpo("Omelete", itens(ovo, "2")));
+        limparCache();
+
+        atualizar(empresaA, id, corpo("Omelete", itens(ovo, "2.5")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos['itens[0].quantidade']").exists());
+    }
+
+    @Test
+    void atualizar_comFracaoEmUnidadeFracionavel_devolve200() throws Exception {
+        Integer id = idCriada(empresaA, corpo("Bolo", itens(farinha, "1")));
+        limparCache();
+
+        atualizar(empresaA, id, corpo("Bolo", itens(farinha, "1.5")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.itens[0].quantidade").value(1.5));
+    }
+
+    @Test
+    void cadastrar_comMaisDeTresCasasDecimais_devolve400ComOCampo() throws Exception {
+        cadastrar(empresaA, corpo("Bolo", itens(farinha, "1.2345")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos['itens[0].quantidade']").exists());
+    }
+
+    @Test
+    void atualizar_comMaisDeTresCasasDecimais_devolve400ComOCampo() throws Exception {
+        Integer id = idCriada(empresaA, corpo("Bolo", itens(farinha, "1")));
+        limparCache();
+
+        atualizar(empresaA, id, corpo("Bolo", itens(farinha, "1.2345")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos['itens[0].quantidade']").exists());
+    }
+
+    // --- edição dos itens, um caso por vez ---
+
+    @Test
+    void atualizar_soRemovendoUmItem_mantemOsOutros() throws Exception {
+        Integer id = idCriada(empresaA, corpo("Bolo", itens(farinha, "1", acucar, "2")));
+        limparCache();
+
+        atualizar(empresaA, id, corpo("Bolo", itens(farinha, "1")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.itens", hasSize(1)))
+                .andExpect(jsonPath("$.itens[0].produtoNome").value("Farinha"));
+
+        limparCache();
+        mockMvc.perform(get("/api/receitas/{id}", id).with(logadoEm(empresaA)))
+                .andExpect(jsonPath("$.itens", hasSize(1)))
+                .andExpect(jsonPath("$.itens[0].produtoNome").value("Farinha"));
+    }
+
+    @Test
+    void atualizar_soAlterandoQuantidade_mantemOsMesmosItens() throws Exception {
+        Integer id = idCriada(empresaA, corpo("Bolo", itens(farinha, "1", acucar, "2")));
+        limparCache();
+
+        atualizar(empresaA, id, corpo("Bolo", itens(farinha, "4", acucar, "2")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.itens", hasSize(2)));
+
+        limparCache();
+        mockMvc.perform(get("/api/receitas/{id}", id).with(logadoEm(empresaA)))
+                .andExpect(jsonPath("$.itens", hasSize(2)))
+                .andExpect(jsonPath("$.itens[?(@.produtoNome == 'Farinha')].quantidade").value(contains(4.0)))
+                .andExpect(jsonPath("$.itens[?(@.produtoNome == 'Açúcar')].quantidade").value(contains(2.0)));
+    }
+
+    @Test
+    void atualizar_soIncluindoUmItem_mantemOsExistentes() throws Exception {
+        Integer id = idCriada(empresaA, corpo("Bolo", itens(farinha, "1")));
+        limparCache();
+
+        atualizar(empresaA, id, corpo("Bolo", itens(farinha, "1", acucar, "2")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.itens", hasSize(2)));
+
+        limparCache();
+        mockMvc.perform(get("/api/receitas/{id}", id).with(logadoEm(empresaA)))
+                .andExpect(jsonPath("$.itens", hasSize(2)));
+    }
+
+    @Test
+    void atualizar_removendoTodosOsItens_devolve400ESemPerderOsItens() throws Exception {
+        Integer id = idCriada(empresaA, corpo("Bolo", itens(farinha, "1", acucar, "2")));
+        limparCache();
+
+        atualizar(empresaA, id, corpo("Bolo", "[]"))
+                .andExpect(status().isBadRequest());
+
+        limparCache();
+        mockMvc.perform(get("/api/receitas/{id}", id).with(logadoEm(empresaA)))
+                .andExpect(jsonPath("$.itens", hasSize(2)));
+    }
+
+    // --- receita desativada ---
+
+    @Test
+    void buscarPorId_deReceitaDesativada_devolve200ComAtivoFalso() throws Exception {
+        Integer id = idCriada(empresaA, corpo("Bolo", itens(farinha, "1")));
+        mockMvc.perform(patch("/api/receitas/{id}/desativar", id).with(logadoEm(empresaA)))
+                .andExpect(status().isNoContent());
+        limparCache();
+
+        mockMvc.perform(get("/api/receitas/{id}", id).with(logadoEm(empresaA)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ativo").value(false))
+                .andExpect(jsonPath("$.itens", hasSize(1)));
+    }
+
+    // --- saldo na edição ---
+
+    /**
+     * Compara o saldo de todos os produtos antes e depois de cadastrar e de editar.
+     * Lote e movimentação ainda não têm entidade nem tabela no banco dos testes (H2 sem
+     * migrações), então o que dá para conferir aqui é a quantidade atual do produto.
+     */
+    @Test
+    void cadastrarEEditar_naoAlteramOSaldoDeNenhumProduto() throws Exception {
+        farinha.setQuantidadeAtual(new BigDecimal("10.000"));
+        acucar.setQuantidadeAtual(new BigDecimal("4.500"));
+        ovo.setQuantidadeAtual(new BigDecimal("12.000"));
+        produtoEmpresaB.setQuantidadeAtual(new BigDecimal("7.000"));
+        produtoRepository.saveAll(List.of(farinha, acucar, ovo, produtoEmpresaB));
+        limparCache();
+        Map<Integer, BigDecimal> antes = saldos();
+
+        Integer id = idCriada(empresaA, corpo("Omelete", itens(farinha, "3", ovo, "2")));
+        limparCache();
+        assertEquals(antes, saldos(), "saldo mudou depois do cadastro");
+
+        atualizar(empresaA, id, corpo("Omelete", itens(acucar, "1.5", ovo, "6")))
+                .andExpect(status().isOk());
+        limparCache();
+        assertEquals(antes, saldos(), "saldo mudou depois da edição");
+    }
+
     // --- apoio ---
+
+    private Map<Integer, BigDecimal> saldos() {
+        Map<Integer, BigDecimal> saldos = new HashMap<>();
+        for (Produto p : produtoRepository.findAll()) {
+            saldos.put(p.getId(), p.getQuantidadeAtual().setScale(3));
+        }
+        return saldos;
+    }
 
     /** Faz as chamadas valerem como um usuário logado na empresa informada. */
     private RequestPostProcessor logadoEm(Empresa empresa) {
@@ -333,11 +588,15 @@ class ReceitaControllerIntegrationTest {
     }
 
     private Produto criarProduto(String nome, boolean ativo, Empresa empresa) {
+        return criarProduto(nome, ativo, empresa, unidade);
+    }
+
+    private Produto criarProduto(String nome, boolean ativo, Empresa empresa, UnidadeMedida unidadeDoProduto) {
         Produto p = new Produto();
         p.setNome(nome);
         p.setCodigo("RCT" + SEQUENCIA.incrementAndGet());
         p.setTipo(TipoProduto.insumo);
-        p.setUnidadeMedida(unidade);
+        p.setUnidadeMedida(unidadeDoProduto);
         p.setAtivo(ativo);
         p.setEmpresa(empresa);
         return produtoRepository.save(p);
