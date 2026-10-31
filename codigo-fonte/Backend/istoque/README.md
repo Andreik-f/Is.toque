@@ -39,6 +39,11 @@ O login e o cadastro devolvem um `token` e o `expiraEm` (validade definida em `j
 | POST | `/api/produtos` | Cadastra um produto | Sim |
 | PUT | `/api/produtos/{id}` | Atualiza um produto (a quantidade atual enviada é ignorada) | Sim |
 | PATCH | `/api/produtos/{id}/desativar` | Desativa o produto (exclusão lógica) | Sim |
+| GET | `/api/receitas` | Lista as receitas da empresa do usuário logado | Sim |
+| GET | `/api/receitas/{id}` | Busca uma receita com seus itens | Sim |
+| POST | `/api/receitas` | Cadastra uma receita (ficha técnica): `404` se um produto não existe, está inativo ou é de outra empresa, `400` se repetir produto, `409` se já houver receita ativa com o nome | Sim |
+| PUT | `/api/receitas/{id}` | Atualiza os dados e a lista de itens (receita desativada responde `404`) | Sim |
+| PATCH | `/api/receitas/{id}/desativar` | Desativa a receita (exclusão lógica), responde `204` | Sim |
 | GET | `/actuator/health` | Situação da API e da conexão com o banco | Não |
 
 ### Permissões e bloqueios
@@ -51,7 +56,7 @@ Três operações respondem `409`:
 - inativar o último administrador ativo;
 - tirar o perfil de Administrador do último administrador ativo.
 
-Os erros seguem o formato `{ timestamp, status, message, campos }`. Os corpos de requisição e resposta, as regras de validação, as mensagens de erro e os exemplos de cada rota estão na [Wiki do projeto](https://github.com/ICEI-PUC-Minas-PBR-ADS/pbr-ads-2026-2-p1-tidai-t1-8246101-pbr-ads-2026-2-p1-tidai-t-davidwsr1/wiki). A API publicada está em https://is-toque-prod.onrender.com. Ainda não existem rotas para movimentações, receitas, produção e fotos: as tabelas de estoque e receitas já existem no banco, mas sem endpoints.
+Os erros seguem o formato `{ timestamp, status, message, campos }`. Os corpos de requisição e resposta, as regras de validação, as mensagens de erro e os exemplos de cada rota estão na [Wiki do projeto](https://github.com/ICEI-PUC-Minas-PBR-ADS/pbr-ads-2026-2-p1-tidai-t1-8246101-pbr-ads-2026-2-p1-tidai-t-davidwsr1/wiki). A API publicada está em https://is-toque-prod.onrender.com. As rotas de receitas usam a empresa do usuário logado e não recebem `empresaId`. Ainda não existem rotas para movimentações, produção e fotos: as tabelas de estoque e receitas já existem no banco, mas sem endpoints.
 
 ## Banco de dados e migrações (Flyway)
 

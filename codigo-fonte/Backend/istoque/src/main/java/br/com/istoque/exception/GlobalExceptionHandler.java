@@ -80,6 +80,27 @@ public class GlobalExceptionHandler {
                 .body(ApiErrorResponse.de(HttpStatus.NOT_FOUND.value(), ex.getMessage()));
     }
 
+    @ExceptionHandler(ReceitaNaoEncontradaException.class)
+    public ResponseEntity<ApiErrorResponse> tratarReceitaNaoEncontrada(ReceitaNaoEncontradaException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiErrorResponse.de(HttpStatus.NOT_FOUND.value(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(ReceitaJaCadastradaException.class)
+    public ResponseEntity<ApiErrorResponse> tratarReceitaJaCadastrada(ReceitaJaCadastradaException ex) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ApiErrorResponse.de(HttpStatus.CONFLICT.value(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(ProdutoRepetidoNaReceitaException.class)
+    public ResponseEntity<ApiErrorResponse> tratarProdutoRepetidoNaReceita(ProdutoRepetidoNaReceitaException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiErrorResponse.de(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
+    }
+
     @ExceptionHandler(CategoriaNaoEncontradaException.class)
     public ResponseEntity<ApiErrorResponse> tratarCategoriaNaoEncontrada(CategoriaNaoEncontradaException ex) {
         return ResponseEntity
