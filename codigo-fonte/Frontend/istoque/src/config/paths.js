@@ -25,6 +25,13 @@ export function showsLanding(hash, signedIn) {
   return route === LANDING_ROUTE || (!route && !signedIn);
 }
 
+// Rota interna do layout quando o endereço não corresponde a nenhuma tela.
+export const NOT_FOUND_ROUTE = "nao-encontrada";
+
+// O app só vive na raiz: qualquer outro caminho (ex.: /abc) não é uma tela.
+export const isUnknownPath = (pathname) =>
+  pathname !== "/" && pathname !== "/index.html";
+
 // Telas que ainda não têm rota na API: com login, o que se registra nelas
 // fica só na página até recarregar.
 export const LOCAL_ONLY_ROUTES = [
@@ -66,6 +73,7 @@ const EXTRA_TITLES = {
   produto: "Detalhes do produto",
   importacao: "Importar nota",
   fluxos: "Mapa de fluxos",
+  [NOT_FOUND_ROUTE]: "Página não encontrada",
 };
 
 const SUBTITLES = {

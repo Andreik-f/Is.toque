@@ -1,11 +1,10 @@
 import React, { Suspense, lazy } from "react";
 import { AppLayout } from "@/components/layouts/app-layout.jsx";
-import { PageHeading } from "@/components/ui/page-heading.jsx";
 import { Toast } from "@/components/ui/toast.jsx";
 import {
   AUTH_ROUTES,
-  routeSubtitle,
-  routeTitle,
+  NOT_FOUND_ROUTE,
+  isUnknownPath,
   showsLanding,
 } from "@/config/paths.js";
 import { useHashRoute } from "@/hooks/use-hash-route.js";
@@ -19,6 +18,7 @@ import { EstoqueRoute } from "./routes/estoque.jsx";
 import { FluxosRoute } from "./routes/fluxos.jsx";
 import { ImportacaoRoute } from "./routes/importacao.jsx";
 import { MovimentacoesRoute } from "./routes/movimentacoes.jsx";
+import { NotFoundRoute } from "./routes/not-found.jsx";
 import { ProdutoRoute } from "./routes/produto.jsx";
 import { ReceitaRoute } from "./routes/receita.jsx";
 import { ReceitasRoute } from "./routes/receitas.jsx";
@@ -52,17 +52,19 @@ export function AppRouter() {
   const { session } = useSession();
   // o hash cru distingue a URL sem hash de #dashboard; useHashRoute já
   // redesenha a cada troca, então location.hash está em dia aqui
-  if (showsLanding(location.hash, Boolean(session)))
+  const unknownPath = isUnknownPath(location.pathname);
+  if (!unknownPath && showsLanding(location.hash, Boolean(session)))
     return (
       <Suspense fallback={null}>
         <LandingRoute />
       </Suspense>
     );
-  if (AUTH_ROUTES.includes(route)) return <AuthRoute route={route} />;
-  const Page = pages[route];
+  if (!unknownPath && AUTH_ROUTES.includes(route))
+    return <AuthRoute route={route} />;
+  const Page = unknownPath ? undefined : pages[route];
   return (
     <AppLayout
-      route={route}
+      route={Page ? route : NOT_FOUND_ROUTE}
       overlays={
         <>
           <Toast message={toast} onClose={dismissToast} />
@@ -73,14 +75,7 @@ export function AppRouter() {
       {/* a key por rota refaz a entrada a cada troca de tela; fica aqui e não
           no <main>, que é do layout e não muda */}
       <div className="route-enter" key={route}>
-        {Page ? (
-          <Page id={id} />
-        ) : (
-          <PageHeading
-            title={routeTitle(route)}
-            subtitle={routeSubtitle(route)}
-          />
-        )}
+        {Page ? <Page id={id} /> : <NotFoundRoute address={unknownPath ? location.pathname : "#" + route} />}
       </div>
     </AppLayout>
   );

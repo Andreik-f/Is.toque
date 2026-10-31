@@ -22,6 +22,7 @@
 @import "./features/users.css";
 @import "./features/imports.css";
 @import "./features/flows.css";
+@import "./features/not-found.css";
 @import "./components/modal.css";
 @import "./components/field.css";
 @import "./features/production.css";

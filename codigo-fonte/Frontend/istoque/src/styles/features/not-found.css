@@ -1,0 +1,160 @@
+.not-found {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--soft);
+  padding: 30px 36px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  position: relative;
+  min-height: 340px;
+}
+.not-found-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 460px;
+}
+.not-found .eyebrow {
+  font-size: var(--font-9);
+  color: var(--hero-text);
+}
+.not-found h1 {
+  font-size: var(--font-28);
+  color: var(--teal);
+  line-height: 1.35;
+  margin: 10px 0;
+}
+.not-found p {
+  color: var(--hero-text);
+  font-size: var(--font-12);
+  line-height: 1.7;
+  margin-bottom: 22px;
+}
+.not-found code {
+  display: inline-block;
+  max-width: 100%;
+  padding: 1px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--teal);
+  font-family: inherit;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.not-found-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.not-found-actions .button {
+  font-size: var(--font-12);
+  min-height: 41px;
+}
+.not-found-art {
+  width: 420px;
+  height: 280px;
+  position: relative;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+}
+.not-found-circle {
+  width: 255px;
+  height: 255px;
+  border-radius: 50%;
+  background: var(--hero-circle);
+  position: absolute;
+}
+.not-found-code {
+  position: absolute;
+  top: 14px;
+  font-family: Poppins, Arial, sans-serif;
+  font-size: 110px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 4px;
+  color: var(--teal);
+  opacity: 0.14;
+  user-select: none;
+}
+.not-found-art .mascot {
+  position: relative;
+  width: 190px;
+  height: 190px;
+  margin-top: 36px;
+}
+.not-found-art .floating-label {
+  top: auto;
+  bottom: 14px;
+  right: 40px;
+}
+@media (max-width: 1200px) {
+  .not-found-art {
+    width: 310px;
+  }
+  .not-found-art .floating-label {
+    right: 10px;
+  }
+}
+@media (max-width: 950px) {
+  .not-found {
+    padding: 26px;
+    min-height: 300px;
+  }
+  .not-found h1 {
+    font-size: var(--font-25);
+  }
+  .not-found-art {
+    width: 250px;
+    height: 240px;
+  }
+  .not-found-circle {
+    width: 200px;
+    height: 200px;
+  }
+  .not-found-code {
+    font-size: 84px;
+  }
+  .not-found-art .mascot {
+    width: 150px;
+    height: 150px;
+  }
+  .not-found-art .floating-label {
+    right: 0;
+    font-size: var(--font-9);
+  }
+}
+@media (max-width: 700px) {
+  .not-found {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 25px 22px;
+    border-radius: 15px;
+  }
+  .not-found h1 {
+    font-size: var(--font-23);
+    line-height: 1.4;
+  }
+  .not-found .eyebrow {
+    font-size: var(--font-7);
+    letter-spacing: 1.2px;
+  }
+  .not-found p {
+    font-size: var(--font-10);
+    line-height: 1.8;
+  }
+  .not-found-actions .button {
+    flex: 1 1 100%;
+    font-size: var(--font-10);
+    min-height: 44px;
+  }
+  .not-found-art {
+    width: 100%;
+    height: 220px;
+    margin-top: 22px;
+  }
+  .not-found-art .floating-label {
+    right: auto;
+  }
+}
