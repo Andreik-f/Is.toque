@@ -44,7 +44,7 @@ public class CadastroService {
                 .findByNomeAndEmpresaId(PerfilService.ADMINISTRADOR, empresa.id())
                 .orElseThrow();
 
-        UsuarioResponseDTO usuario = usuarioService.criar(
+        UsuarioResponseDTO usuario = usuarioService.criarAdministradorDoCadastro(
                 new UsuarioCreateDTO(dto.nome(), dto.email(), dto.senha(), administrador.getId()), empresa.id());
 
         JwtService.TokenGerado token = jwtService.gerarToken(

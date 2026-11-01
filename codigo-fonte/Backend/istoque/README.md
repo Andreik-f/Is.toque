@@ -23,38 +23,48 @@ O login e o cadastro devolvem um `token` e o `expiraEm` (validade definida em `j
 | POST | `/api/auth/login` | Entra com e-mail e senha; devolve os dados do usuário e da empresa | Não |
 | POST | `/api/auth/cadastro` | Cria a empresa, os perfis padrão e o administrador | Não |
 | GET | `/api/empresas/minha` | Busca a empresa do usuário logado | Sim |
-| PUT | `/api/empresas/minha` | Atualiza a empresa do usuário logado (só Administrador) | Sim |
-| GET | `/api/usuarios` | Lista os usuários da empresa | Sim |
-| POST | `/api/usuarios` | Cadastra um usuário na empresa (só Administrador) | Sim |
-| PUT | `/api/usuarios/{id}` | Atualiza nome, e-mail e perfil do usuário (só Administrador) | Sim |
-| PATCH | `/api/usuarios/{id}/senha` | Altera a senha do usuário (`novaSenha`) (só Administrador) | Sim |
-| DELETE | `/api/usuarios/{id}` | Desativa o usuário (exclusão lógica) (só Administrador) | Sim |
-| GET | `/api/perfis` | Lista os perfis da empresa | Sim |
+| PUT | `/api/empresas/minha` | Atualiza a empresa do usuário logado (exige `empresa.configurar`) | Sim |
+| GET | `/api/usuarios` | Lista os usuários da empresa (exige `usuarios.gerenciar`) | Sim |
+| POST | `/api/usuarios` | Cadastra um usuário na empresa (exige `usuarios.gerenciar`) | Sim |
+| PUT | `/api/usuarios/{id}` | Atualiza nome, e-mail e perfil do usuário (exige `usuarios.gerenciar`) | Sim |
+| PATCH | `/api/usuarios/{id}/senha` | Altera a senha do usuário (`novaSenha`) (exige `usuarios.gerenciar`) | Sim |
+| DELETE | `/api/usuarios/{id}` | Desativa o usuário (exclusão lógica) (exige `usuarios.gerenciar`) | Sim |
+| GET | `/api/permissoes` | Lista os nove códigos de permissão, com descrição e módulo | Sim |
+| GET | `/api/perfis` | Lista os perfis da empresa, com as permissões de cada um | Sim |
+| POST | `/api/perfis` | Cria um perfil com nome, descrição e permissões (exige `perfis.gerenciar`) | Sim |
+| PUT | `/api/perfis/{id}` | Altera nome, descrição e permissões do perfil (exige `perfis.gerenciar`) | Sim |
+| DELETE | `/api/perfis/{id}` | Exclui um perfil sem usuários (exige `perfis.gerenciar`) | Sim |
 | GET | `/api/categorias` | Lista as categorias da empresa | Sim |
-| POST | `/api/categorias` | Cadastra uma categoria | Sim |
+| POST | `/api/categorias` | Cadastra uma categoria (exige `produtos.gerenciar`) | Sim |
 | GET | `/api/unidades-medida` | Lista as unidades de medida | Sim |
 | GET | `/api/produtos` | Lista os produtos da empresa | Sim |
 | GET | `/api/produtos/ativos` | Lista só os produtos ativos | Sim |
 | GET | `/api/produtos/{id}` | Busca um produto | Sim |
-| POST | `/api/produtos` | Cadastra um produto | Sim |
-| PUT | `/api/produtos/{id}` | Atualiza um produto (a quantidade atual enviada é ignorada) | Sim |
-| PATCH | `/api/produtos/{id}/desativar` | Desativa o produto (exclusão lógica) | Sim |
+| POST | `/api/produtos` | Cadastra um produto (exige `produtos.gerenciar`) | Sim |
+| PUT | `/api/produtos/{id}` | Atualiza um produto (a quantidade atual enviada é ignorada; exige `produtos.gerenciar`) | Sim |
+| PATCH | `/api/produtos/{id}/desativar` | Desativa o produto (exclusão lógica; exige `produtos.gerenciar`) | Sim |
 | GET | `/api/receitas` | Lista as receitas da empresa do usuário logado | Sim |
 | GET | `/api/receitas/{id}` | Busca uma receita com seus itens | Sim |
-| POST | `/api/receitas` | Cadastra uma receita (ficha técnica): `404` se um produto não existe, está inativo ou é de outra empresa, `400` se repetir produto, `409` se já houver receita ativa com o nome | Sim |
-| PUT | `/api/receitas/{id}` | Atualiza os dados e a lista de itens (receita desativada responde `404`) | Sim |
-| PATCH | `/api/receitas/{id}/desativar` | Desativa a receita (exclusão lógica), responde `204` | Sim |
+| POST | `/api/receitas` | Cadastra uma receita (ficha técnica): `404` se um produto não existe, está inativo ou é de outra empresa, `400` se repetir produto, `409` se já houver receita ativa com o nome; exige `receitas.gerenciar` | Sim |
+| PUT | `/api/receitas/{id}` | Atualiza os dados e a lista de itens (receita desativada responde `404`; exige `receitas.gerenciar`) | Sim |
+| PATCH | `/api/receitas/{id}/desativar` | Desativa a receita (exclusão lógica), responde `204`; exige `receitas.gerenciar` | Sim |
 | GET | `/actuator/health` | Situação da API e da conexão com o banco | Não |
 
 ### Permissões e bloqueios
 
-Regra provisória até o HU007: só o Administrador pode usar POST, PUT /{id}, DELETE /{id} e PATCH /{id}/senha de /api/usuarios e PUT /api/empresas/minha; os outros perfis recebem 403. As consultas (usuários, produtos, categorias, perfis e GET /api/empresas/minha) continuam abertas a qualquer usuário logado.
+Cada rota exige uma permissão do perfil do usuário, definida num lugar só, o `SecurityConfig` (a tabela completa e a matriz padrão dos três perfis estão em [Perfis](https://github.com/ICEI-PUC-Minas-PBR-ADS/pbr-ads-2026-2-p1-tidai-t1-8246101-pbr-ads-2026-2-p1-tidai-t-davidwsr1/wiki/Perfis)). Qualquer consulta (`GET`) vale para qualquer usuário logado, exceto `/api/usuarios`, que exige `usuarios.gerenciar`. As permissões são: `usuarios.gerenciar`, `perfis.gerenciar`, `empresa.configurar`, `produtos.gerenciar`, `estoque.movimentar`, `estoque.ajustar`, `receitas.gerenciar`, `producao.registrar` e `relatorios.ver`. Sem a permissão, a resposta é `403` com `Seu perfil não permite esta ação.`; o login devolve a lista de permissões do usuário.
 
-Três operações respondem `409`:
+Ninguém concede nem altera o que não tem: quem cria ou edita um perfil só inclui permissões que tem, e não altera nem exclui um perfil com permissões que não tem. Quem gerencia usuários só atribui um perfil cujas permissões tem todas, e só altera, troca a senha ou inativa quem hoje tem um perfil assim. Descumprir a regra responde `403`.
+
+Estas operações respondem `409`:
 
 - inativar o próprio usuário;
 - inativar o último administrador ativo;
-- tirar o perfil de Administrador do último administrador ativo.
+- tirar o perfil de Administrador do último administrador ativo;
+- criar ou renomear um perfil para um nome que já existe na empresa (sem diferenciar maiúsculas);
+- excluir um perfil que tem usuários, ativos ou inativos.
+
+O perfil Administrador não pode ser renomeado nem perder `usuarios.gerenciar` ou `perfis.gerenciar`: a resposta é `422`.
 
 Os erros seguem o formato `{ timestamp, status, message, campos }`. Os corpos de requisição e resposta, as regras de validação, as mensagens de erro e os exemplos de cada rota estão na [Wiki do projeto](https://github.com/ICEI-PUC-Minas-PBR-ADS/pbr-ads-2026-2-p1-tidai-t1-8246101-pbr-ads-2026-2-p1-tidai-t-davidwsr1/wiki). A API publicada está em https://is-toque-prod.onrender.com. As rotas de receitas usam a empresa do usuário logado e não recebem `empresaId`. Ainda não existem rotas para movimentações, produção e fotos: as tabelas de estoque e receitas já existem no banco, mas sem endpoints.
 

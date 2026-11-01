@@ -7,7 +7,9 @@ import br.com.istoque.infrastructure.entity.Perfil;
 import br.com.istoque.infrastructure.entity.Usuario;
 import br.com.istoque.infrastructure.repository.EmpresaRepository;
 import br.com.istoque.infrastructure.repository.PerfilRepository;
+import br.com.istoque.infrastructure.repository.PermissaoRepository;
 import br.com.istoque.infrastructure.repository.UsuarioRepository;
+import br.com.istoque.security.Permissoes;
 import br.com.istoque.security.RestAccessDeniedHandler;
 import br.com.istoque.security.RestAuthenticationEntryPoint;
 import br.com.istoque.security.UsuarioAutenticado;
@@ -28,7 +30,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -80,6 +84,9 @@ class UsuarioControllerIntegrationTest {
     private PerfilRepository perfilRepository;
 
     @Autowired
+    private PermissaoRepository permissaoRepository;
+
+    @Autowired
     private UsuarioRepository usuarioRepository;
 
     @Autowired
@@ -92,6 +99,13 @@ class UsuarioControllerIntegrationTest {
     private Empresa empresaB;
     private Perfil perfilAdminEmpresaA;
     private Perfil perfilAdminEmpresaB;
+
+    private Perfil salvarPerfil(String nome, String descricao, Empresa empresa) {
+        Perfil perfil = new Perfil(nome, descricao, empresa);
+        perfil.setPermissoes(new HashSet<>(permissaoRepository.findAllById(
+                Permissoes.MATRIZ_PADRAO.getOrDefault(nome, Set.of()))));
+        return perfilRepository.save(perfil);
+    }
 
     /**
      * Antes de cada teste, limpa o banco e cria duas empresas (A e B), cada uma
@@ -115,8 +129,8 @@ class UsuarioControllerIntegrationTest {
         empresaB.setCnpj("22222222000102");
         empresaB = empresaRepository.save(empresaB);
 
-        perfilAdminEmpresaA = perfilRepository.save(new Perfil("Administrador", "Acesso total", empresaA));
-        perfilAdminEmpresaB = perfilRepository.save(new Perfil("Administrador", "Acesso total", empresaB));
+        perfilAdminEmpresaA = salvarPerfil("Administrador", "Acesso total", empresaA);
+        perfilAdminEmpresaB = salvarPerfil("Administrador", "Acesso total", empresaB);
     }
 
     /**
@@ -305,7 +319,7 @@ class UsuarioControllerIntegrationTest {
 
     @Test
     void inativarUsuario_daPropriaEmpresa_devolve204EDesativa() throws Exception {
-        Perfil perfilFuncionario = perfilRepository.save(new Perfil("Funcionário", "Movimentações", empresaA));
+        Perfil perfilFuncionario = salvarPerfil("Funcionário", "Movimentações", empresaA);
         Usuario usuario = criarUsuarioPersistido("Funcionario A", "func@empresaa.com", "SenhaValida123",
                 perfilFuncionario, empresaA);
 
@@ -400,12 +414,12 @@ class UsuarioControllerIntegrationTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"Gerente", "Funcionário"})
-    void listarUsuarios_semSerAdministrador_devolve200(String perfil) throws Exception {
+    void listarUsuarios_semUsuariosGerenciar_devolve403(String perfil) throws Exception {
         criarUsuarioPersistido("Admin A", "admin@empresaa.com", "SenhaValida123", perfilAdminEmpresaA, empresaA);
 
         mockMvc.perform(get("/api/usuarios").with(UsuarioDeTeste.autenticadoComo(empresaA.getId(), perfil)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1));
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value(RestAccessDeniedHandler.MENSAGEM));
     }
 
     @Test
@@ -443,7 +457,7 @@ class UsuarioControllerIntegrationTest {
 
     @Test
     void atualizarUsuario_trocandoPerfilDoUltimoAdministradorAtivo_devolve409ENaoAltera() throws Exception {
-        Perfil perfilGerente = perfilRepository.save(new Perfil("Gerente", "Gerencia estoque", empresaA));
+        Perfil perfilGerente = salvarPerfil("Gerente", "Gerencia estoque", empresaA);
         Usuario admin = criarUsuarioPersistido("Admin A", "admin@empresaa.com", "SenhaValida123",
                 perfilAdminEmpresaA, empresaA);
 
@@ -478,7 +492,7 @@ class UsuarioControllerIntegrationTest {
 
     @Test
     void comDoisAdministradores_trocarOPerfilDeUm_devolve200() throws Exception {
-        Perfil perfilGerente = perfilRepository.save(new Perfil("Gerente", "Gerencia estoque", empresaA));
+        Perfil perfilGerente = salvarPerfil("Gerente", "Gerencia estoque", empresaA);
         Usuario admin1 = criarUsuarioPersistido("Admin A1", "admin1@empresaa.com", "SenhaValida123",
                 perfilAdminEmpresaA, empresaA);
         Usuario admin2 = criarUsuarioPersistido("Admin A2", "admin2@empresaa.com", "SenhaValida123",
@@ -687,7 +701,7 @@ class UsuarioControllerIntegrationTest {
     /** HU020: a rota vale para qualquer usuário logado, não só para o administrador. */
     @Test
     void trocarMinhaSenha_comPerfilQueNaoEAdministrador_devolve204() throws Exception {
-        Perfil perfilOperador = perfilRepository.save(new Perfil("Operador", "Acesso básico", empresaA));
+        Perfil perfilOperador = salvarPerfil("Operador", "Acesso básico", empresaA);
         Usuario usuario = criarUsuarioPersistido("Operador A", "operador@empresaa.com", "SenhaAntiga123",
                 perfilOperador, empresaA);
 
@@ -769,6 +783,124 @@ class UsuarioControllerIntegrationTest {
                                 {"senhaAtual":"SenhaAntiga123","novaSenha":"SenhaNova456"}
                                 """))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void usuarioSoComUsuariosGerenciar_colocandoASiMesmoNoAdministrador_devolve403() throws Exception {
+        Perfil perfilGestor = perfilComPermissoes("Gestor", Permissoes.USUARIOS_GERENCIAR);
+        Usuario gestor = criarUsuarioPersistido("Gestor", "gestor@empresaa.com", "SenhaValida123",
+                perfilGestor, empresaA);
+
+        mockMvc.perform(put("/api/usuarios/{id}", gestor.getId())
+                        .with(UsuarioDeTeste.autenticadoComPermissoes(gestor.getId(), empresaA.getId(), "Gestor",
+                                List.of(Permissoes.USUARIOS_GERENCIAR)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nome\":\"Gestor\",\"email\":\"gestor@empresaa.com\",\"perfilId\":"
+                                + perfilAdminEmpresaA.getId() + "}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value(RestAccessDeniedHandler.MENSAGEM));
+
+        assertEquals("Gestor", usuarioRepository.findById(gestor.getId()).orElseThrow().getPerfil().getNome());
+    }
+
+    @Test
+    void usuarioSoComUsuariosGerenciar_criandoUsuarioAdministrador_devolve403() throws Exception {
+        perfilComPermissoes("Gestor", Permissoes.USUARIOS_GERENCIAR);
+
+        mockMvc.perform(post("/api/usuarios")
+                        .with(UsuarioDeTeste.autenticadoComPermissoes(empresaA.getId(), "Gestor",
+                                List.of(Permissoes.USUARIOS_GERENCIAR)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nome\":\"Novo\",\"email\":\"novo@empresaa.com\",\"senha\":\"SenhaValida123\","
+                                + "\"perfilId\":" + perfilAdminEmpresaA.getId() + "}"))
+                .andExpect(status().isForbidden());
+
+        assertFalse(usuarioRepository.existsByEmail("novo@empresaa.com"));
+    }
+
+    @Test
+    void usuarioSoComUsuariosGerenciar_atribuindoPerfilCujasPermissoesTem_devolve200() throws Exception {
+        Perfil perfilGestor = perfilComPermissoes("Gestor", Permissoes.USUARIOS_GERENCIAR);
+        Usuario outro = criarUsuarioPersistido("Outro", "outro@empresaa.com", "SenhaValida123",
+                perfilComPermissoes("Sem permissões"), empresaA);
+
+        mockMvc.perform(put("/api/usuarios/{id}", outro.getId())
+                        .with(UsuarioDeTeste.autenticadoComPermissoes(empresaA.getId(), "Gestor",
+                                List.of(Permissoes.USUARIOS_GERENCIAR)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nome\":\"Outro\",\"email\":\"outro@empresaa.com\",\"perfilId\":"
+                                + perfilGestor.getId() + "}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.perfil").value("Gestor"));
+    }
+
+    @Test
+    void usuarioSoComUsuariosGerenciar_trocandoSenhaDeAdministrador_devolve403ENaoAltera() throws Exception {
+        Usuario admin = criarUsuarioPersistido("Admin", "admin@empresaa.com", "SenhaValida123",
+                perfilAdminEmpresaA, empresaA);
+        String hashAntes = admin.getSenha();
+
+        mockMvc.perform(patch("/api/usuarios/{id}/senha", admin.getId())
+                        .with(comSoUsuariosGerenciar())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"novaSenha\":\"SenhaInvasora789\"}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value(RestAccessDeniedHandler.MENSAGEM));
+
+        assertEquals(hashAntes, usuarioRepository.findById(admin.getId()).orElseThrow().getSenha());
+    }
+
+    @Test
+    void usuarioSoComUsuariosGerenciar_inativandoAdministrador_devolve403ENaoInativa() throws Exception {
+        Usuario admin = criarUsuarioPersistido("Admin", "admin@empresaa.com", "SenhaValida123",
+                perfilAdminEmpresaA, empresaA);
+        criarUsuarioPersistido("Admin 2", "admin2@empresaa.com", "SenhaValida123", perfilAdminEmpresaA, empresaA);
+
+        mockMvc.perform(delete("/api/usuarios/{id}", admin.getId()).with(comSoUsuariosGerenciar()))
+                .andExpect(status().isForbidden());
+
+        assertTrue(usuarioRepository.findById(admin.getId()).orElseThrow().getAtivo());
+    }
+
+    @Test
+    void usuarioSoComUsuariosGerenciar_rebaixandoAdministrador_devolve403ENaoAltera() throws Exception {
+        Perfil funcionario = perfilComPermissoes("Sem permissões");
+        Usuario admin = criarUsuarioPersistido("Admin", "admin@empresaa.com", "SenhaValida123",
+                perfilAdminEmpresaA, empresaA);
+        criarUsuarioPersistido("Admin 2", "admin2@empresaa.com", "SenhaValida123", perfilAdminEmpresaA, empresaA);
+
+        mockMvc.perform(put("/api/usuarios/{id}", admin.getId())
+                        .with(comSoUsuariosGerenciar())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nome\":\"Admin\",\"email\":\"admin@empresaa.com\",\"perfilId\":"
+                                + funcionario.getId() + "}"))
+                .andExpect(status().isForbidden());
+
+        assertEquals("Administrador",
+                usuarioRepository.findById(admin.getId()).orElseThrow().getPerfil().getNome());
+    }
+
+    @Test
+    void usuarioSoComUsuariosGerenciar_trocandoSenhaDeFuncionario_devolve204() throws Exception {
+        Perfil funcionario = perfilComPermissoes("Sem permissões");
+        Usuario alvo = criarUsuarioPersistido("Func", "func@empresaa.com", "SenhaValida123", funcionario, empresaA);
+
+        mockMvc.perform(patch("/api/usuarios/{id}/senha", alvo.getId())
+                        .with(comSoUsuariosGerenciar())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"novaSenha\":\"SenhaNova456\"}"))
+                .andExpect(status().isNoContent());
+    }
+
+    private RequestPostProcessor comSoUsuariosGerenciar() {
+        return UsuarioDeTeste.autenticadoComPermissoes(empresaA.getId(), "Gestor",
+                List.of(Permissoes.USUARIOS_GERENCIAR));
+    }
+
+    private Perfil perfilComPermissoes(String nome, String... codigos) {
+        Perfil perfil = new Perfil(nome, "Perfil de teste", empresaA);
+        perfil.setPermissoes(new HashSet<>(permissaoRepository.findAllById(List.of(codigos))));
+        return perfilRepository.save(perfil);
     }
 
     /** HU020: usuário do contexto que não existe mais no banco devolve 404, não 500. */

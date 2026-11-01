@@ -1,6 +1,7 @@
 package br.com.istoque.dto;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 public record LoginResponseDTO(
     Integer id,
@@ -10,5 +11,6 @@ public record LoginResponseDTO(
     Integer empresaId,
     String nomeEmpresa,
     String token,
-    OffsetDateTime expiraEm
+    OffsetDateTime expiraEm,
+    List<String> permissoes
 ) {}

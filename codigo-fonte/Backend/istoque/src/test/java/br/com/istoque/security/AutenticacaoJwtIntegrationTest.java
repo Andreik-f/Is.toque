@@ -5,6 +5,7 @@ import br.com.istoque.infrastructure.entity.Perfil;
 import br.com.istoque.infrastructure.entity.Usuario;
 import br.com.istoque.infrastructure.repository.EmpresaRepository;
 import br.com.istoque.infrastructure.repository.PerfilRepository;
+import br.com.istoque.infrastructure.repository.PermissaoRepository;
 import br.com.istoque.infrastructure.repository.UsuarioRepository;
 import br.com.istoque.services.JwtService;
 import com.jayway.jsonpath.JsonPath;
@@ -28,6 +29,8 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Base64;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -69,6 +72,9 @@ class AutenticacaoJwtIntegrationTest {
     private PerfilRepository perfilRepository;
 
     @Autowired
+    private PermissaoRepository permissaoRepository;
+
+    @Autowired
     private UsuarioRepository usuarioRepository;
 
     @Autowired
@@ -96,7 +102,7 @@ class AutenticacaoJwtIntegrationTest {
         empresa.setCnpj("11222333000181");
         empresa = empresaRepository.save(empresa);
 
-        Perfil perfil = perfilRepository.save(new Perfil("Administrador", "Acesso total", empresa));
+        Perfil perfil = salvarPerfil("Administrador");
 
         Usuario usuario = new Usuario();
         usuario.setNome("Usuario Teste");
@@ -346,8 +352,49 @@ class AutenticacaoJwtIntegrationTest {
         return JsonPath.read(resposta, "$.token");
     }
 
+    /**
+     * A permissão vem do perfil no banco a cada requisição: o Funcionário não cadastra
+     * produto e, depois de o perfil ganhar produtos.gerenciar, a mesma chamada passa
+     * com o mesmo token, sem novo login.
+     */
+    @Test
+    void permissaoDadaAoPerfil_valeNoMesmoTokenSemNovoLogin() throws Exception {
+        Perfil funcionario = salvarPerfil("Funcionário");
+        Usuario usuario = new Usuario();
+        usuario.setNome("Funcionario Teste");
+        usuario.setEmail("funcionario@teste.com");
+        usuario.setSenha(passwordEncoder.encode(SENHA));
+        usuario.setEmpresa(empresa);
+        usuario.setPerfil(funcionario);
+        usuarioRepository.save(usuario);
+        String resposta = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"funcionario@teste.com\",\"senha\":\"%s\"}".formatted(SENHA)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        String token = JsonPath.read(resposta, "$.token");
+
+        mockMvc.perform(post("/api/produtos").contentType(MediaType.APPLICATION_JSON).content("{}")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
+
+        funcionario.getPermissoes().add(permissaoRepository.findById(Permissoes.PRODUTOS_GERENCIAR).orElseThrow());
+        perfilRepository.save(funcionario);
+
+        mockMvc.perform(post("/api/produtos").contentType(MediaType.APPLICATION_JSON).content("{}")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isBadRequest());
+    }
+
     private Integer usuarioId() {
         return usuarioRepository.findByEmail("usuario@teste.com").orElseThrow().getId();
+    }
+
+    private Perfil salvarPerfil(String nome) {
+        Perfil perfil = new Perfil(nome, "Perfil de teste", empresa);
+        perfil.setPermissoes(new HashSet<>(permissaoRepository.findAllById(
+                Permissoes.MATRIZ_PADRAO.getOrDefault(nome, Set.of()))));
+        return perfilRepository.save(perfil);
     }
 
     private void limparBanco() {

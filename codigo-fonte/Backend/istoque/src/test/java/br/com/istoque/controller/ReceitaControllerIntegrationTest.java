@@ -3,11 +3,11 @@ package br.com.istoque.controller;
 import br.com.istoque.infrastructure.entity.Empresa;
 import br.com.istoque.infrastructure.entity.Produto;
 import br.com.istoque.infrastructure.entity.TipoProduto;
+import br.com.istoque.support.UsuarioDeTeste;
 import br.com.istoque.infrastructure.entity.UnidadeMedida;
 import br.com.istoque.infrastructure.repository.EmpresaRepository;
 import br.com.istoque.infrastructure.repository.ProdutoRepository;
 import br.com.istoque.infrastructure.repository.UnidadeMedidaRepository;
-import br.com.istoque.security.UsuarioAutenticado;
 import com.jayway.jsonpath.JsonPath;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
@@ -31,7 +30,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.hamcrest.Matchers.contains;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.hamcrest.Matchers.hasSize;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -525,9 +523,7 @@ class ReceitaControllerIntegrationTest {
 
     /** Faz as chamadas valerem como um usuário logado na empresa informada. */
     private RequestPostProcessor logadoEm(Empresa empresa) {
-        UsuarioAutenticado principal =
-                new UsuarioAutenticado(1, "logado@teste.com", empresa.getId(), "Administrador");
-        return authentication(UsernamePasswordAuthenticationToken.authenticated(principal, null, List.of()));
+        return UsuarioDeTeste.autenticadoComo(1, empresa.getId(), "Administrador");
     }
 
     private ResultActions cadastrar(Empresa empresa, String json) throws Exception {

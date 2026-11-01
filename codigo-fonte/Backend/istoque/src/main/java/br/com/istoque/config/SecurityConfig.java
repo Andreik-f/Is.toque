@@ -2,6 +2,7 @@ package br.com.istoque.config;
 
 import br.com.istoque.infrastructure.repository.UsuarioRepository;
 import br.com.istoque.security.JwtAuthenticationFilter;
+import br.com.istoque.security.Permissoes;
 import br.com.istoque.security.RestAccessDeniedHandler;
 import br.com.istoque.security.RestAuthenticationEntryPoint;
 import br.com.istoque.services.JwtService;
@@ -41,6 +42,17 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // pré-requisição do CORS
                         .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/cadastro").permitAll()
                         .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
+                        .requestMatchers("/api/usuarios/me/**").authenticated()
+                        .requestMatchers("/api/usuarios/**").hasAuthority(Permissoes.USUARIOS_GERENCIAR)
+                        .requestMatchers("/api/relatorios/**").hasAuthority(Permissoes.RELATORIOS_VER)
+                        .requestMatchers(HttpMethod.POST, "/api/movimentacoes/ajustes").hasAuthority(Permissoes.ESTOQUE_AJUSTAR)
+                        .requestMatchers(HttpMethod.POST, "/api/movimentacoes").hasAuthority(Permissoes.ESTOQUE_MOVIMENTAR)
+                        .requestMatchers(HttpMethod.POST, "/api/producoes").hasAuthority(Permissoes.PRODUCAO_REGISTRAR)
+                        .requestMatchers(HttpMethod.PUT, "/api/empresas/minha").hasAuthority(Permissoes.EMPRESA_CONFIGURAR)
+                        .requestMatchers(HttpMethod.GET, "/api/**").authenticated()
+                        .requestMatchers("/api/produtos/**", "/api/categorias/**").hasAuthority(Permissoes.PRODUTOS_GERENCIAR)
+                        .requestMatchers("/api/receitas/**").hasAuthority(Permissoes.RECEITAS_GERENCIAR)
+                        .requestMatchers("/api/perfis/**").hasAuthority(Permissoes.PERFIS_GERENCIAR)
                         .anyRequest().authenticated())
                 .addFilterBefore(
                         new JwtAuthenticationFilter(jwtService, usuarioRepository),

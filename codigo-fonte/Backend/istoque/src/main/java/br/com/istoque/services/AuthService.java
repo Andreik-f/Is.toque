@@ -3,6 +3,7 @@ package br.com.istoque.services;
 import br.com.istoque.dto.LoginRequestDTO;
 import br.com.istoque.dto.LoginResponseDTO;
 import br.com.istoque.exception.CredenciaisInvalidasException;
+import br.com.istoque.infrastructure.entity.Permissao;
 import br.com.istoque.infrastructure.entity.Usuario;
 import br.com.istoque.infrastructure.repository.UsuarioRepository;
 import br.com.istoque.util.EmailUtils;
@@ -63,6 +64,7 @@ public class AuthService {
                 usuario.getEmpresa().getId(),
                 nomeDaEmpresa,
                 token.token(),
-                token.expiraEm());
+                token.expiraEm(),
+                usuario.getPerfil().getPermissoes().stream().map(Permissao::getCodigo).sorted().toList());
     }
 }

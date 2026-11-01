@@ -1,6 +1,8 @@
 package br.com.istoque.infrastructure.entity;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.HashSet;
+import java.util.Set;
 
 import jakarta.persistence.*;
 
@@ -27,6 +29,12 @@ public class Perfil {
     @ManyToOne(optional = false)
     @JoinColumn(name = "empresa_id", nullable = false)
     private Empresa empresa;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "perfil_permissao",
+            joinColumns = @JoinColumn(name = "perfil_id"),
+            inverseJoinColumns = @JoinColumn(name = "permissao_codigo"))
+    private Set<Permissao> permissoes = new HashSet<>();
 
     @Column(name = "criado_em", nullable = false, updatable = false)
     private OffsetDateTime criadoEm;
@@ -55,4 +63,6 @@ public class Perfil {
     public void setDescricao(String descricao) { this.descricao = descricao; }
     public Empresa getEmpresa() { return empresa; }
     public void setEmpresa(Empresa empresa) { this.empresa = empresa; }
+    public Set<Permissao> getPermissoes() { return permissoes; }
+    public void setPermissoes(Set<Permissao> permissoes) { this.permissoes = permissoes; }
 }

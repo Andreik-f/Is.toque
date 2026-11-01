@@ -5,7 +5,6 @@ import br.com.istoque.dto.TrocarSenhaPropriaRequestDTO;
 import br.com.istoque.dto.UsuarioCreateDTO;
 import br.com.istoque.dto.UsuarioResponseDTO;
 import br.com.istoque.dto.UsuarioUpdateDTO;
-import br.com.istoque.security.Autorizacao;
 import br.com.istoque.security.UsuarioLogado;
 import br.com.istoque.services.UsuarioService;
 import jakarta.validation.Valid;
@@ -23,17 +22,13 @@ public class UsuarioController {
 
     private final UsuarioLogado usuarioLogado;
 
-    private final Autorizacao autorizacao;
-
-    public UsuarioController(UsuarioService usuarioService, UsuarioLogado usuarioLogado, Autorizacao autorizacao) {
+    public UsuarioController(UsuarioService usuarioService, UsuarioLogado usuarioLogado) {
         this.usuarioService = usuarioService;
         this.usuarioLogado = usuarioLogado;
-        this.autorizacao = autorizacao;
     }
 
     @PostMapping
     public ResponseEntity<UsuarioResponseDTO> criar(@RequestBody @Valid UsuarioCreateDTO dto) {
-        autorizacao.exigirAdministrador();
         UsuarioResponseDTO criado = usuarioService.criar(dto, usuarioLogado.empresaId());
         return ResponseEntity
                 .created(URI.create("/api/usuarios/" + criado.id()))
@@ -43,7 +38,6 @@ public class UsuarioController {
     @PutMapping("/{id}")
     public ResponseEntity<UsuarioResponseDTO> atualizar(@PathVariable Integer id,
             @RequestBody @Valid UsuarioUpdateDTO dto) {
-        autorizacao.exigirAdministrador();
         return ResponseEntity.ok(usuarioService.atualizar(id, dto, usuarioLogado.empresaId()));
     }
 
@@ -51,7 +45,6 @@ public class UsuarioController {
     public ResponseEntity<Void> alterarSenha(
            @PathVariable Integer id,
            @RequestBody @Valid TrocaSenhaRequestDTO dto) {
-       autorizacao.exigirAdministrador();
        usuarioService.alterarSenha(id, dto.novaSenha(), usuarioLogado.empresaId());
         return ResponseEntity.noContent().build();
      }
@@ -63,7 +56,6 @@ public class UsuarioController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> inativar(@PathVariable Integer id) {
-        autorizacao.exigirAdministrador();
         usuarioService.inativarUsuario(id, usuarioLogado.empresaId(), usuarioLogado.id());
         return ResponseEntity.noContent().build();
     }

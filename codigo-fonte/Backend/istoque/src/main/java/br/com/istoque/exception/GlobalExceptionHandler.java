@@ -52,6 +52,31 @@ public class GlobalExceptionHandler {
                 .body(ApiErrorResponse.de(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
     }
 
+    @ExceptionHandler(PerfilNaoEncontradoNaEmpresaException.class)
+    public ResponseEntity<ApiErrorResponse> tratarPerfilNaoEncontradoNaEmpresa(PerfilNaoEncontradoNaEmpresaException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiErrorResponse.de(HttpStatus.NOT_FOUND.value(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(PermissaoInvalidaException.class)
+    public ResponseEntity<ApiErrorResponse> tratarPermissaoInvalida(PermissaoInvalidaException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiErrorResponse.deValidacao(
+                        HttpStatus.BAD_REQUEST.value(),
+                        "Dados inválidos",
+                        Map.of("permissoes", ex.getMessage())));
+    }
+
+    @ExceptionHandler(PermissaoObrigatoriaDoAdministradorException.class)
+    public ResponseEntity<ApiErrorResponse> tratarPermissaoObrigatoriaDoAdministrador(
+            PermissaoObrigatoriaDoAdministradorException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNPROCESSABLE_CONTENT)
+                .body(ApiErrorResponse.de(HttpStatus.UNPROCESSABLE_CONTENT.value(), ex.getMessage()));
+    }
+
     @ExceptionHandler(UsuarioNaoEncontradoException.class)
     public ResponseEntity<ApiErrorResponse> tratarUsuarioNaoEncontrado(UsuarioNaoEncontradoException ex) {
         return ResponseEntity

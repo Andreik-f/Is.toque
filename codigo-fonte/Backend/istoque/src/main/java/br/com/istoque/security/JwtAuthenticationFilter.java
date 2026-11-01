@@ -18,7 +18,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Lê "Authorization: Bearer <token>", valida o token e confere no banco se o
@@ -73,7 +72,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                         var authentication = UsernamePasswordAuthenticationToken.authenticated(
                                 principal, null,
-                                List.of(new SimpleGrantedAuthority("PERFIL_" + principal.perfil())));
+                                usuario.getPerfil().getPermissoes().stream()
+                                        .map(p -> new SimpleGrantedAuthority(p.getCodigo()))
+                                        .toList());
 
                         SecurityContext context = SecurityContextHolder.createEmptyContext();
                         context.setAuthentication(authentication);

@@ -26,7 +26,7 @@ class RestAccessDeniedHandlerTest {
         assertTrue(response.getContentType().startsWith(MediaType.APPLICATION_JSON_VALUE));
         String corpo = response.getContentAsString();
         assertEquals(Integer.valueOf(403), JsonPath.read(corpo, "$.status"));
-        assertEquals("Você não tem permissão para realizar esta ação.", JsonPath.read(corpo, "$.message"));
+        assertEquals("Seu perfil não permite esta ação.", JsonPath.read(corpo, "$.message"));
         assertNotNull(JsonPath.read(corpo, "$.timestamp"));
     }
 }

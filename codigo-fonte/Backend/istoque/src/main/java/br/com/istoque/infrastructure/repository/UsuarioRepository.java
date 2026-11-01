@@ -22,6 +22,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     boolean existsByEmail(String email);
 
+    boolean existsByPerfilId(Integer perfilId);
+
     boolean existsByEmailAndIdNot(String email, Integer id);
 
     // update direto, sem passar pelo @PreUpdate: registrar um acesso não é

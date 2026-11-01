@@ -2,7 +2,6 @@ package br.com.istoque.controller;
 
 import br.com.istoque.dto.EmpresaRequestDTO;
 import br.com.istoque.dto.EmpresaResponseDTO;
-import br.com.istoque.security.Autorizacao;
 import br.com.istoque.security.UsuarioLogado;
 import br.com.istoque.services.EmpresaService;
 
@@ -23,12 +22,9 @@ public class EmpresaController {
 
     private final UsuarioLogado usuarioLogado;
 
-    private final Autorizacao autorizacao;
-
-    public EmpresaController(EmpresaService empresaService, UsuarioLogado usuarioLogado, Autorizacao autorizacao) {
+    public EmpresaController(EmpresaService empresaService, UsuarioLogado usuarioLogado) {
         this.empresaService = empresaService;
         this.usuarioLogado = usuarioLogado;
-        this.autorizacao = autorizacao;
     }
 
     @GetMapping("/minha")
@@ -38,7 +34,6 @@ public class EmpresaController {
 
     @PutMapping("/minha")
     public ResponseEntity<EmpresaResponseDTO> atualizarMinha(@RequestBody @Valid EmpresaRequestDTO dto) {
-        autorizacao.exigirAdministrador();
         return ResponseEntity.ok(empresaService.atualizar(usuarioLogado.empresaId(), dto));
     }
 

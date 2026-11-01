@@ -11,4 +11,6 @@ public interface PerfilRepository extends JpaRepository<Perfil, Integer> {
     List<Perfil> findByEmpresaIdOrderById(Integer empresaId);
     Optional<Perfil> findByNomeAndEmpresaId(String nome, Integer empresaId);
     Optional<Perfil> findByIdAndEmpresaId(Integer id, Integer empresaId);
+    boolean existsByEmpresaIdAndNomeIgnoreCase(Integer empresaId, String nome);
+    boolean existsByEmpresaIdAndNomeIgnoreCaseAndIdNot(Integer empresaId, String nome, Integer id);
 }

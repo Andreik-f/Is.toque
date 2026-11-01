@@ -5,6 +5,8 @@ import br.com.istoque.infrastructure.entity.Perfil;
 import br.com.istoque.infrastructure.entity.Usuario;
 import br.com.istoque.infrastructure.repository.EmpresaRepository;
 import br.com.istoque.infrastructure.repository.PerfilRepository;
+import br.com.istoque.infrastructure.repository.PermissaoRepository;
+import br.com.istoque.security.Permissoes;
 import br.com.istoque.infrastructure.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,6 +17,8 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -52,6 +56,9 @@ class AuthControllerIntegrationTest {
     private PerfilRepository perfilRepository;
 
     @Autowired
+    private PermissaoRepository permissaoRepository;
+
+    @Autowired
     private UsuarioRepository usuarioRepository;
 
     @Autowired
@@ -77,7 +84,9 @@ class AuthControllerIntegrationTest {
         empresa.setCnpj("11222333000181");
         empresa = empresaRepository.save(empresa);
 
-        Perfil perfil = perfilRepository.save(new Perfil("Administrador", "Acesso total", empresa));
+        Perfil perfil = new Perfil("Administrador", "Acesso total", empresa);
+        perfil.setPermissoes(new HashSet<>(permissaoRepository.findAllById(Permissoes.MATRIZ_PADRAO.get("Administrador"))));
+        perfil = perfilRepository.save(perfil);
 
         Usuario usuario = new Usuario();
         usuario.setNome("Usuario Teste");
@@ -101,7 +110,10 @@ class AuthControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("usuario@teste.com"))
                 .andExpect(jsonPath("$.perfil").value("Administrador"))
-                .andExpect(jsonPath("$.nomeEmpresa").value("Empresa Teste LTDA"));
+                .andExpect(jsonPath("$.nomeEmpresa").value("Empresa Teste LTDA"))
+                .andExpect(jsonPath("$.permissoes.length()").value(9))
+                .andExpect(jsonPath("$.permissoes[0]").value("empresa.configurar"))
+                .andExpect(jsonPath("$.permissoes[8]").value("usuarios.gerenciar"));
     }
 
     /**

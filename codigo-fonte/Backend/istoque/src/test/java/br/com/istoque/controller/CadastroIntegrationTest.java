@@ -1,9 +1,12 @@
 package br.com.istoque.controller;
 
+import br.com.istoque.infrastructure.entity.Perfil;
+import br.com.istoque.infrastructure.entity.Permissao;
 import br.com.istoque.infrastructure.entity.Usuario;
 import br.com.istoque.infrastructure.repository.EmpresaRepository;
 import br.com.istoque.infrastructure.repository.PerfilRepository;
 import br.com.istoque.infrastructure.repository.UsuarioRepository;
+import br.com.istoque.security.Permissoes;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,7 +17,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -142,6 +149,24 @@ class CadastroIntegrationTest {
                 .andExpect(jsonPath("$.campos.nome").exists())
                 .andExpect(jsonPath("$.campos.email").exists())
                 .andExpect(jsonPath("$.campos.senha").exists());
+    }
+
+    /** A empresa nova sai com os três perfis padrão, cada um com a sua matriz de permissões. */
+    @Test
+    void cadastro_criaOsPerfisDaEmpresaNovaComAMatrizPadrao() throws Exception {
+        String resposta = cadastrar("11444777000161", "dono@restaurante.com")
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        Integer empresaId = JsonPath.read(resposta, "$.empresa.id");
+
+        var perfis = perfilRepository.findByEmpresaIdOrderById(empresaId);
+        assertEquals(3, perfis.size());
+        for (Perfil perfil : perfis) {
+            Set<String> codigos = perfil.getPermissoes().stream()
+                    .map(Permissao::getCodigo).collect(Collectors.toSet());
+            assertEquals(Permissoes.MATRIZ_PADRAO.get(perfil.getNome()), codigos);
+        }
+        assertTrue(perfis.stream().anyMatch(p -> p.getPermissoes().size() == 9));
     }
 
     /** Chama POST /api/auth/cadastro com o CNPJ e o e-mail informados. */

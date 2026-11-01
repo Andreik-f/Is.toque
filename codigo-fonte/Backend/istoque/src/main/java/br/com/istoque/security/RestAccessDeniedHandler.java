@@ -15,7 +15,7 @@ import java.io.IOException;
 @Component
 public class RestAccessDeniedHandler implements AccessDeniedHandler {
 
-    public static final String MENSAGEM = "Você não tem permissão para realizar esta ação.";
+    public static final String MENSAGEM = "Seu perfil não permite esta ação.";
 
     private final ObjectMapper objectMapper;
 
