@@ -1,0 +1,288 @@
+{
+  "botao": {
+    "entrar": "Entrar",
+    "criarConta": "Criar conta",
+    "sair": "Sair",
+    "esqueceuSenha": "Esqueceu a senha?",
+    "mostrarSenha": "Mostrar: senha",
+    "ocultarSenha": "Ocultar: senha",
+    "criarContaEmpresa": "Criar conta da empresa",
+    "simularRecuperacao": "Simular recuperação",
+    "voltarVisaoGeral": "Voltar à visão geral",
+    "irParaEstoque": "Ir para o estoque",
+    "novoProduto": "Novo produto",
+    "salvarProduto": "Salvar produto",
+    "editarProduto": "Editar produto",
+    "limparFiltros": "Limpar filtros",
+    "voltarEstoque": "← Voltar ao estoque",
+    "adicionarFoto": "Adicionar foto",
+    "substituirFoto": "Substituir foto",
+    "removerFoto": "Remover foto",
+    "tentarDeNovo": "Tentar de novo",
+    "registrarEntrada": "Registrar entrada",
+    "reiniciarDemonstracao": "Reiniciar demonstração"
+  },
+  "campo": {
+    "email": "email",
+    "senha": "senha",
+    "razaoSocial": "razao_social",
+    "cnpj": "cnpj",
+    "nomeResponsavel": "nome",
+    "confirmacaoSenha": "confirmacao",
+    "emailRecuperacao": "email",
+    "nomeProduto": "name",
+    "estoqueMinimo": "min",
+    "estoqueMaximo": "max",
+    "categoria": "categoryId",
+    "unidade": "unitId",
+    "novaCategoria": "newCategory",
+    "buscarIngrediente": "Buscar ingrediente",
+    "fotoProduto": "Foto do produto"
+  },
+  "rotulo": {
+    "emailUsuario": "E-mail do usuário",
+    "senha": "Senha",
+    "razaoSocial": "Razão social",
+    "cnpj": "CNPJ",
+    "nomeResponsavel": "Nome do responsável",
+    "confirmarSenha": "Confirmar senha",
+    "unidadeControle": "Unidade de controle",
+    "estoqueMaximo": "Estoque máximo",
+    "novaCategoriaOpcao": "+ Nova categoria",
+    "semCategoria": "Sem categoria",
+    "badgeSemEstoque": "Sem estoque",
+    "indicadorProdutosCadastrados": "Produtos cadastrados",
+    "indicadorPrecisamReposicao": "Precisam de reposição",
+    "verAlertas": "Ver alertas"
+  },
+  "formulario": {
+    "login": "Login",
+    "cadastro": "Cadastro básico"
+  },
+  "titulo": {
+    "login": "Login",
+    "cadastro": "Cadastro",
+    "painel": "Tudo pronto para hoje?",
+    "landingHero": "Saiba quantas porções a sua cozinha consegue fazer hoje.",
+    "recuperarAcesso": "Recuperar acesso",
+    "naoEncontrada": "Essa prateleira está vazia.",
+    "novoProduto": "Novo produto",
+    "editarProduto": "Editar produto",
+    "detalheProduto": "Detalhes do produto",
+    "estoque": "Estoque",
+    "movimentarEstoque": "Movimentar estoque",
+    "alertas": "Sua cozinha pede atenção",
+    "reposicao": "Reposição"
+  },
+  "menu": {
+    "visaoGeral": "Visão geral",
+    "estoque": "Estoque",
+    "movimentacoes": "Movimentações",
+    "receitas": "Receitas",
+    "reposicao": "Reposição",
+    "relatorios": "Relatórios",
+    "equipe": "Equipe"
+  },
+  "selo": {
+    "conectado": "Conectado ao servidor",
+    "demonstracao": "Protótipo interativo"
+  },
+  "rodape": {
+    "servidor": "Produtos e categorias salvos no servidor",
+    "demonstracao": "Dados fictícios • alterações duram até recarregar"
+  },
+  "mensagem": {
+    "sessaoExpirada": "Sua sessão expirou. Entre novamente.",
+    "credenciaisInvalidas": "E-mail ou senha incorretos.",
+    "informeEmail": "Informe seu e-mail.",
+    "informeSenha": "Informe sua senha.",
+    "informeRazaoSocial": "Informe a razão social.",
+    "informeCnpj": "Informe o CNPJ.",
+    "informeNomeResponsavel": "Informe o nome do responsável.",
+    "confirmeSenha": "Confirme sua senha.",
+    "emailInvalido": "Digite um e-mail válido.",
+    "cnpjFormato": "O CNPJ deve ter 14 caracteres, com ou sem máscara.",
+    "senhaMinima": "A senha deve ter no mínimo 8 caracteres.",
+    "senhasDiferentes": "As senhas precisam ser iguais.",
+    "cnpjDuplicado": "Já existe uma empresa cadastrada com o CNPJ",
+    "emailDuplicado": "Já existe um usuário cadastrado com o e-mail",
+    "simulacaoRecuperacao": "Simulação concluída. Nenhum e-mail foi enviado.",
+    "erro404Etiqueta": "ERRO 404",
+    "produtoCadastrado": "Produto cadastrado com saldo inicial zero.",
+    "produtoCadastradoComFoto": "Produto cadastrado com saldo inicial zero. A foto ainda fica só nesta página.",
+    "produtoAtualizado": "Produto atualizado.",
+    "estoqueMaximoMenor": "O estoque máximo precisa ser maior ou igual ao mínimo.",
+    "formatoImagem": "Formato não aceito. Escolha uma imagem JPG, PNG ou WebP.",
+    "unidadePreservada": "Unidade preservada para manter o histórico.",
+    "nenhumResultado": "Nenhum resultado",
+    "nenhumResultadoDica": "Tente outro termo ou remova os filtros.",
+    "nenhumProduto": "Nenhum produto cadastrado",
+    "nenhumProdutoEstoqueDica": "Cadastre o primeiro produto para começar a controlar o estoque.",
+    "nenhumProdutoDetalheDica": "Cadastre o primeiro produto na tela de estoque.",
+    "produtoNaoEncontrado": "Produto não encontrado",
+    "produtoNaoEncontradoDica": "Ele pode ter sido desativado. Volte ao estoque e escolha outro.",
+    "erroCarregarDados": "Não foi possível carregar os dados",
+    "apiNaoRespondeu": "A API não respondeu. Verifique se ela está no ar e tente de novo.",
+    "alertasTitulo": "Sua cozinha pede atenção",
+    "estoqueAbastecido": "Estoque abastecido",
+    "estoqueAbastecidoDica": "Nenhum produto está no mínimo ou abaixo dele.",
+    "telaLocal": "Esta tela ainda não grava no servidor: o que você registrar aqui vale até recarregar a página.",
+    "demonstracaoReiniciada": "Demonstração reiniciada."
+  },
+  "perfil": {
+    "administrador": "Administrador",
+    "gerente": "Gerente",
+    "funcionario": "Funcionário"
+  },
+  "login": {
+    "emailInexistenteDominio": "@exemplo.com",
+    "senhaErrada": "SenhaErrada-123",
+    "emailSemArroba": "usuario-sem-arroba",
+    "senhaQualquer": "qualquer123"
+  },
+  "cadastro": {
+    "cnpjInvalido": "12.345",
+    "emailSemArroba": "sem-arroba",
+    "senhaCurta": "curta12",
+    "confirmacaoDiferente": "outra1234",
+    "senhaValida": "E2e-Senha-Forte-9",
+    "nomeResponsavelPadrao": "Responsavel E2E"
+  },
+  "sessao": {
+    "chaveArmazenamento": "istoque.sessao"
+  },
+  "rota": {
+    "login": "login",
+    "cadastro": "cadastro",
+    "recuperar": "recuperar",
+    "dashboard": "dashboard",
+    "estoque": "estoque",
+    "inicio": "inicio",
+    "reposicao": "reposicao",
+    "receitas": "receitas",
+    "relatorios": "relatorios",
+    "equipe": "equipe",
+    "movimentacoes": "movimentacoes",
+    "importacao": "importacao",
+    "fluxos": "fluxos"
+  },
+  "sessaoForjada": {
+    "id": 1,
+    "nome": "Sessao Forjada",
+    "email": "forjada@exemplo.com",
+    "perfil": "Administrador",
+    "empresaId": 1,
+    "nomeEmpresa": "Empresa Forjada",
+    "token": "cabecalho.corpo.assinatura",
+    "expiraEm": "2020-01-01T08:00:00-03:00"
+  },
+  "recuperacao": {
+    "email": "recuperacao@exemplo.com"
+  },
+  "naoEncontrada": {
+    "hashInexistente": "xyz",
+    "caminhoInexistente": "/abc"
+  },
+  "rotaDemonstracao": [
+    {
+      "rota": "dashboard",
+      "titulo": "Tudo pronto para hoje?",
+      "menu": "Visão geral"
+    },
+    {
+      "rota": "estoque",
+      "titulo": "Estoque",
+      "menu": "Estoque"
+    },
+    {
+      "rota": "produto/tomate",
+      "titulo": "Detalhes do produto",
+      "menu": "Estoque"
+    },
+    {
+      "rota": "movimentacoes",
+      "titulo": "Movimentações",
+      "menu": "Movimentações"
+    },
+    {
+      "rota": "receitas",
+      "titulo": "Receitas",
+      "menu": "Receitas"
+    },
+    {
+      "rota": "receita/burger",
+      "titulo": "Ficha técnica",
+      "menu": "Receitas"
+    },
+    {
+      "rota": "reposicao",
+      "titulo": "Reposição",
+      "menu": "Reposição"
+    },
+    {
+      "rota": "relatorios",
+      "titulo": "Relatórios",
+      "menu": "Relatórios"
+    },
+    {
+      "rota": "equipe",
+      "titulo": "Equipe",
+      "menu": "Equipe"
+    },
+    {
+      "rota": "importacao",
+      "titulo": "Importar nota",
+      "menu": null
+    },
+    {
+      "rota": "fluxos",
+      "titulo": "Mapa de fluxos",
+      "menu": null
+    }
+  ],
+  "produto": {
+    "minimoPadrao": "1",
+    "maximoPadrao": "10",
+    "minimoEditado": "2",
+    "maximoEditado": "20",
+    "minimoInvalido": "10",
+    "maximoInvalido": "1",
+    "sufixoEditado": " editado",
+    "buscaSemResultado": "sem resultado algum"
+  },
+  "api": {
+    "respostaVazia": {},
+    "produtoSessaoExpirada": {
+      "status": 401,
+      "message": "Sessão expirada ou inválida. Entre novamente."
+    },
+    "erroServidor": {}
+  },
+  "coluna": {
+    "ingrediente": "Ingrediente",
+    "minimo": "Mínimo",
+    "sugestaoCompra": "Sugestão de compra"
+  },
+  "secaoAlertas": {
+    "validade": "Validade em até 3 dias",
+    "estoqueBaixo": "Estoque baixo"
+  },
+  "produtoDemo": {
+    "estoqueBaixo": "Tomate italiano"
+  },
+  "rotasTelasLocais": [
+    "equipe",
+    "movimentacoes",
+    "receitas",
+    "relatorios"
+  ],
+  "rotasTelasComApi": [
+    "dashboard",
+    "estoque",
+    "reposicao"
+  ],
+  "reposicao": {
+    "sugestaoEsperada": "10 kg",
+    "minimoEsperado": "1 kg"
+  }
+}

@@ -1,0 +1,7 @@
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+storageState-*.json
+.massa-e2e.json
+_backup_testes_antigos/
