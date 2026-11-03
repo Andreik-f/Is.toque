@@ -257,26 +257,6 @@
   margin-top: auto;
   padding-top: 24px;
 }
-.sidebar-tip {
-  background: #ffffff0b;
-  border: 1px solid #ffffff0c;
-  border-radius: 12px;
-  margin: 12px 7px 20px;
-  padding: 17px 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  line-height: 1.7;
-  font-size: var(--font-11);
-  color: var(--on-teal-muted);
-}
-.sidebar-tip strong {
-  color: #fff;
-  font-weight: 500;
-}
-.sidebar-tip svg {
-  color: var(--amber);
-}
 .sidebar-bottom > a,
 .sidebar-bottom > button {
   display: flex;

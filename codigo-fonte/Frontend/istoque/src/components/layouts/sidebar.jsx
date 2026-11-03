@@ -104,14 +104,6 @@ export function Sidebar({ route, profile, open, onNavigate, lowCount }) {
         ))}
       </nav>
       <div className="sidebar-bottom">
-        <div className="sidebar-tip">
-          <span>
-            Menos perdas.
-            <br />
-            <strong>Mais possibilidades.</strong>
-          </span>
-          <Icon name="recipe" size={34} />
-        </div>
         {/* o mapa de fluxos documenta o protótipo: só na demonstração */}
         {!session && (
           <a href="#fluxos">
