@@ -16,6 +16,10 @@ public record EmpresaResponseDTO(
         String cnpj,
         String email,
         String telefone,
+
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+        OffsetDateTime telefoneVerificadoEm,
+
         Integer diasAlertaValidade,
         Boolean ativo,
 
@@ -35,6 +39,7 @@ public record EmpresaResponseDTO(
                 empresa.getCnpj(),
                 empresa.getEmail(),
                 empresa.getTelefone(),
+                empresa.getTelefoneVerificadoEm(),
                 empresa.getDiasAlertaValidade(),
                 empresa.getAtivo(),
                 empresa.getCriadoEm(),

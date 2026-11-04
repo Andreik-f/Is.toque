@@ -49,6 +49,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/movimentacoes").hasAuthority(Permissoes.ESTOQUE_MOVIMENTAR)
                         .requestMatchers(HttpMethod.POST, "/api/producoes").hasAuthority(Permissoes.PRODUCAO_REGISTRAR)
                         .requestMatchers(HttpMethod.PUT, "/api/empresas/minha").hasAuthority(Permissoes.EMPRESA_CONFIGURAR)
+                        .requestMatchers(HttpMethod.POST, "/api/empresas/minha/telefone/**").hasAuthority(Permissoes.EMPRESA_CONFIGURAR)
                         .requestMatchers(HttpMethod.GET, "/api/**").authenticated()
                         .requestMatchers("/api/produtos/**", "/api/categorias/**").hasAuthority(Permissoes.PRODUTOS_GERENCIAR)
                         .requestMatchers("/api/receitas/**").hasAuthority(Permissoes.RECEITAS_GERENCIAR)

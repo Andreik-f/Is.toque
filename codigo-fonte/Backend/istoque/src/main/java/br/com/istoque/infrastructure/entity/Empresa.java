@@ -39,6 +39,9 @@ public class Empresa {
     @Column(name = "telefone")
     private String telefone;
 
+    @Column(name = "telefone_verificado_em")
+    private OffsetDateTime telefoneVerificadoEm;
+
     @Column(name = "dias_alerta_validade", nullable = false)
     private Integer diasAlertaValidade;
 
@@ -118,6 +121,14 @@ public class Empresa {
 
     public void setTelefone(String telefone) {
         this.telefone = telefone;
+    }
+
+    public OffsetDateTime getTelefoneVerificadoEm() {
+        return telefoneVerificadoEm;
+    }
+
+    public void setTelefoneVerificadoEm(OffsetDateTime telefoneVerificadoEm) {
+        this.telefoneVerificadoEm = telefoneVerificadoEm;
     }
 
     public Integer getDiasAlertaValidade() {

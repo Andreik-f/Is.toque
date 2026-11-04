@@ -38,6 +38,41 @@ public class GlobalExceptionHandler {
                 .body(ApiErrorResponse.de(HttpStatus.NOT_FOUND.value(), ex.getMessage()));
     }
 
+    @ExceptionHandler(TelefoneNaoCadastradoException.class)
+    public ResponseEntity<ApiErrorResponse> tratarTelefoneNaoCadastrado(TelefoneNaoCadastradoException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiErrorResponse.de(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(TelefoneNaoCelularException.class)
+    public ResponseEntity<ApiErrorResponse> tratarTelefoneNaoCelular(TelefoneNaoCelularException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiErrorResponse.de(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(CodigoInvalidoException.class)
+    public ResponseEntity<ApiErrorResponse> tratarCodigoInvalido(CodigoInvalidoException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiErrorResponse.de(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(LimiteDeCodigosException.class)
+    public ResponseEntity<ApiErrorResponse> tratarLimiteDeCodigos(LimiteDeCodigosException ex) {
+        return ResponseEntity
+                .status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(ApiErrorResponse.de(HttpStatus.TOO_MANY_REQUESTS.value(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(FalhaNoEnvioDeSmsException.class)
+    public ResponseEntity<ApiErrorResponse> tratarFalhaNoEnvioDeSms(FalhaNoEnvioDeSmsException ex) {
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ApiErrorResponse.de(HttpStatus.SERVICE_UNAVAILABLE.value(), ex.getMessage()));
+    }
+
     @ExceptionHandler(CnpjJaCadastradoException.class)
     public ResponseEntity<ApiErrorResponse> tratarCnpjJaCadastrado(CnpjJaCadastradoException ex) {
         return ResponseEntity

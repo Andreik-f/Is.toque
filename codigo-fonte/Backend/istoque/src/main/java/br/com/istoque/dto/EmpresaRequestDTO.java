@@ -28,6 +28,7 @@ public record EmpresaRequestDTO(
         String email,
 
         @Size(max = 255, message = "O telefone deve ter no máximo 255 caracteres")
+        @TelefoneValido
         String telefone,
 
         @PositiveOrZero(message = "Os dias de alerta de validade não podem ser negativos")

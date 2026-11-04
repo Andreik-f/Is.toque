@@ -38,7 +38,7 @@ public class CadastroService {
     @Transactional
     public CadastroResponseDTO cadastrar(CadastroRequestDTO dto) {
         EmpresaResponseDTO empresa = empresaService.criar(
-                new EmpresaRequestDTO(dto.razaoSocial(), null, dto.cnpj(), null, null, null));
+                new EmpresaRequestDTO(dto.razaoSocial(), null, dto.cnpj(), null, dto.telefone(), null));
 
         Perfil administrador = perfilRepository
                 .findByNomeAndEmpresaId(PerfilService.ADMINISTRADOR, empresa.id())

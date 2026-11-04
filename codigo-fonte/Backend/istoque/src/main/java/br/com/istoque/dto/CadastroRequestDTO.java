@@ -29,6 +29,10 @@ public record CadastroRequestDTO(
         @Size(max = 150, message = "O e-mail deve ter no máximo 150 caracteres")
         String email,
 
+        @Size(max = 255, message = "O telefone deve ter no máximo 255 caracteres")
+        @TelefoneValido
+        String telefone,
+
         @NotBlank(message = "A senha é obrigatória")
         @Size(min = 8, message = "A senha deve ter no mínimo 8 caracteres")
         String senha

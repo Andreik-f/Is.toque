@@ -21,9 +21,11 @@ O login e o cadastro devolvem um `token` e o `expiraEm` (validade definida em `j
 | Método | Caminho | O que faz | Exige autenticação |
 |---|---|---|---|
 | POST | `/api/auth/login` | Entra com e-mail e senha; devolve os dados do usuário e da empresa | Não |
-| POST | `/api/auth/cadastro` | Cria a empresa, os perfis padrão e o administrador | Não |
+| POST | `/api/auth/cadastro` | Cria a empresa, os perfis padrão e o administrador; aceita `telefone` da empresa (opcional, gravado em E.164, nunca envia SMS) | Não |
 | GET | `/api/empresas/minha` | Busca a empresa do usuário logado | Sim |
-| PUT | `/api/empresas/minha` | Atualiza a empresa do usuário logado (exige `empresa.configurar`) | Sim |
+| PUT | `/api/empresas/minha` | Atualiza a empresa do usuário logado; valida o `telefone` e grava em E.164 (exige `empresa.configurar`) | Sim |
+| POST | `/api/empresas/minha/telefone/codigo` | Envia por SMS o código de 6 dígitos para confirmar o telefone da empresa; `429` se pedir antes de 60 segundos ou mais de 5 vezes por hora (exige `empresa.configurar`) | Sim |
+| POST | `/api/empresas/minha/telefone/confirmar` | Confirma o telefone com `{ "codigo" }`; `400` se errado, vencido ou usado (exige `empresa.configurar`) | Sim |
 | GET | `/api/usuarios` | Lista os usuários da empresa (exige `usuarios.gerenciar`) | Sim |
 | POST | `/api/usuarios` | Cadastra um usuário na empresa (exige `usuarios.gerenciar`) | Sim |
 | PUT | `/api/usuarios/{id}` | Atualiza nome, e-mail e perfil do usuário (exige `usuarios.gerenciar`) | Sim |
@@ -67,6 +69,18 @@ Estas operações respondem `409`:
 O perfil Administrador não pode ser renomeado nem perder `usuarios.gerenciar` ou `perfis.gerenciar`: a resposta é `422`.
 
 Os erros seguem o formato `{ timestamp, status, message, campos }`. Os corpos de requisição e resposta, as regras de validação, as mensagens de erro e os exemplos de cada rota estão na [Wiki do projeto](https://github.com/ICEI-PUC-Minas-PBR-ADS/pbr-ads-2026-2-p1-tidai-t1-8246101-pbr-ads-2026-2-p1-tidai-t-davidwsr1/wiki). A API publicada está em https://is-toque-prod.onrender.com. As rotas de receitas usam a empresa do usuário logado e não recebem `empresaId`. Ainda não existem rotas para movimentações, produção e fotos: as tabelas de estoque e receitas já existem no banco, mas sem endpoints.
+
+### Envio de SMS (HU021)
+
+O código de confirmação do telefone é enviado por uma implementação de `EnviadorSms`, escolhida pela variável `SMS_PROVEDOR`:
+
+| Variável | Para que serve |
+|---|---|
+| `SMS_PROVEDOR` | `textbee` envia de verdade; `log` só registra a mensagem no log. Em desenvolvimento o padrão é `log`; em produção não há padrão: sem ela a API sobe e o envio do código responde `503`, e `log` não funciona |
+| `TEXTBEE_API_KEY` | Chave da API do TextBee (obrigatória com `SMS_PROVEDOR=textbee`) |
+| `TEXTBEE_DEVICE_ID` | Aparelho que envia os SMS (obrigatória com `SMS_PROVEDOR=textbee`) |
+
+Os valores nunca vão para o repositório. Os testes usam `log` e simulam o envio: nenhum SMS de verdade sai.
 
 ## Banco de dados e migrações (Flyway)
 
