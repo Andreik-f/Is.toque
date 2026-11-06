@@ -66,6 +66,13 @@ public class GlobalExceptionHandler {
                 .body(ApiErrorResponse.de(HttpStatus.TOO_MANY_REQUESTS.value(), ex.getMessage()));
     }
 
+    @ExceptionHandler(ContaBloqueadaException.class)
+    public ResponseEntity<ApiErrorResponse> tratarContaBloqueada(ContaBloqueadaException ex) {
+        return ResponseEntity
+                .status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(ApiErrorResponse.de(HttpStatus.TOO_MANY_REQUESTS.value(), ex.getMessage()));
+    }
+
     @ExceptionHandler(FalhaNoEnvioDeSmsException.class)
     public ResponseEntity<ApiErrorResponse> tratarFalhaNoEnvioDeSms(FalhaNoEnvioDeSmsException ex) {
         return ResponseEntity

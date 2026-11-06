@@ -2,7 +2,7 @@
 
 Suíte de testes ponta a ponta do Is.toque, escrita com Playwright no padrão de arquitetura da GAC/Prodemge (Page Object Model + camada de Flows). Ela abre o front React em um navegador de verdade, conversa com o back Spring Boot local e valida o que o usuário vê.
 
-> **Esta pasta fica só na máquina de quem a usa e não vai para o GitHub.** Ela está ignorada pelo git (regra `codigo-fonte/e2e/` no `.gitignore` da raiz e em `.git/info/exclude`). Não faça commit, push nem PR dela.
+> **Esta pasta é versionada** (entrou no repositório pelo PR #124). Ficam fora do git só os arquivos gerados: `node_modules/`, `test-results/`, `playwright-report/`, `blob-report/`, `storageState-*.json`, `.massa-e2e.json` e `_backup_testes_antigos/` (veja `.gitignore` desta pasta). Não versione senha de banco, connection string nem qualquer credencial real.
 
 ## Sumário
 
@@ -62,13 +62,13 @@ cd codigo-fonte\Backend\istoque
 $env:SPRING_DATASOURCE_URL = "jdbc:postgresql://<host-da-branch-e2e-teste>/is_toque_db?sslmode=require"
 $env:SPRING_DATASOURCE_USERNAME = "neondb_owner"
 $env:SPRING_DATASOURCE_PASSWORD = "<senha-da-branch>"
-.\mvnw spring-boot:run
+.\mvnw.cmd spring-boot:run
 ```
 
 O back sobe em `http://localhost:8080`. Confirme com:
 
 ```powershell
-curl http://localhost:8080/actuator/health
+curl.exe http://localhost:8080/actuator/health
 ```
 
 Não grave a senha em arquivo versionado.
@@ -76,7 +76,7 @@ Não grave a senha em arquivo versionado.
 Se o Windows recusar o diretório temporário padrão (erro `Existing directory ... is not owned by`), use um diretório próprio:
 
 ```powershell
-.\mvnw spring-boot:run "-Dspring-boot.run.jvmArguments=-Djava.io.tmpdir=C:\temp\istoque-back"
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.jvmArguments=-Djava.io.tmpdir=C:\temp\istoque-back"
 ```
 
 ### 3.3. O front
@@ -89,17 +89,28 @@ Não precisa subir. O `playwright.config.js` inicia o Vite na porta 5173 (`npm r
 
 ## 4. Como rodar
 
-Todos os comandos são rodados **dentro de `codigo-fonte/e2e`**.
+Todos os comandos são rodados **dentro de `codigo-fonte/e2e`**, com o back já no ar (item 3.2). A partir da raiz do repositório, o jeito mais simples de começar é abrir a UI do Playwright, onde você escolhe e roda os testes clicando:
+
+```powershell
+cd codigo-fonte\e2e
+npm run local:administrador:test:ui
+```
+
+O trecho `administrador` do nome do script é o **papel** que roda os testes. Os papéis são `administrador`, `gerente` e `funcionario` (veja o item 5). Troque o nome para rodar com outro papel, por exemplo `npm run local:gerente:test:chrome`. Nem todo papel tem todos os scripts: o que roda nos três navegadores (`local:administrador:test`) existe só para o `administrador`. Para abrir a UI com todos os papéis juntos, use `npm run local:test:ui`. Atenção: o gerente e o funcionário só rodam o CT_#0006, e os demais testes são ignorados nesses papéis (`test.skip`), então a UI deles mostra quase tudo como ignorado. A tabela abaixo lista o que existe.
 
 ### 4.1. Scripts
 
 | Script | O que faz |
 |---|---|
 | `npm run local:administrador:test:ui` | Abre a UI do Playwright com o projeto do administrador |
+| `npm run local:gerente:test:ui` | Abre a UI do Playwright com o projeto do gerente |
+| `npm run local:funcionario:test:ui` | Abre a UI do Playwright com o projeto do funcionário |
 | `npm run local:administrador:test:chrome` | Roda no Chromium abrindo a janela do navegador |
 | `npm run local:administrador:test:chrome:headless` | Roda no Chromium sem abrir janela |
 | `npm run local:gerente:test:chrome` | Roda os testes do papel gerente (Chromium) |
+| `npm run local:gerente:test:chrome:headless` | Papel gerente no Chromium, sem janela |
 | `npm run local:funcionario:test:chrome` | Roda os testes do papel funcionário (Chromium) |
+| `npm run local:funcionario:test:chrome:headless` | Papel funcionário no Chromium, sem janela |
 | `npm run local:dev:test:chrome:headless` | Roda os três papéis no Chromium, sem janela |
 | `npm run local:administrador:test` | Administrador em Chromium, Firefox e WebKit |
 | `npm run local:test` | Todos os papéis em todos os navegadores |
@@ -135,7 +146,7 @@ npm run local:administrador:test:chrome:headless -- e2e/modulo_ISTOQUE/z_login
 |---|---|
 | `ENV` | Escolhe `config/<ENV>.env.json` (padrão `local`) |
 | `HEADLESS=true` | Roda sem abrir a janela do navegador |
-| `PAPEL_AUTENTICADO` | Papel usado por `validar-autenticacao.mjs` |
+| `PAPEL_AUTENTICADO` | Papel lido por `config/usuarios.js` e usado por `validar-autenticacao.mjs` (padrão `administrador`) |
 | `CI=true` | Roda só Chromium |
 
 ### 4.4. Rodar a limpeza
@@ -198,8 +209,9 @@ Numeração `[CT_#NNNN]`, sem repetição. O CT_#0022 foi removido (veja o item 
 | Alertas | 0051, 0052 | 0051 / 0052 |
 | Reposição | 0053, 0054 | 0053 / 0054 |
 | Telas só locais | 0055, 0056 | 0055 / 0056 |
+| Bloqueio de login e troca de senha (HT036) | 0057 a 0059 | 0059 / 0057, 0058 |
 
-Para ver título, tags e arquivo de cada teste: `npx playwright test --list --project=administrador-chromium`. A matriz completa (passos, resultado esperado, fonte) está em `PLANO_TESTES_E2E.md`.
+Para ver título, tags e arquivo de cada teste: `npx playwright test --list --project=administrador-chromium`.
 
 ## 8. Arquitetura e convenções
 
@@ -281,7 +293,8 @@ Depois de uma falha, abra o relatório (`npm run report`) ou o trace (`npx playw
 ## 11. Limitações e pendências
 
 - **Página inicial sem teste negativo.** O CT_#0022 verificava que as perguntas frequentes não exibem texto-modelo entre colchetes (`[Definir as condições de uso...]`, `[e-mail de contato]`). Ele falhava por um bug de conteúdo real e foi removido a pedido; o fluxo da página inicial ficou só com o CT_#0021. O conteúdo ainda está no front (`features/landing/components/faq-section.jsx`).
-- **CT_#0057 a CT_#0074 não implementados**: movimentação de estoque, receitas, produção, relatórios, equipe, importação de nota e navegação pelo menu. Essas telas só guardam dados em memória e estão especificadas em `PLANO_TESTES_E2E.md`.
+- **Telas sem teste e2e**: movimentação de estoque, receitas, produção, relatórios, equipe, importação de nota e navegação pelo menu. Essas telas só guardam dados em memória.
+- **HT036 sem tela de troca de senha.** O front não tem tela para trocar a senha; o CT_#0058 e o CT_#0059 trocam a senha pela API (`PATCH /api/usuarios/me/senha`) e conferem o efeito na tela de login.
 - **Permissões por perfil (HU007) sem teste de tela.** O back já devolve 403 para o Funcionário em operações de gerenciamento (por exemplo criar produto ou categoria). Um teste de tela para isso ainda não existe; hoje gerente e funcionário só têm o CT_#0006.
 - **Mensagem genérica no 409.** Produto ou categoria duplicados mostram "A operação viola uma restrição de integridade dos dados". Os CTs 0030, 0035 e 0038 não fixam esse texto, só que um erro aparece e nada foi gravado. A mensagem é uma melhoria sugerida para o front/back.
 - **Sem guarda de rota.** Sem sessão, qualquer rota interna abre em modo demonstração, em vez de ir para o login. O CT_#0014 valida esse comportamento atual.

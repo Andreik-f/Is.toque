@@ -52,10 +52,23 @@ export default class EmpresaFlows {
     if (resposta.status === 200) {
       return resposta.corpo;
     }
-    if (resposta.status === 401) {
+    // 401: credencial errada; 429: conta bloqueada por tentativas falhas (HT036)
+    if (resposta.status === 401 || resposta.status === 429) {
       return null;
     }
     throw new Error(`Login pela API falhou: ${resposta.status} ${JSON.stringify(resposta.corpo)}`);
+  }
+
+  async trocarSenhaPelaApi(sessao, senhaAtual, novaSenha) {
+    const resposta = await this.helpersPage.chamarApi({
+      metodo: 'PATCH',
+      url: `${env.apiURL}/api/usuarios/me/senha`,
+      token: sessao.token,
+      corpo: { senhaAtual, novaSenha },
+    });
+    if (resposta.status !== 204) {
+      throw new Error(`Troca de senha pela API falhou: ${resposta.status} ${JSON.stringify(resposta.corpo)}`);
+    }
   }
 
   async criarEmpresaIsolada() {

@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -384,6 +385,62 @@ class AutenticacaoJwtIntegrationTest {
         mockMvc.perform(post("/api/produtos").contentType(MediaType.APPLICATION_JSON).content("{}")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void rotaProtegida_depoisDeTrocarAPropriaSenha_recusaOTokenAntigoEAceitaONovo() throws Exception {
+        String tokenAntigo = tokenValido();
+
+        mockMvc.perform(patch("/api/usuarios/me/senha")
+                        .header("Authorization", "Bearer " + tokenAntigo)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"senhaAtual":"%s","novaSenha":"NovaSenhaValida123"}
+                                """.formatted(SENHA)))
+                .andExpect(status().isNoContent());
+
+        acessarPerfis(tokenAntigo)
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value(MENSAGEM_401));
+
+        String respostaNovoLogin = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"usuario@teste.com","senha":"NovaSenhaValida123"}
+                                """))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        String tokenNovo = JsonPath.read(respostaNovoLogin, "$.token");
+
+        acessarPerfis(tokenNovo).andExpect(status().isOk());
+    }
+
+    @Test
+    void rotaProtegida_depoisDeAdministradorAlterarASenha_recusaOTokenAntigoEAceitaONovo() throws Exception {
+        String tokenAntigo = tokenValido();
+
+        mockMvc.perform(patch("/api/usuarios/{id}/senha", usuarioId())
+                        .header("Authorization", "Bearer " + tokenAntigo)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"novaSenha":"NovaSenhaValida123"}
+                                """))
+                .andExpect(status().isNoContent());
+
+        acessarPerfis(tokenAntigo)
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value(MENSAGEM_401));
+
+        String respostaNovoLogin = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"usuario@teste.com","senha":"NovaSenhaValida123"}
+                                """))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        String tokenNovo = JsonPath.read(respostaNovoLogin, "$.token");
+
+        acessarPerfis(tokenNovo).andExpect(status().isOk());
     }
 
     private Integer usuarioId() {

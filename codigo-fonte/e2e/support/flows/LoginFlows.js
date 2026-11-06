@@ -19,6 +19,14 @@ export default class LoginFlows {
     await this.loginPage.validarUrlLogada(env.urlAutenticada);
   }
 
+  // Só envia o formulário; quem chama valida o resultado (sucesso ou erro)
+  async tentarLogin(email, senha) {
+    const { campo, botao } = dados;
+    await this.loginPage.preencherCampo(campo.email, email);
+    await this.loginPage.preencherCampo(campo.senha, senha);
+    await this.loginPage.clicarBotaoEnvio(botao.entrar);
+  }
+
   async entrarUrlAutenticada() {
     await this.helpersPage.abrirURL(env.urlAutenticada);
   }

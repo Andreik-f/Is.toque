@@ -58,6 +58,12 @@ public class Usuario {
     @Column(name = "tentativas_falhas")
     private Integer tentativasFalhas = 0;
 
+    @Column(name = "token_versao", nullable = false)
+    private Integer tokenVersao = 0;
+
+    @Column(name = "ultima_falha_em")
+    private OffsetDateTime ultimaFalhaEm;
+
     public Usuario() {
     }
 
@@ -68,6 +74,9 @@ public class Usuario {
         }
         if (this.tentativasFalhas == null) {
             this.tentativasFalhas = 0;
+        }
+        if (this.tokenVersao == null) {
+            this.tokenVersao = 0;
         }
         this.criadoEm = OffsetDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         this.atualizadoEm = this.criadoEm;
@@ -103,4 +112,8 @@ public class Usuario {
     public void setBloqueadoAte(OffsetDateTime bloqueadoAte) { this.bloqueadoAte = bloqueadoAte; }
     public Integer getTentativasFalhas() { return tentativasFalhas; }
     public void setTentativasFalhas(Integer tentativasFalhas) { this.tentativasFalhas = tentativasFalhas; }
+    public Integer getTokenVersao() { return tokenVersao; }
+    public void setTokenVersao(Integer tokenVersao) { this.tokenVersao = tokenVersao; }
+    public OffsetDateTime getUltimaFalhaEm() { return ultimaFalhaEm; }
+    public void setUltimaFalhaEm(OffsetDateTime ultimaFalhaEm) { this.ultimaFalhaEm = ultimaFalhaEm; }
 }

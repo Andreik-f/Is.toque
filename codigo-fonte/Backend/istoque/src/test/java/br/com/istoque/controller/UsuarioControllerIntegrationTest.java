@@ -37,6 +37,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
@@ -917,5 +918,107 @@ class UsuarioControllerIntegrationTest {
                                 {"senhaAtual":"SenhaAntiga123","novaSenha":"SenhaNova456"}
                                 """))
                 .andExpect(status().isNotFound());
+    }
+
+    /** HT036: 5 senhas atuais erradas bloqueiam a conta; a 6ª dá 429 mesmo certa. */
+    @Test
+    void trocarMinhaSenha_aposCincoSenhasAtuaisIncorretas_devolve429MesmoComSenhaCerta() throws Exception {
+        Usuario usuario = criarUsuarioPersistido("Admin A", "bloqueiotroca@empresaa.com", "SenhaAntiga123",
+                perfilAdminEmpresaA, empresaA);
+
+        for (int i = 0; i < 5; i++) {
+            trocarMinhaSenha(usuario, """
+                    {"senhaAtual":"SenhaErrada","novaSenha":"SenhaNova456"}
+                    """)
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.message").value("Senha atual incorreta."));
+        }
+
+        trocarMinhaSenha(usuario, """
+                {"senhaAtual":"SenhaAntiga123","novaSenha":"SenhaNova456"}
+                """)
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.status").value(429))
+                .andExpect(jsonPath("$.message").value("Muitas tentativas. Tente novamente mais tarde."));
+    }
+
+    /** HT036: trocar a própria senha invalida os tokens emitidos antes da troca. */
+    @Test
+    void trocarMinhaSenha_invalidaTokenAnteriorEPermiteNovoLogin() throws Exception {
+        Usuario usuario = criarUsuarioPersistido("Admin A", "invalidatoken@empresaa.com", "SenhaAntiga123",
+                perfilAdminEmpresaA, empresaA);
+        String tokenAntigo = tokenDe(usuario);
+
+        mockMvc.perform(patch("/api/usuarios/me/senha")
+                        .header("Authorization", "Bearer " + tokenAntigo)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"senhaAtual":"SenhaAntiga123","novaSenha":"SenhaNova456"}
+                                """))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/usuarios")
+                        .with(anonymous())
+                        .header("Authorization", "Bearer " + tokenAntigo))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value(RestAuthenticationEntryPoint.MENSAGEM));
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoLogin("invalidatoken@empresaa.com", "SenhaNova456")))
+                .andExpect(status().isOk());
+    }
+
+    /** HT036: a troca de senha feita pelo administrador também invalida o token anterior do usuário. */
+    @Test
+    void alterarSenha_invalidaTokenAnteriorDoUsuarioEPermiteNovoLogin() throws Exception {
+        Usuario admin = criarUsuarioPersistido("Admin A", "admin@empresaa.com", "SenhaValida123",
+                perfilAdminEmpresaA, empresaA);
+        Usuario alvo = criarUsuarioPersistido("Alvo", "alvo@empresaa.com", "SenhaAntiga123",
+                perfilAdminEmpresaA, empresaA);
+        String tokenAntigoDoAlvo = tokenDe(alvo);
+
+        mockMvc.perform(patch("/api/usuarios/{id}/senha", alvo.getId())
+                        .header("Authorization", "Bearer " + tokenDe(admin))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"novaSenha":"SenhaNova456"}
+                                """))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get("/api/usuarios")
+                        .with(anonymous())
+                        .header("Authorization", "Bearer " + tokenAntigoDoAlvo))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value(RestAuthenticationEntryPoint.MENSAGEM));
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoLogin("alvo@empresaa.com", "SenhaNova456")))
+                .andExpect(status().isOk());
+    }
+
+    /** HT036: acertar a senha atual na troca zera as falhas anteriores e limpa a data da última falha. */
+    @Test
+    void trocarMinhaSenha_comSenhaAtualCerta_zeraTentativasFalhasEOBloqueio() throws Exception {
+        Usuario usuario = criarUsuarioPersistido("Admin A", "zeratentativas@empresaa.com",
+                "SenhaAntiga123", perfilAdminEmpresaA, empresaA);
+
+        for (int i = 0; i < 3; i++) {
+            trocarMinhaSenha(usuario, """
+                    {"senhaAtual":"SenhaErrada","novaSenha":"SenhaNova456"}
+                    """)
+                    .andExpect(status().isBadRequest());
+        }
+
+        trocarMinhaSenha(usuario, """
+                {"senhaAtual":"SenhaAntiga123","novaSenha":"SenhaNova456"}
+                """)
+                .andExpect(status().isNoContent());
+
+        Usuario atualizado = usuarioRepository.findById(usuario.getId()).orElseThrow();
+        assertEquals(0, atualizado.getTentativasFalhas());
+        assertNull(atualizado.getBloqueadoAte());
+        assertNull(atualizado.getUltimaFalhaEm());
     }
 }

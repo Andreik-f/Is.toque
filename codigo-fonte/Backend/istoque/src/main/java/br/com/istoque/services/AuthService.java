@@ -19,13 +19,16 @@ public class AuthService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final BloqueioDeLoginService bloqueioDeLoginService;
 
     public AuthService(UsuarioRepository usuarioRepository,
                        PasswordEncoder passwordEncoder,
-                       JwtService jwtService) {
+                       JwtService jwtService,
+                       BloqueioDeLoginService bloqueioDeLoginService) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.bloqueioDeLoginService = bloqueioDeLoginService;
     }
 
     @Transactional
@@ -40,10 +43,14 @@ public class AuthService {
             throw new CredenciaisInvalidasException();
         }
 
+        bloqueioDeLoginService.exigirNaoBloqueado(usuario);
+
         if (!passwordEncoder.matches(loginRequest.senha(), usuario.getSenha())) {
+            bloqueioDeLoginService.registrarFalha(usuario);
             throw new CredenciaisInvalidasException();
         }
 
+        bloqueioDeLoginService.registrarAcerto(usuario);
         usuarioRepository.registrarAcesso(usuario.getId(), OffsetDateTime.now());
 
         String nomeDaEmpresa = usuario.getEmpresa().getNomeFantasia() != null
@@ -54,7 +61,8 @@ public class AuthService {
                 usuario.getEmail(),
                 usuario.getId(),
                 usuario.getEmpresa().getId(),
-                usuario.getPerfil().getNome());
+                usuario.getPerfil().getNome(),
+                usuario.getTokenVersao());
 
         return new LoginResponseDTO(
                 usuario.getId(),

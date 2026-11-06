@@ -18,12 +18,14 @@ test.describe('[sessao_negativo] Testes de sessão inválida', () => {
     const helpersPage = new HelpersPage(page);
     const { mensagem, sessao: dadosSessao } = dados;
     await loginFlows.entrarUrlAutenticada();
+    await helpersPage.aguardarRedeOciosa();
     const sessao = await loginPage.validarSessaoGravada();
     const posicao = sessao.token.length - 10;
     const caractere = sessao.token[posicao] === 'A' ? 'B' : 'A';
     const tokenAdulterado = `${sessao.token.slice(0, posicao)}${caractere}${sessao.token.slice(posicao + 1)}`;
     await helpersPage.gravarLocalStorage(dadosSessao.chaveArmazenamento, { ...sessao, token: tokenAdulterado });
     helpersPage.iniciarMonitoramentoApi();
+    helpersPage.zerarChamadasApi();
     await helpersPage.recarregarPagina();
     await loginPage.validarUrlLogada(env.urlLogin);
     await loginPage.validarErroFormulario(mensagem.sessaoExpirada);

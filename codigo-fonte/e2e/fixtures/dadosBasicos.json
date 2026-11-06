@@ -94,6 +94,7 @@
   "mensagem": {
     "sessaoExpirada": "Sua sessão expirou. Entre novamente.",
     "credenciaisInvalidas": "E-mail ou senha incorretos.",
+    "contaBloqueada": "Muitas tentativas. Tente novamente mais tarde.",
     "informeEmail": "Informe seu e-mail.",
     "informeSenha": "Informe sua senha.",
     "informeRazaoSocial": "Informe a razão social.",
@@ -138,7 +139,9 @@
     "emailInexistenteDominio": "@exemplo.com",
     "senhaErrada": "SenhaErrada-123",
     "emailSemArroba": "usuario-sem-arroba",
-    "senhaQualquer": "qualquer123"
+    "senhaQualquer": "qualquer123",
+    "novaSenha": "E2e-Nova-Senha-7",
+    "limiteTentativasFalhas": 5
   },
   "cadastro": {
     "cnpjInvalido": "12.345",

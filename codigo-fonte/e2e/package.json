@@ -2,7 +2,7 @@
   "name": "istoque-e2e",
   "version": "1.0.0",
   "private": true,
-  "description": "Testes e2e locais do Is.toque (padrão GAC). Esta pasta fica fora do git e nunca vai para o GitHub.",
+  "description": "Testes e2e do Is.toque com Playwright (padrão GAC).",
   "devDependencies": {
     "@playwright/test": "1.64.1",
     "cross-env": "^10.1.0",
@@ -18,8 +18,10 @@
     "local:administrador:test:ui": "cross-env ENV=local npx playwright test --project=administrador-chromium --ui",
     "local:gerente:test:chrome": "cross-env ENV=local npx playwright test --project=gerente-chromium --workers=1",
     "local:gerente:test:chrome:headless": "cross-env ENV=local HEADLESS=true npx playwright test --project=gerente-chromium --workers=1",
+    "local:gerente:test:ui": "cross-env ENV=local npx playwright test --project=gerente-chromium --ui",
     "local:funcionario:test:chrome": "cross-env ENV=local npx playwright test --project=funcionario-chromium --workers=1",
     "local:funcionario:test:chrome:headless": "cross-env ENV=local HEADLESS=true npx playwright test --project=funcionario-chromium --workers=1",
+    "local:funcionario:test:ui": "cross-env ENV=local npx playwright test --project=funcionario-chromium --ui",
     "local:dev:test:chrome:headless": "cross-env ENV=local HEADLESS=true npx playwright test --project=administrador-chromium --project=gerente-chromium --project=funcionario-chromium --workers=1",
     "lint": "eslint .",
     "validar:autenticacao": "node validar-autenticacao.mjs"

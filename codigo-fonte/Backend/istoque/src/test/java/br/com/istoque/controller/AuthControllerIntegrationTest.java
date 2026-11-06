@@ -18,10 +18,20 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -45,6 +55,7 @@ class AuthControllerIntegrationTest {
 
     private static final String SENHA_CORRETA = "SenhaCorreta123";
     private static final String MENSAGEM_ERRO_PADRAO = "E-mail ou senha incorretos.";
+    private static final String MENSAGEM_CONTA_BLOQUEADA = "Muitas tentativas. Tente novamente mais tarde.";
 
     @Autowired
     private MockMvc mockMvc;
@@ -207,6 +218,221 @@ class AuthControllerIntegrationTest {
                 .andExpect(jsonPath("$.campos.email").exists())
                 .andExpect(jsonPath("$.campos.senha").exists())
                 .andExpect(jsonPath("$.campos.cnpj").doesNotExist());
+    }
+
+    /** HT036: 5 senhas erradas seguidas bloqueiam a conta na 5ª tentativa, que ainda devolve 401. */
+    @Test
+    void loginComCincoSenhasErradas_bloqueiaAContaNaQuintaTentativa() throws Exception {
+        for (int i = 1; i <= 4; i++) {
+            mockMvc.perform(post("/api/auth/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(corpoLogin("usuario@teste.com", "senhaErrada")))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.message").value(MENSAGEM_ERRO_PADRAO));
+
+            Usuario parcial = usuarioRepository.findByEmail("usuario@teste.com").orElseThrow();
+            assertEquals(i, parcial.getTentativasFalhas());
+            assertNull(parcial.getBloqueadoAte());
+        }
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoLogin("usuario@teste.com", "senhaErrada")))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value(MENSAGEM_ERRO_PADRAO));
+
+        Usuario bloqueado = usuarioRepository.findByEmail("usuario@teste.com").orElseThrow();
+        assertEquals(0, bloqueado.getTentativasFalhas());
+        assertNotNull(bloqueado.getBloqueadoAte());
+        assertTrue(bloqueado.getBloqueadoAte().isAfter(OffsetDateTime.now()));
+    }
+
+    /** HT036: enquanto o bloqueio estiver vigente, o login devolve 429 mesmo com a senha certa. */
+    @Test
+    void loginComContaBloqueada_devolve429MesmoComSenhaCerta() throws Exception {
+        for (int i = 0; i < 5; i++) {
+            mockMvc.perform(post("/api/auth/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(corpoLogin("usuario@teste.com", "senhaErrada")))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoLogin("usuario@teste.com", SENHA_CORRETA)))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.status").value(429))
+                .andExpect(jsonPath("$.message").value(MENSAGEM_CONTA_BLOQUEADA));
+    }
+
+    /** HT036: depois de expirar o prazo de bloqueio, o login com a senha certa volta a devolver 200. */
+    @Test
+    void loginAposExpirarOBloqueio_devolve200ELimpaBloqueadoAte() throws Exception {
+        for (int i = 0; i < 5; i++) {
+            mockMvc.perform(post("/api/auth/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(corpoLogin("usuario@teste.com", "senhaErrada")))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        Usuario usuario = usuarioRepository.findByEmail("usuario@teste.com").orElseThrow();
+        usuario.setBloqueadoAte(OffsetDateTime.now().minusMinutes(1));
+        usuarioRepository.save(usuario);
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoLogin("usuario@teste.com", SENHA_CORRETA)))
+                .andExpect(status().isOk());
+
+        Usuario desbloqueado = usuarioRepository.findByEmail("usuario@teste.com").orElseThrow();
+        assertNull(desbloqueado.getBloqueadoAte());
+        assertEquals(0, desbloqueado.getTentativasFalhas());
+    }
+
+    /** HT036: um login correto zera o contador de falhas anteriores. */
+    @Test
+    void loginComSucesso_zeraTentativasFalhasEAceitaMaisQuatroErrosSemBloquear() throws Exception {
+        for (int i = 0; i < 3; i++) {
+            mockMvc.perform(post("/api/auth/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(corpoLogin("usuario@teste.com", "senhaErrada")))
+                    .andExpect(status().isUnauthorized());
+        }
+        assertEquals(3, usuarioRepository.findByEmail("usuario@teste.com").orElseThrow().getTentativasFalhas());
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoLogin("usuario@teste.com", SENHA_CORRETA)))
+                .andExpect(status().isOk());
+
+        assertEquals(0, usuarioRepository.findByEmail("usuario@teste.com").orElseThrow().getTentativasFalhas());
+
+        for (int i = 0; i < 4; i++) {
+            mockMvc.perform(post("/api/auth/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(corpoLogin("usuario@teste.com", "senhaErrada")))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        Usuario usuario = usuarioRepository.findByEmail("usuario@teste.com").orElseThrow();
+        assertEquals(4, usuario.getTentativasFalhas());
+        assertNull(usuario.getBloqueadoAte());
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoLogin("usuario@teste.com", SENHA_CORRETA)))
+                .andExpect(status().isOk());
+    }
+
+    /** HT036: se a última falha foi há mais de 15 minutos, a próxima falha recomeça a contagem em 1. */
+    @Test
+    void loginAposJanelaDeFalhasExpirar_reiniciaOContador() throws Exception {
+        for (int i = 0; i < 4; i++) {
+            mockMvc.perform(post("/api/auth/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(corpoLogin("usuario@teste.com", "senhaErrada")))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        Usuario usuario = usuarioRepository.findByEmail("usuario@teste.com").orElseThrow();
+        usuario.setUltimaFalhaEm(OffsetDateTime.now().minusMinutes(16));
+        usuarioRepository.save(usuario);
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoLogin("usuario@teste.com", "senhaErrada")))
+                .andExpect(status().isUnauthorized());
+
+        Usuario recarregado = usuarioRepository.findByEmail("usuario@teste.com").orElseThrow();
+        assertEquals(1, recarregado.getTentativasFalhas());
+        assertNull(recarregado.getBloqueadoAte());
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoLogin("usuario@teste.com", SENHA_CORRETA)))
+                .andExpect(status().isOk());
+    }
+
+    /** HT036: se a última falha ainda está dentro da janela de 15 minutos, a 5ª falha bloqueia a conta. */
+    @Test
+    void loginDentroDaJanelaDeFalhas_aindaBloqueiaNaQuintaFalha() throws Exception {
+        for (int i = 0; i < 4; i++) {
+            mockMvc.perform(post("/api/auth/login")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(corpoLogin("usuario@teste.com", "senhaErrada")))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        Usuario usuario = usuarioRepository.findByEmail("usuario@teste.com").orElseThrow();
+        usuario.setUltimaFalhaEm(OffsetDateTime.now().minusMinutes(14));
+        usuarioRepository.save(usuario);
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoLogin("usuario@teste.com", "senhaErrada")))
+                .andExpect(status().isUnauthorized());
+
+        Usuario bloqueado = usuarioRepository.findByEmail("usuario@teste.com").orElseThrow();
+        assertNotNull(bloqueado.getBloqueadoAte());
+        assertTrue(bloqueado.getBloqueadoAte().isAfter(OffsetDateTime.now()));
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoLogin("usuario@teste.com", SENHA_CORRETA)))
+                .andExpect(status().isTooManyRequests());
+    }
+
+    /**
+     * HT036: errar a senha grava a tentativa, mas não é uma alteração no cadastro,
+     * então o atualizadoEm do usuário não pode mudar.
+     */
+    @Test
+    void loginComSenhaErrada_registraTentativaSemAlterarAtualizadoEm() throws Exception {
+        jdbcTemplate.update("update usuario set atualizado_em = null");
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoLogin("usuario@teste.com", "senhaErrada")))
+                .andExpect(status().isUnauthorized());
+
+        Usuario usuario = usuarioRepository.findByEmail("usuario@teste.com").orElseThrow();
+        assertEquals(1, usuario.getTentativasFalhas());
+        assertNull(usuario.getAtualizadoEm());
+    }
+
+    /**
+     * HT036: senhas erradas simultâneas da mesma conta não podem perder contagem.
+     * Quatro tentativas disparadas juntas ficam abaixo do limite, então todas
+     * respondem 401 e o contador tem que chegar a 4.
+     */
+    @Test
+    void senhasErradasSimultaneas_naoPerdemContagem() throws Exception {
+        int tentativas = 4;
+        ExecutorService pool = Executors.newFixedThreadPool(tentativas);
+        try {
+            CountDownLatch largada = new CountDownLatch(1);
+            List<Future<Integer>> respostas = new ArrayList<>();
+            for (int i = 0; i < tentativas; i++) {
+                respostas.add(pool.submit(() -> {
+                    largada.await();
+                    return mockMvc.perform(post("/api/auth/login")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(corpoLogin("usuario@teste.com", "senhaErrada")))
+                            .andReturn().getResponse().getStatus();
+                }));
+            }
+            largada.countDown();
+
+            for (Future<Integer> resposta : respostas) {
+                assertEquals(401, resposta.get(60, TimeUnit.SECONDS));
+            }
+        } finally {
+            pool.shutdownNow();
+        }
+
+        Usuario usuario = usuarioRepository.findByEmail("usuario@teste.com").orElseThrow();
+        assertEquals(tentativas, usuario.getTentativasFalhas());
+        assertNull(usuario.getBloqueadoAte());
     }
 
     /** Monta o JSON do corpo da requisição de login. */

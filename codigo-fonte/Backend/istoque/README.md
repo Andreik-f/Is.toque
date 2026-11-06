@@ -20,7 +20,7 @@ O login e o cadastro devolvem um `token` e o `expiraEm` (validade definida em `j
 
 | Método | Caminho | O que faz | Exige autenticação |
 |---|---|---|---|
-| POST | `/api/auth/login` | Entra com e-mail e senha; devolve os dados do usuário e da empresa | Não |
+| POST | `/api/auth/login` | Entra com e-mail e senha; devolve os dados do usuário e da empresa. `401` para e-mail ou senha incorretos; `429` se a conta estiver bloqueada por tentativas (veja "Bloqueio por tentativas de senha") | Não |
 | POST | `/api/auth/cadastro` | Cria a empresa, os perfis padrão e o administrador; aceita `telefone` da empresa (opcional, gravado em E.164, nunca envia SMS) | Não |
 | GET | `/api/empresas/minha` | Busca a empresa do usuário logado | Sim |
 | PUT | `/api/empresas/minha` | Atualiza a empresa do usuário logado; valida o `telefone` e grava em E.164 (exige `empresa.configurar`) | Sim |
@@ -29,7 +29,8 @@ O login e o cadastro devolvem um `token` e o `expiraEm` (validade definida em `j
 | GET | `/api/usuarios` | Lista os usuários da empresa (exige `usuarios.gerenciar`) | Sim |
 | POST | `/api/usuarios` | Cadastra um usuário na empresa (exige `usuarios.gerenciar`) | Sim |
 | PUT | `/api/usuarios/{id}` | Atualiza nome, e-mail e perfil do usuário (exige `usuarios.gerenciar`) | Sim |
-| PATCH | `/api/usuarios/{id}/senha` | Altera a senha do usuário (`novaSenha`) (exige `usuarios.gerenciar`) | Sim |
+| PATCH | `/api/usuarios/{id}/senha` | Altera a senha do usuário (`novaSenha`); os tokens que ele já tinha passam a responder `401` (exige `usuarios.gerenciar`) | Sim |
+| PATCH | `/api/usuarios/me/senha` | Troca a própria senha (`senhaAtual` e `novaSenha`), responde `204`; `400` se a senha atual estiver errada ou a nova for igual à atual; `429` se a conta estiver bloqueada; os tokens antigos passam a responder `401` | Sim |
 | DELETE | `/api/usuarios/{id}` | Desativa o usuário (exclusão lógica) (exige `usuarios.gerenciar`) | Sim |
 | GET | `/api/permissoes` | Lista os nove códigos de permissão, com descrição e módulo | Sim |
 | GET | `/api/perfis` | Lista os perfis da empresa, com as permissões de cada um | Sim |
@@ -69,6 +70,13 @@ Estas operações respondem `409`:
 O perfil Administrador não pode ser renomeado nem perder `usuarios.gerenciar` ou `perfis.gerenciar`: a resposta é `422`.
 
 Os erros seguem o formato `{ timestamp, status, message, campos }`. Os corpos de requisição e resposta, as regras de validação, as mensagens de erro e os exemplos de cada rota estão na [Wiki do projeto](https://github.com/ICEI-PUC-Minas-PBR-ADS/pbr-ads-2026-2-p1-tidai-t1-8246101-pbr-ads-2026-2-p1-tidai-t-davidwsr1/wiki). A API publicada está em https://is-toque-prod.onrender.com. As rotas de receitas usam a empresa do usuário logado e não recebem `empresaId`. Ainda não existem rotas para movimentações, produção e fotos: as tabelas de estoque e receitas já existem no banco, mas sem endpoints.
+
+### Bloqueio por tentativas de senha e fim das sessões antigas (HT036)
+
+- **5 senhas erradas seguidas** bloqueiam a conta por **30 minutos** (`bloqueado_ate`). As 5 falhas precisam acontecer com no máximo **15 minutos** entre uma e outra; passado esse tempo sem nova falha, a contagem recomeça (`ultima_falha_em`). A 5ª falha ainda responde `401`; a partir da tentativa seguinte o login responde `429` com "Muitas tentativas. Tente novamente mais tarde.", mesmo com a senha certa.
+- O primeiro login correto zera o contador. E-mail inexistente e senha errada continuam com a mesma resposta `401`.
+- `PATCH /api/usuarios/me/senha` conta as falhas da senha atual com a mesma regra.
+- Quando a senha muda, a própria ou pelo administrador, a versão do token do usuário (`token_versao`) sobe. O token leva essa versão no claim `tv`, e o token emitido antes da troca responde `401`.
 
 ### Envio de SMS (HU021)
 
@@ -122,11 +130,11 @@ O `ddl-auto=validate` não confere nulabilidade, CHECKs nem índices, e o CI nã
   - `categoria` e `rendimento` são `varchar(60)`: validar `@Size(max = 60)` no DTO, senão o erro do banco vira o 409 genérico.
   - O nome é único só entre as receitas ativas, e a comparação **não** diferencia maiúsculas de minúsculas: "Bolo" e "bolo" são o mesmo nome (índice `uk_receita_empresa_nome_ativa_ci`, em `lower(nome)`). Reativar uma receita cujo nome já foi usado por outra ativa dá 409, e a tela precisa tratar.
 - **`movimentacao`:** nos motivos `ajuste` e `outro`, e em `motivo_perda = outro`, a justificativa precisa ter ao menos um caractere que não seja espaço, tab ou quebra de linha (`ck_mov_justificativa`).
-- **Novas migrações** (inclusive o `permissao` do HU007): usar **V10 ou maior**, e quem tiver uma branch com migração faz rebase depois do merge do HT035. As versões V2 a V7 são do HT035; V8 e V9 são da HU015 (receitas).
+- **Novas migrações:** usar **V13 ou maior**, e quem tiver uma branch com migração faz rebase depois do merge. As versões V2 a V7 são do HT035; V8 e V9 são da HU015 (receitas); V10 é da HU007 (permissões por perfil); V11 é da HU021 (telefone da empresa e códigos de verificação); V12 é da HT036 (versão do token e janela de falhas de senha).
 
 ### Bancos
 
 | Banco | Situação |
 |---|---|
-| Desenvolvimento (Neon, compartilhado) | Baseline na V1 feito em 09/10/2026. V2 a V7 (HT035) aplicadas em 20/10/2026, por isso esses arquivos não podem mais ser editados. |
+| Desenvolvimento (Neon, compartilhado) | Baseline na V1 feito em 09/10/2026. V2 a V7 (HT035) aplicadas em 20/10/2026; V8 a V11 também já constavam no `flyway_schema_history` em 05/11/2026. Por isso os arquivos de V1 a V11 não podem mais ser editados. A V12 (HT036) ainda não foi aplicada. |
 | Produção (Neon `is-toque-prod`, repositório `is.toque_prod`) | Esquema igualado ao da V1 em 09/10/2026, com os dados que já existiam, e baseline na V1 feito no mesmo dia. A API publicada já roda o backend da `main` com Flyway: no boot, o Flyway encontra a V1 marcada e não roda nada. |

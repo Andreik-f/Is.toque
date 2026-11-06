@@ -65,6 +65,11 @@ public class JwtService {
 
     public TokenGerado gerarToken(String email, Integer usuarioId,
                                   Integer empresaId, String perfil) {
+        return gerarToken(email, usuarioId, empresaId, perfil, 0);
+    }
+
+    public TokenGerado gerarToken(String email, Integer usuarioId,
+                                  Integer empresaId, String perfil, int tokenVersao) {
 
         // o JWT guarda datas em segundos; truncar aqui faz o expiraEm da resposta
         // ser idêntico ao "exp" do token
@@ -76,6 +81,7 @@ public class JwtService {
                 .claim("usuarioId", usuarioId)
                 .claim("empresaId", empresaId)
                 .claim("perfil", perfil)
+                .claim("tv", tokenVersao)
                 .issuedAt(Date.from(agora))
                 .expiration(Date.from(expiracao))
                 .signWith(secretKey)

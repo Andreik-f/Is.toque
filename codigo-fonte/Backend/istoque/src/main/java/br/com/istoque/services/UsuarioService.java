@@ -34,17 +34,20 @@ public class UsuarioService {
     private final PerfilRepository perfilRepository;
     private final PasswordEncoder passwordEncoder;
     private final Autorizacao autorizacao;
+    private final BloqueioDeLoginService bloqueioDeLoginService;
 
     public UsuarioService(UsuarioRepository usuarioRepository,
                            EmpresaRepository empresaRepository,
                            PerfilRepository perfilRepository,
                            PasswordEncoder passwordEncoder,
-                           Autorizacao autorizacao) {
+                           Autorizacao autorizacao,
+                           BloqueioDeLoginService bloqueioDeLoginService) {
         this.usuarioRepository = usuarioRepository;
         this.empresaRepository = empresaRepository;
         this.perfilRepository = perfilRepository;
         this.passwordEncoder = passwordEncoder;
         this.autorizacao = autorizacao;
+        this.bloqueioDeLoginService = bloqueioDeLoginService;
     }
 
     public UsuarioResponseDTO criar(UsuarioCreateDTO dto, Integer empresaId) {
@@ -118,6 +121,7 @@ public class UsuarioService {
         Usuario usuario = buscarUsuario(id, empresaId);
         exigirPermissoesDoPerfil(usuario.getPerfil());
         usuario.setSenha(passwordEncoder.encode(novaSenha));
+        usuario.setTokenVersao(usuario.getTokenVersao() + 1);
         usuarioRepository.save(usuario);
     }
 
@@ -156,15 +160,26 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException(usuarioId));
 
+        bloqueioDeLoginService.exigirNaoBloqueado(usuario);
+
         if (!passwordEncoder.matches(dto.senhaAtual(), usuario.getSenha())) {
+            bloqueioDeLoginService.registrarFalha(usuario);
             throw new SenhaAtualIncorretaException("Senha atual incorreta.");
         }
+
+        bloqueioDeLoginService.registrarAcerto(usuario);
 
         if (passwordEncoder.matches(dto.novaSenha(), usuario.getSenha())) {
             throw new SenhaAtualIncorretaException("A nova senha não pode ser igual à atual.");
         }
 
+        // o registrarAcerto zera no banco em outra transação; sem isto o save
+        // abaixo regravaria os valores antigos que a entidade ainda carrega
+        usuario.setTentativasFalhas(0);
+        usuario.setBloqueadoAte(null);
+        usuario.setUltimaFalhaEm(null);
         usuario.setSenha(passwordEncoder.encode(dto.novaSenha()));
+        usuario.setTokenVersao(usuario.getTokenVersao() + 1);
         usuarioRepository.save(usuario);
     }
 }

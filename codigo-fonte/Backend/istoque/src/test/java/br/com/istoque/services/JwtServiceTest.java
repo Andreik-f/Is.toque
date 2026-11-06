@@ -134,4 +134,18 @@ class JwtServiceTest {
 
         assertThrows(JwtException.class, () -> new JwtService(CHAVE, OITO_HORAS_EM_MS).validarToken(token));
     }
+
+    /** A versão do token vai no claim "tv"; na sobrecarga sem versão, entra como 0. */
+    @Test
+    void gerarToken_guardaVersaoDoTokenNoClaimTv() {
+        JwtService service = new JwtService(CHAVE, OITO_HORAS_EM_MS);
+
+        Claims semVersao = service.validarToken(
+                service.gerarToken("a@teste.com", 1, 1, "Administrador").token());
+        Claims comVersao = service.validarToken(
+                service.gerarToken("a@teste.com", 1, 1, "Administrador", 3).token());
+
+        assertEquals(0, semVersao.get("tv", Integer.class));
+        assertEquals(3, comVersao.get("tv", Integer.class));
+    }
 }

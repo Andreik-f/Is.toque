@@ -18,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * Lê "Authorization: Bearer <token>", valida o token e confere no banco se o
@@ -60,8 +61,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
+            // token emitido antes da versão existir não tem o claim e vale como versão 0
+            int versaoDoToken = Objects.requireNonNullElse(claims.get("tv", Integer.class), 0);
+
             usuarioRepository.findById(usuarioId)
                     .filter(usuario -> Boolean.TRUE.equals(usuario.getAtivo()))
+                    .filter(usuario -> Objects.equals(usuario.getTokenVersao(), versaoDoToken))
                     .ifPresent(usuario -> {
                         // empresa e perfil vêm do banco, não do token: se mudarem, valem na hora
                         UsuarioAutenticado principal = new UsuarioAutenticado(
