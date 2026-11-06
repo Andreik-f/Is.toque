@@ -40,15 +40,16 @@ O login e o cadastro devolvem um `token` e o `expiraEm` (validade definida em `j
 | GET | `/api/categorias` | Lista as categorias da empresa | Sim |
 | POST | `/api/categorias` | Cadastra uma categoria (exige `produtos.gerenciar`) | Sim |
 | GET | `/api/unidades-medida` | Lista as unidades de medida | Sim |
-| GET | `/api/produtos` | Lista os produtos da empresa | Sim |
+| GET | `/api/produtos` | Lista os produtos da empresa; `?ativo=true` ou `?ativo=false` filtra por status | Sim |
 | GET | `/api/produtos/ativos` | Lista só os produtos ativos | Sim |
 | GET | `/api/produtos/{id}` | Busca um produto | Sim |
 | POST | `/api/produtos` | Cadastra um produto (exige `produtos.gerenciar`) | Sim |
 | PUT | `/api/produtos/{id}` | Atualiza um produto (a quantidade atual enviada é ignorada; exige `produtos.gerenciar`) | Sim |
 | PATCH | `/api/produtos/{id}/desativar` | Desativa o produto (exclusão lógica; exige `produtos.gerenciar`) | Sim |
+| PATCH | `/api/produtos/{id}/reativar` | Reativa o produto (exige `produtos.gerenciar`) | Sim |
 | GET | `/api/receitas` | Lista as receitas da empresa do usuário logado | Sim |
 | GET | `/api/receitas/{id}` | Busca uma receita com seus itens | Sim |
-| POST | `/api/receitas` | Cadastra uma receita (ficha técnica): `404` se um produto não existe, está inativo ou é de outra empresa, `400` se repetir produto, `409` se já houver receita ativa com o nome; exige `receitas.gerenciar` | Sim |
+| POST | `/api/receitas` | Cadastra uma receita (ficha técnica): `404` se um produto não existe ou é de outra empresa, `422` se estiver inativo, `400` se repetir produto, `409` se já houver receita ativa com o nome; exige `receitas.gerenciar` | Sim |
 | PUT | `/api/receitas/{id}` | Atualiza os dados e a lista de itens (receita desativada responde `404`; exige `receitas.gerenciar`) | Sim |
 | PATCH | `/api/receitas/{id}/desativar` | Desativa a receita (exclusão lógica), responde `204`; exige `receitas.gerenciar` | Sim |
 | GET | `/actuator/health` | Situação da API e da conexão com o banco | Não |

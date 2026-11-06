@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
@@ -41,13 +42,14 @@ public class ProdutoController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProdutoResponseDTO>> listarTodos() {
-        return ResponseEntity.ok(produtoService.listarTodos(usuarioLogado.empresaId()));
+    public ResponseEntity<List<ProdutoResponseDTO>> listar(@RequestParam(required = false) Boolean ativo) {
+        return ResponseEntity.ok(produtoService.listar(usuarioLogado.empresaId(), ativo));
     }
 
+    // o front carrega os produtos da empresa por esta rota
     @GetMapping("/ativos")
     public ResponseEntity<List<ProdutoResponseDTO>> listarAtivos() {
-        return ResponseEntity.ok(produtoService.listarAtivos(usuarioLogado.empresaId()));
+        return ResponseEntity.ok(produtoService.listar(usuarioLogado.empresaId(), true));
     }
 
     // endpoint de busca pelo ID
@@ -67,5 +69,11 @@ public class ProdutoController {
     @PatchMapping("/{id}/desativar")
     public ResponseEntity<ProdutoResponseDTO> desativar(@PathVariable Integer id) {
         return ResponseEntity.ok(produtoService.desativar(id, usuarioLogado.empresaId()));
+    }
+
+    // endpoint para reativar
+    @PatchMapping("/{id}/reativar")
+    public ResponseEntity<ProdutoResponseDTO> reativar(@PathVariable Integer id) {
+        return ResponseEntity.ok(produtoService.reativar(id, usuarioLogado.empresaId()));
     }
 }

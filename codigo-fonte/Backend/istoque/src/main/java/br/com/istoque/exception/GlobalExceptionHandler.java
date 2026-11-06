@@ -327,4 +327,11 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ApiErrorResponse.de(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
     }
+
+    @ExceptionHandler(ProdutoInativoException.class)
+    public ResponseEntity<ApiErrorResponse> tratarProdutoInativo(ProdutoInativoException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNPROCESSABLE_CONTENT)
+                .body(ApiErrorResponse.de(HttpStatus.UNPROCESSABLE_CONTENT.value(), ex.getMessage()));
+    }
 }

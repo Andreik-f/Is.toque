@@ -5,6 +5,7 @@ import br.com.istoque.dto.ItemReceitaResponseDTO;
 import br.com.istoque.dto.ReceitaRequestDTO;
 import br.com.istoque.dto.ReceitaResponseDTO;
 import br.com.istoque.exception.EmpresaNaoEncontradaException;
+import br.com.istoque.exception.ProdutoInativoException;
 import br.com.istoque.exception.ProdutoNaoEncontradoException;
 import br.com.istoque.exception.ProdutoRepetidoNaReceitaException;
 import br.com.istoque.exception.QuantidadeFracionadaNaoPermitidaException;
@@ -63,7 +64,8 @@ public class ReceitaService {
     /**
      * @throws ReceitaJaCadastradaException se já existe receita ativa com o mesmo nome na empresa
      * @throws ProdutoRepetidoNaReceitaException se um produto aparece mais de uma vez nos itens
-     * @throws ProdutoNaoEncontradoException se um produto não existe, está inativo ou é de outra empresa
+     * @throws ProdutoNaoEncontradoException se um produto não existe ou é de outra empresa
+     * @throws ProdutoInativoException se um produto da empresa está inativo
      */
     @Transactional
     public ReceitaResponseDTO cadastrar(ReceitaRequestDTO dto, Integer empresaId) {
@@ -143,10 +145,9 @@ public class ReceitaService {
             }
         }
 
-        // Só entram produtos ativos da própria empresa; os outros respondem como inexistentes
+        // Produto de outra empresa responde como inexistente, para não revelar que o id existe
         Map<Integer, Produto> produtos = produtoRepository.findAllById(idsNovos).stream()
                 .filter(p -> p.getEmpresa().getId().equals(empresaId))
-                .filter(p -> Boolean.TRUE.equals(p.getAtivo()))
                 .collect(Collectors.toMap(Produto::getId, Function.identity()));
 
         // Valida tudo antes de mexer nos itens da receita
@@ -155,6 +156,9 @@ public class ReceitaService {
             Produto produto = produtos.get(itemDto.produtoId());
             if (produto == null) {
                 throw new ProdutoNaoEncontradoException(itemDto.produtoId());
+            }
+            if (!Boolean.TRUE.equals(produto.getAtivo())) {
+                throw new ProdutoInativoException(produto.getNome());
             }
             UnidadeMedida unidade = produto.getUnidadeMedida();
             boolean temParteDecimal = itemDto.quantidade().stripTrailingZeros().scale() > 0;

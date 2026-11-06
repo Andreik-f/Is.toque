@@ -34,6 +34,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -53,7 +54,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * referências inválidas (unidade/categoria) e corpo ou parâmetro mal
  * formatado, e 405/404 para método ou rota inexistente — nenhum desses casos
  * pode cair no 500 genérico. Também garante que editar um produto não muda o
- * saldo do estoque (HT014) e que a listagem filtra pela empresa (HT028).
+ * saldo do estoque (HT014), que a listagem filtra pela empresa (HT028) e o
+ * filtro por status e a reativação de produtos (HU009).
  *
  * Roda com banco H2 em memória e MockMvc, como os demais testes de controller.
  */
@@ -475,7 +477,8 @@ class ProdutoControllerIntegrationTest {
             "GET, /api/produtos/ativos",
             "GET, /api/produtos/1",
             "PUT, /api/produtos/1",
-            "PATCH, /api/produtos/1/desativar"
+            "PATCH, /api/produtos/1/desativar",
+            "PATCH, /api/produtos/1/reativar"
     })
     void rotaDeProdutos_semToken_devolve401(String metodo, String rota) throws Exception {
         mockMvc.perform(request(HttpMethod.valueOf(metodo), rota)
@@ -494,6 +497,106 @@ class ProdutoControllerIntegrationTest {
         mockMvc.perform(get("/api/produtos").with(UsuarioDeTeste.autenticadoComo(empresaA.getId(), perfil)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    /** ?ativo=true traz só os ativos da empresa. */
+    @Test
+    void listar_comFiltroAtivoTrue_devolveSoOsAtivosDaEmpresa() throws Exception {
+        Integer idAtivo = criarProdutoValido();
+        Integer idInativo = criarProdutoValido();
+        desativar(idInativo, comoEmpresaA());
+
+        mockMvc.perform(get("/api/produtos?ativo=true").with(comoEmpresaA()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].id", hasItem(idAtivo)))
+                .andExpect(jsonPath("$[*].id", not(hasItem(idInativo))));
+    }
+
+    /** ?ativo=false traz só os inativos da empresa. */
+    @Test
+    void listar_comFiltroAtivoFalse_devolveSoOsInativosDaEmpresa() throws Exception {
+        Integer idAtivo = criarProdutoValido();
+        Integer idInativo = criarProdutoValido();
+        desativar(idInativo, comoEmpresaA());
+
+        mockMvc.perform(get("/api/produtos?ativo=false").with(comoEmpresaA()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].id", hasItem(idInativo)))
+                .andExpect(jsonPath("$[*].id", not(hasItem(idAtivo))));
+    }
+
+    /** O filtro de inativos também respeita a empresa do token. */
+    @Test
+    void listar_comFiltroAtivoFalse_naoTrazInativoDeOutraEmpresa() throws Exception {
+        Map<String, Object> daEmpresaB = corpoValido();
+        daEmpresaB.put("categoriaId", categoriaEmpresaB.getId());
+        String resposta = criarProduto(daEmpresaB, comoEmpresaB())
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        desativar(JsonPath.read(resposta, "$.id"), comoEmpresaB());
+
+        mockMvc.perform(get("/api/produtos?ativo=false").with(comoEmpresaA()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    /** Sem o filtro, a listagem continua trazendo ativos e inativos. */
+    @Test
+    void listar_semFiltroAtivo_devolveTodosDaEmpresa() throws Exception {
+        Integer idAtivo = criarProdutoValido();
+        Integer idInativo = criarProdutoValido();
+        desativar(idInativo, comoEmpresaA());
+
+        mockMvc.perform(get("/api/produtos").with(comoEmpresaA()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].id", hasItems(idAtivo, idInativo)));
+    }
+
+    /** Valor que não é booleano devolve 400 com mensagem, e não 500. */
+    @Test
+    void listar_comFiltroAtivoInvalido_devolve400() throws Exception {
+        mockMvc.perform(get("/api/produtos?ativo=abc").with(comoEmpresaA()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Valor inválido para o parâmetro 'ativo': abc"));
+    }
+
+    /** Reativar devolve 200 e o produto volta a constar como ativo. */
+    @Test
+    void reativar_produtoInativoDaPropriaEmpresa_devolve200EMudaStatus() throws Exception {
+        Integer id = criarProdutoValido();
+        desativar(id, comoEmpresaA());
+
+        mockMvc.perform(patch("/api/produtos/{id}/reativar", id).with(comoEmpresaA()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ativo").value(true));
+
+        mockMvc.perform(get("/api/produtos/{id}", id).with(comoEmpresaA()))
+                .andExpect(jsonPath("$.ativo").value(true));
+    }
+
+    /** Produto de outra empresa responde 404 e continua inativo. */
+    @Test
+    void reativar_produtoInativoDeOutraEmpresa_devolve404() throws Exception {
+        Integer id = criarProdutoValido();
+        desativar(id, comoEmpresaA());
+
+        mockMvc.perform(patch("/api/produtos/{id}/reativar", id).with(comoEmpresaB()))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(get("/api/produtos/{id}", id).with(comoEmpresaA()))
+                .andExpect(jsonPath("$.ativo").value(false));
+    }
+
+    /** Reativar um id que não existe devolve 404. */
+    @Test
+    void reativar_inexistente_devolve404() throws Exception {
+        mockMvc.perform(patch("/api/produtos/{id}/reativar", 999999).with(comoEmpresaA()))
+                .andExpect(status().isNotFound());
+    }
+
+    private void desativar(Integer id, RequestPostProcessor usuario) throws Exception {
+        mockMvc.perform(patch("/api/produtos/{id}/desativar", id).with(usuario))
+                .andExpect(status().isOk());
     }
 
     /**

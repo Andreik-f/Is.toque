@@ -49,19 +49,18 @@ public class ProdutoService {
         return ProdutoResponseDTO.fromEntity(produtoRepository.save(produto));
     }
 
-    // método de listagem: com a empresa, só os produtos dela, em ordem de nome
+    // método de listagem: só os produtos da empresa, em ordem de nome; sem o filtro ativo, traz todos
     @Transactional(readOnly = true)
-    public List<ProdutoResponseDTO> listarTodos(Integer empresaId) {
-        return produtoRepository.findByEmpresaIdOrderByNome(empresaId).stream()
-                .map(ProdutoResponseDTO::fromEntity)
-                .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public List<ProdutoResponseDTO> listarAtivos(Integer empresaId) {
-        return produtoRepository.findByEmpresaIdAndAtivoTrueOrderByNome(empresaId).stream()
-                .map(ProdutoResponseDTO::fromEntity)
-                .toList();
+    public List<ProdutoResponseDTO> listar(Integer empresaId, Boolean ativo) {
+        List<Produto> produtos;
+        if (ativo == null) {
+            produtos = produtoRepository.findByEmpresaIdOrderByNome(empresaId);
+        } else if (ativo) {
+            produtos = produtoRepository.findByEmpresaIdAndAtivoTrueOrderByNome(empresaId);
+        } else {
+            produtos = produtoRepository.findByEmpresaIdAndAtivoFalseOrderByNome(empresaId);
+        }
+        return produtos.stream().map(ProdutoResponseDTO::fromEntity).toList();
     }
 
     // método de buscar produto por id
@@ -81,6 +80,13 @@ public class ProdutoService {
     public ProdutoResponseDTO desativar(Integer id, Integer empresaId) {
         Produto produto = buscarProduto(id, empresaId);
         produto.setAtivo(false);
+        return ProdutoResponseDTO.fromEntity(produtoRepository.saveAndFlush(produto));
+    }
+
+    // método para reativar
+    public ProdutoResponseDTO reativar(Integer id, Integer empresaId) {
+        Produto produto = buscarProduto(id, empresaId);
+        produto.setAtivo(true);
         return ProdutoResponseDTO.fromEntity(produtoRepository.saveAndFlush(produto));
     }
 

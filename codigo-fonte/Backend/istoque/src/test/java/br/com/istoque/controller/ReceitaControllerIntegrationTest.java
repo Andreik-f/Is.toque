@@ -151,8 +151,19 @@ class ReceitaControllerIntegrationTest {
     }
 
     @Test
-    void cadastrar_comProdutoInativo_devolve404() throws Exception {
+    void cadastrar_comProdutoInativo_devolve422() throws Exception {
         cadastrar(empresaA, corpo("Bolo", itens(produtoInativo, "1")))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.message")
+                        .value("O produto 'Fermento' está inativo e não pode fazer parte da receita."));
+    }
+
+    /** O 404 vem antes do 422: o 422 diria à empresa A que o id existe na empresa B. */
+    @Test
+    void cadastrar_comProdutoInativoDeOutraEmpresa_devolve404() throws Exception {
+        Produto inativoDaB = criarProduto("Fermento da B", false, empresaB);
+
+        cadastrar(empresaA, corpo("Bolo", itens(inativoDaB, "1")))
                 .andExpect(status().isNotFound());
     }
 
@@ -328,12 +339,25 @@ class ReceitaControllerIntegrationTest {
     }
 
     @Test
-    void atualizar_comProdutoInativo_devolve404() throws Exception {
+    void atualizar_comProdutoInativo_devolve422() throws Exception {
         Integer id = idCriada(empresaA, corpo("Bolo", itens(farinha, "1")));
         limparCache();
 
         atualizar(empresaA, id, corpo("Bolo", itens(produtoInativo, "1")))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.message").exists());
+    }
+
+    /** Receita com produto desativado depois só é editada sem esse item. */
+    @Test
+    void atualizar_mantendoItemDeProdutoDesativadoDepois_devolve422() throws Exception {
+        Integer id = idCriada(empresaA, corpo("Bolo", itens(farinha, "1")));
+        farinha.setAtivo(false);
+        produtoRepository.saveAndFlush(farinha);
+        limparCache();
+
+        atualizar(empresaA, id, corpo("Bolo", itens(farinha, "2")))
+                .andExpect(status().isUnprocessableContent());
     }
 
     // --- unidade de medida e casas decimais ---
