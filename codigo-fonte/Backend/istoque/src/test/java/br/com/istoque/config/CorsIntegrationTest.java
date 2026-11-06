@@ -7,6 +7,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.containsStringIgnoringCase;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -48,6 +49,24 @@ class CorsIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"))
                 .andExpect(header().string("Access-Control-Allow-Headers", containsStringIgnoringCase("authorization")));
+    }
+
+    /** O front confere o health para saber se a API já acordou: a origem configurada pode ler a resposta. */
+    @Test
+    void health_deOrigemConfigurada_devolveOrigemPermitida() throws Exception {
+        mockMvc.perform(get("/actuator/health")
+                        .header("Origin", "http://localhost:5173"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:5173"));
+    }
+
+    /** O health continua fechado para uma origem fora da lista. */
+    @Test
+    void health_deOutraOrigem_devolve403() throws Exception {
+        mockMvc.perform(get("/actuator/health")
+                        .header("Origin", "https://outro-site.exemplo"))
+                .andExpect(status().isForbidden())
+                .andExpect(header().doesNotExist("Access-Control-Allow-Origin"));
     }
 
     /** Uma origem fora da lista é recusada, sem o cabeçalho de permissão. */

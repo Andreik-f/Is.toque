@@ -73,6 +73,8 @@ public class SecurityConfig {
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", config);
+        // o front consulta o health para saber se a API (que dorme no Render gratuito) já acordou
+        source.registerCorsConfiguration("/actuator/health", config);
         return source;
     }
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { errorMessage } from "@/lib/api-client.js";
 import { playAnimation } from "@/lib/motion.js";
+import { useServerWakeup } from "@/lib/server-status.js";
 import { AuthButton, AuthField } from "./auth-controls.jsx";
 import { formFieldErrors } from "../utils/api-fields.js";
 import { loginFields, signupFields } from "../utils/fields.js";
@@ -57,6 +58,9 @@ export function AccessForm({
   onActivity,
   notice,
 }) {
+  const waking = useServerWakeup();
+  // o aviso de sessão expirada vale até a pessoa enviar o login de novo
+  const [noticeSeen, setNoticeSeen] = useState(false);
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState("");
   const [sending, setSending] = useState(false);
@@ -108,6 +112,7 @@ export function AccessForm({
       onFail?.();
       return;
     }
+    setNoticeSeen(true);
     setSending(true);
     setProgress("running");
     let result;
@@ -189,7 +194,13 @@ export function AccessForm({
               Esqueceu a senha?
             </a>
           )}
-          {notice && !signup && !formError && (
+          {waking && (
+            <p className="access-wait" role="status">
+              Acordando o servidor… no primeiro acesso isso pode levar até 1
+              minuto.
+            </p>
+          )}
+          {notice && !noticeSeen && !signup && !formError && (
             <p className="access-error" role="alert">
               {notice}
             </p>

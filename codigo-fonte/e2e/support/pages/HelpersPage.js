@@ -252,9 +252,14 @@ export default class HelpersPage {
     }
   }
 
-  validarTodasChamadasApiComStatus(statusEsperado) {
-    expect(this.chamadasApi.length).toBeGreaterThan(0);
-    for (const chamada of this.chamadasApi) {
+  // Com `token`, só conta as chamadas feitas com ele: uma requisição da página
+  // antiga (token válido) que termina depois do reload não é da página nova.
+  validarTodasChamadasApiComStatus(statusEsperado, token) {
+    const chamadas = token
+      ? this.chamadasApi.filter(chamada => chamada.autorizacao === `Bearer ${token}`)
+      : this.chamadasApi;
+    expect(chamadas.length).toBeGreaterThan(0);
+    for (const chamada of chamadas) {
       expect(chamada.status, `${chamada.metodo} ${chamada.url}`).toBe(statusEsperado);
     }
   }
@@ -287,6 +292,19 @@ export default class HelpersPage {
       }
       await rota.fallback();
     });
+  }
+
+  // Segura a requisição no ar até quem chamou usar a função devolvida; serve
+  // para conferir o que a tela mostra enquanto a API ainda não respondeu.
+  async segurarRespostaApi(padraoUrl, metodo) {
+    let liberar;
+    const liberada = new Promise(resolve => (liberar = resolve));
+    await this.page.route(padraoUrl, async rota => {
+      if (rota.request().method() !== metodo) return rota.fallback();
+      await liberada;
+      await rota.continue();
+    });
+    return liberar;
   }
 
   async bloquearRequisicoesApi(padraoUrl, metodo) {

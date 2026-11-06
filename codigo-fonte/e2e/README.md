@@ -193,7 +193,7 @@ Numeração `[CT_#NNNN]`, sem repetição. O CT_#0022 foi removido (veja o item 
 | Login | 0001 a 0007 | 0001, 0006, 0007 / 0002 a 0005 |
 | Cadastro de empresa | 0008 a 0012 | 0008 / 0009 a 0012 |
 | Logout | 0013, 0014 | 0013 / 0014 |
-| Sessão | 0015 a 0018 | 0015 / 0016 a 0018 |
+| Sessão | 0015 a 0018, 0060 | 0015, 0060 / 0016 a 0018 |
 | Modo demonstração | 0019, 0020 | 0019 / 0020 |
 | Página inicial | 0021 | 0021 / (nenhum) |
 | Página 404 | 0023, 0024 | 0024 / 0023 |

@@ -30,7 +30,7 @@ test.describe('[sessao_negativo] Testes de sessão inválida', () => {
     await loginPage.validarUrlLogada(env.urlLogin);
     await loginPage.validarErroFormulario(mensagem.sessaoExpirada);
     await loginPage.validarQuantidadeErroFormulario(1);
-    helpersPage.validarTodasChamadasApiComStatus(401);
+    helpersPage.validarTodasChamadasApiComStatus(401, tokenAdulterado);
     await loginPage.validarSessaoAusente();
   });
 });

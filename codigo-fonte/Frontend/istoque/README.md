@@ -31,6 +31,8 @@ VITE_API_URL=https://is-toque-prod.onrender.com/api npm run build
 
 A API só aceita chamadas do navegador vindas dos endereços listados na variável de ambiente `CORS_ORIGENS` do backend (separados por vírgula). Em produção, ela precisa conter o endereço do front publicado, `https://istoque-front.onrender.com`.
 
+No Render gratuito a API dorme e o primeiro acesso espera ela acordar: a tela de login consulta `/actuator/health` (a base de `VITE_API_URL` sem o `/api`) a cada 3 segundos, por até 90, e mostra "Acordando o servidor…" se a API demorar mais de 2. O backend libera o CORS desse caminho para as origens de `CORS_ORIGENS`. Em desenvolvimento (proxy do Vite) isso não acontece.
+
 Com login, produtos, categorias e unidades de medida vêm da API e são gravados nela. Receitas, movimentações, produção, relatórios e equipe ainda não têm rota na API: com login, começam vazios, e o que se registra neles vale até recarregar a página. Nesses casos, a tela, o modal e a mensagem de confirmação avisam que o registro ainda não vai para o servidor; o mesmo vale para a foto do produto. A importação de nota continua só na demonstração. A API separa os dados por empresa a partir do token (HT002): o front não envia `empresaId` nas chamadas de produtos, categorias e unidades. A sessão guarda no navegador os dados do usuário, o `token` e o `expiraEm`, e o cliente HTTP envia `Authorization: Bearer <token>` em todas as chamadas, menos no login e no cadastro.
 
 Com login, alertas de validade, relatórios e movimentações usam a data de hoje. Sem login, a demonstração usa a data fixa de 26/09/2026, a mesma dos dados de exemplo, e mostra o usuário fictício David Rocha.

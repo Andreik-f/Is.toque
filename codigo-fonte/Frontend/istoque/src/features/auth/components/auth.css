@@ -185,7 +185,8 @@
   display: flex;
   margin: 25px auto 0;
 }
-.access-error {
+.access-error,
+.access-wait {
   margin-top: 12px;
   border-radius: 6px;
   padding: 8px;
@@ -194,6 +195,9 @@
   font:
     400 12px/1.4 Inter,
     sans-serif;
+}
+.access-wait {
+  color: #3d6b6a;
 }
 .access-mascot {
   position: absolute;
