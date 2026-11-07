@@ -268,6 +268,17 @@ class ProdutoControllerIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Produto não encontrado com o id: 999999"));
     }
 
+    /** Desativar não apaga: o produto segue consultável pelo id. */
+    @Test
+    void buscarProduto_desativado_continuaDisponivel() throws Exception {
+        Integer id = criarProdutoValido();
+        desativar(id, comoEmpresaA());
+
+        mockMvc.perform(get("/api/produtos/{id}", id).with(comoEmpresaA()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ativo").value(false));
+    }
+
     /** Id que não é número (/api/produtos/abc) devolve 400 dizendo qual parâmetro está errado. */
     @Test
     void buscarProduto_comIdNaoNumerico_devolve400() throws Exception {

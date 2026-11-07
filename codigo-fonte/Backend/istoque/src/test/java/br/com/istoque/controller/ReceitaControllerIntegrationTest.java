@@ -223,6 +223,19 @@ class ReceitaControllerIntegrationTest {
                 .andExpect(jsonPath("$.itens", hasSize(2)));
     }
 
+    /** Desativar o produto preserva o histórico: a receita que o usa continua mostrando o item. */
+    @Test
+    void buscarPorId_comProdutoDesativado_continuaMostrandoOItem() throws Exception {
+        Integer id = idCriada(empresaA, corpo("Bolo", itens(farinha, "1")));
+        farinha.setAtivo(false);
+        produtoRepository.saveAndFlush(farinha);
+        limparCache();
+
+        mockMvc.perform(get("/api/receitas/{id}", id).with(logadoEm(empresaA)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.itens[0].produtoId").value(farinha.getId()));
+    }
+
     @Test
     void atualizar_mantendoUmProdutoETrocandoOutro_atualizaOsItens() throws Exception {
         Integer id = idCriada(empresaA, corpo("Bolo", itens(farinha, "1", acucar, "2")));

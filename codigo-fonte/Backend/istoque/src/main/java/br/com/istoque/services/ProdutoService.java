@@ -52,14 +52,9 @@ public class ProdutoService {
     // método de listagem: só os produtos da empresa, em ordem de nome; sem o filtro ativo, traz todos
     @Transactional(readOnly = true)
     public List<ProdutoResponseDTO> listar(Integer empresaId, Boolean ativo) {
-        List<Produto> produtos;
-        if (ativo == null) {
-            produtos = produtoRepository.findByEmpresaIdOrderByNome(empresaId);
-        } else if (ativo) {
-            produtos = produtoRepository.findByEmpresaIdAndAtivoTrueOrderByNome(empresaId);
-        } else {
-            produtos = produtoRepository.findByEmpresaIdAndAtivoFalseOrderByNome(empresaId);
-        }
+        List<Produto> produtos = ativo == null
+                ? produtoRepository.findByEmpresaIdOrderByNome(empresaId)
+                : produtoRepository.findByEmpresaIdAndAtivoOrderByNome(empresaId, ativo);
         return produtos.stream().map(ProdutoResponseDTO::fromEntity).toList();
     }
 
