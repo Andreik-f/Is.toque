@@ -13,6 +13,7 @@ import { useUiStore } from "@/stores/ui-store.jsx";
 import { AppModals } from "./modals.jsx";
 import { AuthRoute } from "./routes/auth.jsx";
 import { DashboardRoute } from "./routes/dashboard.jsx";
+import { EmpresaRoute } from "./routes/empresa.jsx";
 import { EquipeRoute } from "./routes/equipe.jsx";
 import { EstoqueRoute } from "./routes/estoque.jsx";
 import { FluxosRoute } from "./routes/fluxos.jsx";
@@ -42,6 +43,7 @@ const pages = {
   reposicao: ReposicaoRoute,
   relatorios: RelatoriosRoute,
   equipe: EquipeRoute,
+  empresa: EmpresaRoute,
   importacao: ImportacaoRoute,
   fluxos: FluxosRoute,
 };

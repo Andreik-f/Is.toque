@@ -19,6 +19,11 @@ export default class LoginPage {
     await this.helpersPage.preencherCampoColandoTexto(campo, valor);
   }
 
+  async validarValorCampo(nomeCampo, valorEsperado) {
+    const campo = this.page.locator(loginLocators.getCampo(nomeCampo));
+    await this.helpersPage.validarValorCampo(campo, valorEsperado);
+  }
+
   async clicarBotaoEnvio(textoBotao) {
     const botao = this.page.locator(loginLocators.getBotaoEnvio(textoBotao));
     await this.helpersPage.clicarElemento(botao);

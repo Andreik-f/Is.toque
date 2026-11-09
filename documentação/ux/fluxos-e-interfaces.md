@@ -26,7 +26,7 @@ O diagrama distingue a sequência de telas das validações necessárias no serv
 
 ## 3. Login e cadastro básico
 
-O login solicita e-mail do usuário e senha: o e-mail é único no sistema e identifica a conta. O cadastro inicial, em uma etapa, solicita razão social, CNPJ, nome do responsável, e-mail do usuário, senha e confirmação. Os seis campos são obrigatórios. O CNPJ entrou no cadastro porque é obrigatório e único na API. Nome fantasia, e-mail da empresa e telefone ficam para depois. Ver [mapeamento dos campos e limites](cadastro-basico.md).
+O login solicita e-mail do usuário e senha: o e-mail é único no sistema e identifica a conta. O cadastro inicial, em uma etapa, solicita razão social, CNPJ, nome do responsável, e-mail do usuário, senha e confirmação. Os seis campos são obrigatórios, e o telefone da empresa é um sétimo campo opcional (confirmado depois, por SMS, em Configurações da empresa). O CNPJ entrou no cadastro porque é obrigatório e único na API. Nome fantasia e e-mail da empresa ficam para depois. Ver [mapeamento dos campos e limites](cadastro-basico.md).
 
 Campos vazios, CNPJ fora do formato, senha com menos de 8 caracteres ou confirmação divergente impedem a submissão. Após a validação local, o cadastro envia os dados para `POST /api/auth/cadastro`, que cria a empresa e o administrador, e o login envia e-mail e senha para `POST /api/auth/login`. Erros da API aparecem no campo correspondente ou acima do botão.
 

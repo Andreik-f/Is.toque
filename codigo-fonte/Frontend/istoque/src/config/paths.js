@@ -72,6 +72,7 @@ const EXTRA_TITLES = {
   receita: "Ficha técnica",
   produto: "Detalhes do produto",
   importacao: "Importar nota",
+  empresa: "Configurações da empresa",
   fluxos: "Mapa de fluxos",
   [NOT_FOUND_ROUTE]: "Página não encontrada",
 };
@@ -84,6 +85,7 @@ const SUBTITLES = {
   reposicao: "Antecipe as compras e mantenha a cozinha abastecida.",
   relatorios: "Entenda o movimento da sua operação.",
   equipe: "As pessoas certas, com os acessos certos.",
+  empresa: "Os dados que mantêm sua empresa acessível e protegida.",
   fluxos: "Um caminho claro entre cada tarefa.",
 };
 

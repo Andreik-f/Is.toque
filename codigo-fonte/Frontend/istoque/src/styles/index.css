@@ -20,6 +20,7 @@
 @import "./features/stock.css";
 @import "./features/reports.css";
 @import "./features/users.css";
+@import "./features/company.css";
 @import "./features/imports.css";
 @import "./features/flows.css";
 @import "./features/not-found.css";

@@ -17,7 +17,7 @@ Esta proposta organiza a operação de estoque de um restaurante em torno de tr�
 
 Login e cadastro foram reconstruídos com elementos React e CSS responsivo. O mascote é um SVG inline e as texturas são uma imagem JPG (login) e um SVG (cadastro); a tela inteira não é utilizada como imagem. Textos, títulos, campos e botões são elementos reais. Foram removidas as anotações de dimensão. O layout mantém a paleta e a composição do Figma, com campos legíveis em telas menores.
 
-Login: e-mail do usuário e senha. Cadastro básico em uma etapa: razão social, CNPJ, nome do responsável, e-mail do usuário, senha e confirmação. Todos obrigatórios. Nome fantasia, telefone e e-mail da empresa ficam para depois. A modelagem de dados distingue os dados da empresa das credenciais do usuário. Os campos seguem o contrato da API (`POST /api/auth/login` e `POST /api/auth/cadastro`), e as telas enviam os dados para ela.
+Login: e-mail do usuário e senha. Cadastro básico em uma etapa: razão social, CNPJ, nome do responsável, e-mail do usuário, senha e confirmação. Todos obrigatórios, exceto o telefone da empresa, opcional e confirmado depois por SMS em Configurações da empresa (`#empresa`). Nome fantasia e e-mail da empresa ficam para depois. A modelagem de dados distingue os dados da empresa das credenciais do usuário. Os campos seguem o contrato da API (`POST /api/auth/login` e `POST /api/auth/cadastro`), e as telas enviam os dados para ela.
 
 O relatório anterior de igualdade de pixels correspondia à camada SVG pronta e não se aplica à reconstrução atual. A nova versão foi revisada visualmente e testada em desktop e celular. Detalhes e mapeamento: [cadastro-basico.md](cadastro-basico.md).
 

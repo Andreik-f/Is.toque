@@ -1,3 +1,5 @@
+import { telefoneValido } from "../../../utils/phone.js";
+
 // Mesmas regras do cadastro na API (CadastroRequestDTO), para a tela avisar
 // antes de enviar.
 const CNPJ_PATTERN =
@@ -26,6 +28,10 @@ export function fieldError(
   value,
   { signup, senha, typeMismatch },
 ) {
+  if (name === "telefone")
+    return !value.trim() || telefoneValido(value)
+      ? ""
+      : "O telefone informado é inválido.";
   if (!value || (["nome", "razao_social"].includes(name) && !value.trim()))
     return REQUIRED_MESSAGES[name];
   if (name === "cnpj" && !cnpjValido(value))

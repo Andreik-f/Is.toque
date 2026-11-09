@@ -6,6 +6,7 @@ import { PageHeading } from "@/components/ui/page-heading.jsx";
 import { Stat } from "@/components/ui/stat.jsx";
 import { DEMO_TODAY_LABEL } from "@/config/demo.js";
 import { routeSubtitle } from "@/config/paths.js";
+import { PhoneNoticeGate } from "@/features/company/components/phone-notice.jsx";
 import { ProductGrid } from "@/features/products/components/product-grid.jsx";
 import { MovementsTable } from "@/features/stock/components/movements-table.jsx";
 import { navigate } from "@/hooks/use-hash-route.js";
@@ -62,6 +63,7 @@ export function DashboardRoute() {
           </>
         }
       />
+      <PhoneNoticeGate />
       <section className="hero-banner">
         <div>
           <span className="eyebrow">DE OLHO NO QUE IMPORTA</span>

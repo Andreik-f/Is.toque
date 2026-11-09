@@ -48,3 +48,35 @@ test("a sessão do cadastro tem o mesmo formato da resposta do login", () => {
     "Casa",
   );
 });
+
+test("o cadastro envia o telefone só quando foi preenchido", () => {
+  const base = {
+    razao_social: "Cozinha da Casa LTDA",
+    cnpj: "12.345.678/0001-95",
+    nome: "Ana Souza",
+    email: "ana@exemplo.com",
+    senha: "SenhaForte123",
+  };
+  assert.equal("telefone" in signupToApi({ ...base, telefone: "" }), false);
+  assert.equal("telefone" in signupToApi({ ...base, telefone: "  " }), false);
+  assert.equal(
+    signupToApi({ ...base, telefone: " (31) 98888-7777 " }).telefone,
+    "(31) 98888-7777",
+  );
+});
+
+test("a sessão do cadastro leva as permissões quando a API as devolve", () => {
+  const empresa = { id: 7, razaoSocial: "Casa LTDA", nomeFantasia: null };
+  const usuario = {
+    id: 3,
+    nome: "Ana",
+    email: "a@b.com",
+    perfil: "Administrador",
+  };
+  const permissoes = ["empresa.configurar"];
+  assert.deepEqual(
+    sessionFromSignup({ empresa, usuario, permissoes }).permissoes,
+    permissoes,
+  );
+  assert.equal("permissoes" in sessionFromSignup({ empresa, usuario }), false);
+});

@@ -4,8 +4,10 @@ import {
   DEFAULT_ROUTE,
   isNavActive,
   isUnknownPath,
+  NAV_ITEMS,
   NOT_FOUND_ROUTE,
   parseHash,
+  routeSubtitle,
   routeTitle,
   showsLanding,
 } from "./paths.js";
@@ -47,4 +49,13 @@ test("só a raiz é um caminho válido; qualquer outro vira página não encontr
   assert.equal(isUnknownPath("/index.html"), false);
   assert.equal(isUnknownPath("/abc"), true);
   assert.equal(isUnknownPath("/estoque/12"), true);
+});
+
+test("a tela de configurações da empresa tem título e não é item do menu", () => {
+  assert.equal(routeTitle("empresa"), "Configurações da empresa");
+  assert.equal(routeSubtitle("empresa").length > 0, true);
+  assert.equal(
+    NAV_ITEMS.some(([id]) => id === "empresa"),
+    false,
+  );
 });

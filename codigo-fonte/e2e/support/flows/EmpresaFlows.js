@@ -35,6 +35,7 @@ export default class EmpresaFlows {
         nome: empresa.nome,
         email: empresa.email,
         senha: empresa.senha,
+        ...(empresa.telefone && { telefone: empresa.telefone }),
       },
     });
     if (resposta.status !== 201) {
@@ -69,6 +70,58 @@ export default class EmpresaFlows {
     if (resposta.status !== 204) {
       throw new Error(`Troca de senha pela API falhou: ${resposta.status} ${JSON.stringify(resposta.corpo)}`);
     }
+  }
+
+  // Celular brasileiro válido e único o bastante para o teste: DDD 31, 9 na frente.
+  gerarTelefoneCelular() {
+    const final = String(Math.floor(Math.random() * 1e8)).padStart(8, '0');
+    const digitos = `319${final}`;
+    return {
+      digitos,
+      e164: `+55${digitos}`,
+      mascarado: `(31) 9${final.slice(0, 4)}-${final.slice(4)}`,
+    };
+  }
+
+  async lerEmpresaPelaApi(sessao) {
+    const resposta = await this.helpersPage.chamarApi({
+      metodo: 'GET',
+      url: `${env.apiURL}/api/empresas/minha`,
+      token: sessao.token,
+    });
+    if (resposta.status !== 200) {
+      throw new Error(`Leitura da empresa pela API falhou: ${resposta.status}`);
+    }
+    return resposta.corpo;
+  }
+
+  // O PUT substitui o registro: reenvia os demais campos como estão.
+  async definirTelefonePelaApi(sessao, telefone) {
+    const atual = await this.lerEmpresaPelaApi(sessao);
+    const resposta = await this.helpersPage.chamarApi({
+      metodo: 'PUT',
+      url: `${env.apiURL}/api/empresas/minha`,
+      token: sessao.token,
+      corpo: {
+        razaoSocial: atual.razaoSocial,
+        nomeFantasia: atual.nomeFantasia,
+        cnpj: atual.cnpj,
+        email: atual.email,
+        telefone,
+        diasAlertaValidade: atual.diasAlertaValidade,
+      },
+    });
+    if (resposta.status !== 200) {
+      throw new Error(`Gravação do telefone pela API falhou: ${resposta.status} ${JSON.stringify(resposta.corpo)}`);
+    }
+    return resposta.corpo;
+  }
+
+  async criarEmpresaIsoladaComTelefone() {
+    const { empresa, sessao } = await this.criarEmpresaIsolada();
+    const telefone = this.gerarTelefoneCelular();
+    await this.definirTelefonePelaApi(sessao, telefone.digitos);
+    return { empresa, sessao, telefone };
   }
 
   async criarEmpresaIsolada() {

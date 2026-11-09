@@ -13,6 +13,15 @@ export const signupFields = [
     maxLength: 18,
   },
   {
+    name: "telefone",
+    label: "Telefone da empresa (opcional)",
+    type: "tel",
+    autoComplete: "tel",
+    inputMode: "tel",
+    maxLength: 20,
+    required: false,
+  },
+  {
     name: "nome",
     label: "Nome do responsável",
     autoComplete: "name",

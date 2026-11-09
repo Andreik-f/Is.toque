@@ -13,7 +13,7 @@ Implementação em React + Vite, ligada à API. Base: [modelagem de dados do pro
 | Cadastro | Senha | Origina usuario.senha_hash no servidor | Obrigatória; no mínimo 8 caracteres |
 | Cadastro | Confirmar senha | Somente interface | Obrigatória; igual à senha |
 
-Nome fantasia, e-mail da empresa e telefone foram deixados para uma etapa posterior. O CNPJ entrou no cadastro porque a API o exige (obrigatório e único). O e-mail informado pertence ao usuário, não ao contato da empresa, e é único no sistema: por isso o login não pede a empresa.
+O telefone da empresa é opcional no cadastro (máscara brasileira, ou número internacional começando com +; gravado em E.164 e sem confirmação, porque o cadastro nunca envia SMS). A confirmação por SMS é feita depois, logado, em Configurações da empresa (`#empresa`). Nome fantasia e e-mail da empresa foram deixados para uma etapa posterior. O CNPJ entrou no cadastro porque a API o exige (obrigatório e único). O e-mail informado pertence ao usuário, não ao contato da empresa, e é único no sistema: por isso o login não pede a empresa.
 
 IDs, vínculos empresa/perfil, status e datas são definidos pelo backend. O cadastro usa `POST /api/auth/cadastro`, que cria a empresa, os perfis padrão e o administrador na mesma transação: se o e-mail ou o CNPJ já existirem, nada é gravado. O login usa `POST /api/auth/login`, com e-mail e senha. Não há campo `senha_hash` na interface.
 

@@ -53,3 +53,19 @@ test("cada regra de campo devolve a sua mensagem", () => {
     "",
   );
 });
+
+test("o telefone da empresa é opcional: vazio passa, e preenchido precisa ser válido", () => {
+  const telefone = { name: "telefone", type: "tel" };
+  assert.equal(fieldError(telefone, "", ctx), "");
+  assert.equal(fieldError(telefone, "   ", ctx), "");
+  assert.equal(fieldError(telefone, "(31) 98888-7777", ctx), "");
+  assert.equal(fieldError(telefone, "+442071838750", ctx), "");
+  assert.equal(
+    fieldError(telefone, "(31) 1234-5", ctx),
+    "O telefone informado é inválido.",
+  );
+  assert.equal(
+    fieldError(telefone, "abc", ctx),
+    "O telefone informado é inválido.",
+  );
+});

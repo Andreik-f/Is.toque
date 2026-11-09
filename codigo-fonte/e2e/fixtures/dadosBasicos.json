@@ -287,5 +287,20 @@
   "reposicao": {
     "sugestaoEsperada": "10 kg",
     "minimoEsperado": "1 kg"
+  },
+  "telefoneEmpresa": {
+    "campoCadastro": "telefone",
+    "botaoEnviarCodigo": "Enviar código",
+    "botaoSalvar": "Salvar telefone",
+    "botaoConfirmar": "Confirmar telefone",
+    "linkConfiguracoes": "Configurações",
+    "confirmado": "Confirmado",
+    "naoConfirmado": "Não confirmado",
+    "avisoTroca": "Ao trocar o telefone, será preciso confirmar de novo.",
+    "telefoneSalvo": "Telefone salvo.",
+    "codigoQualquer": "123456",
+    "codigoErrado": "000000",
+    "codigoInvalido": "Código inválido ou vencido.",
+    "bloqueio": "Muitos pedidos de código. Aguarde para pedir um novo"
   }
 }

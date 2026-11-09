@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { errorMessage } from "@/lib/api-client.js";
 import { playAnimation } from "@/lib/motion.js";
 import { useServerWakeup } from "@/lib/server-status.js";
+import { mascararTelefone } from "@/utils/phone.js";
 import { AuthButton, AuthField } from "./auth-controls.jsx";
 import { formFieldErrors } from "../utils/api-fields.js";
 import { loginFields, signupFields } from "../utils/fields.js";
@@ -152,6 +153,8 @@ export function AccessForm({
           onFocus={(event) => report(fieldOf(event.target))}
           onInput={(event) => {
             const name = event.target.name;
+            if (name === "telefone")
+              event.target.value = mascararTelefone(event.target.value);
             setErrors((previous) => {
               const next = { ...previous };
               delete next[name];
@@ -174,9 +177,9 @@ export function AccessForm({
             {fields.map((field, position) => (
               <AuthField
                 key={field.name}
+                required
                 {...field}
                 index={position + 1}
-                required
                 error={errors[field.name]}
                 onVisibleChange={(visible) => {
                   visibleFields.current[field.name] = visible;

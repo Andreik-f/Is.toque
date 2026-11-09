@@ -8,6 +8,7 @@ import { useDemoStore } from "@/stores/demo-store.jsx";
 import { useSession } from "@/stores/session-store.jsx";
 import { useUiStore } from "@/stores/ui-store.jsx";
 import { initials } from "@/utils/format.js";
+import { temPermissao } from "@/utils/permissions.js";
 
 // Menu lateral. profile: { company, userName, role } mostrados no menu; open:
 // menu aberto no celular; onNavigate fecha o menu; lowCount: produtos no
@@ -109,6 +110,12 @@ export function Sidebar({ route, profile, open, onNavigate, lowCount }) {
           <a href="#fluxos">
             <Icon name="chart" />
             Mapa de fluxos
+          </a>
+        )}
+        {temPermissao(session, "empresa.configurar") && (
+          <a href="#empresa">
+            <Icon name="shield" />
+            Configurações
           </a>
         )}
         {session ? (

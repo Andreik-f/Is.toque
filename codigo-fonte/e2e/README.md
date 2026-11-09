@@ -132,7 +132,7 @@ npm run local:administrador:test:chrome:headless -- --grep "\[CT_#0027\]" --repe
 npm run local:administrador:test:ui -- --grep "\[login\]"
 ```
 
-Tags principais: `login`, `logout`, `cadastro_empresa`, `sessao`, `demonstracao`, `landing`, `pagina_404`, `recuperar_acesso`, `produto_cadastro`, `produto_edicao`, `categoria`, `unidades_medida`, `estoque`, `produto_detalhe`, `produto_desativado`, `painel`, `alertas`, `reposicao`, `telas_locais`, `limpeza`.
+Tags principais: `login`, `logout`, `cadastro_empresa`, `sessao`, `demonstracao`, `landing`, `pagina_404`, `recuperar_acesso`, `produto_cadastro`, `produto_edicao`, `categoria`, `unidades_medida`, `estoque`, `produto_detalhe`, `produto_desativado`, `painel`, `alertas`, `reposicao`, `telas_locais`, `telefone_empresa`, `limpeza`.
 
 Para rodar um arquivo ou uma pasta, passe o caminho:
 
@@ -210,6 +210,7 @@ Numeração `[CT_#NNNN]`, sem repetição. O CT_#0022 foi removido (veja o item 
 | Reposição | 0053, 0054 | 0053 / 0054 |
 | Telas só locais | 0055, 0056 | 0055 / 0056 |
 | Bloqueio de login e troca de senha (HT036) | 0057 a 0059 | 0059 / 0057, 0058 |
+| Telefone da empresa (HU021) | 0061 a 0066 | 0061 a 0064 / 0065, 0066 |
 
 Para ver título, tags e arquivo de cada teste: `npx playwright test --list --project=administrador-chromium`.
 

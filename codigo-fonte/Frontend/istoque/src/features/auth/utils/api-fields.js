@@ -11,6 +11,7 @@ export function signupToApi(values) {
     nome: values.nome.trim(),
     email: values.email.trim(),
     senha: values.senha,
+    ...(values.telefone?.trim() && { telefone: values.telefone.trim() }),
   };
 }
 
@@ -27,7 +28,13 @@ export function formFieldErrors(apiFields) {
 // O cadastro devolve a empresa e o administrador separados; a sessão usa o
 // mesmo formato da resposta do login, com o nome da empresa calculado da
 // mesma forma (nome fantasia ou, sem ele, a razão social).
-export function sessionFromSignup({ empresa, usuario, token, expiraEm }) {
+export function sessionFromSignup({
+  empresa,
+  usuario,
+  token,
+  expiraEm,
+  permissoes,
+}) {
   return {
     id: usuario.id,
     nome: usuario.nome,
@@ -37,5 +44,6 @@ export function sessionFromSignup({ empresa, usuario, token, expiraEm }) {
     nomeEmpresa: empresa.nomeFantasia ?? empresa.razaoSocial,
     token,
     expiraEm,
+    ...(permissoes && { permissoes }),
   };
 }
