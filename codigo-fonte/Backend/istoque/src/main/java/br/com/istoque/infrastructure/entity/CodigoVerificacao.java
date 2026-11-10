@@ -23,6 +23,10 @@ public class CodigoVerificacao {
     @Column(name = "empresa_id", nullable = false)
     private Integer empresaId;
 
+    // só os códigos de recuperação de senha têm usuário
+    @Column(name = "usuario_id")
+    private Integer usuarioId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "finalidade", nullable = false)
     private FinalidadeCodigo finalidade;
@@ -60,6 +64,10 @@ public class CodigoVerificacao {
 
     public Integer getEmpresaId() {
         return empresaId;
+    }
+
+    public void setUsuarioId(Integer usuarioId) {
+        this.usuarioId = usuarioId;
     }
 
     public FinalidadeCodigo getFinalidade() {

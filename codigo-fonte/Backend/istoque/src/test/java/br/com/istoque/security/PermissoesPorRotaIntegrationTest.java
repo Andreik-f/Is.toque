@@ -33,7 +33,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class PermissoesPorRotaIntegrationTest {
 
     private static final Set<String> SEM_REGRA_DE_PERMISSAO = Set.of(
-            "/api/auth/login", "/api/auth/cadastro", "/api/usuarios/me/senha");
+            "/api/auth/login", "/api/auth/cadastro", "/api/usuarios/me/senha",
+            "/api/auth/recuperar-senha", "/api/auth/recuperar-senha/confirmar");
 
     @Autowired
     private MockMvc mockMvc;

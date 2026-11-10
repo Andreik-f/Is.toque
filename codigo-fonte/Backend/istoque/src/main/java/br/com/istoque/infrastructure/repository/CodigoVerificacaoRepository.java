@@ -22,6 +22,10 @@ public interface CodigoVerificacaoRepository extends JpaRepository<CodigoVerific
     long countByEmpresaIdAndFinalidadeAndEnviadoEmAfter(
             Integer empresaId, FinalidadeCodigo finalidade, OffsetDateTime desde);
 
+    Optional<CodigoVerificacao> findFirstByUsuarioIdOrderByEnviadoEmDesc(Integer usuarioId);
+
+    long countByUsuarioIdAndEnviadoEmAfter(Integer usuarioId, OffsetDateTime desde);
+
     @Modifying
     @Query("update CodigoVerificacao c set c.tentativas = c.tentativas + 1 "
             + "where c.id = :id and c.usado = false and c.tentativas < :limite")

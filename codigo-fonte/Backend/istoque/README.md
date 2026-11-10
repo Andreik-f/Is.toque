@@ -22,6 +22,8 @@ O login e o cadastro devolvem um `token` e o `expiraEm` (validade definida em `j
 |---|---|---|---|
 | POST | `/api/auth/login` | Entra com e-mail e senha; devolve os dados do usuário e da empresa. `401` para e-mail ou senha incorretos; `429` se a conta estiver bloqueada por tentativas (veja "Bloqueio por tentativas de senha") | Não |
 | POST | `/api/auth/cadastro` | Cria a empresa, os perfis padrão e o administrador; aceita `telefone` da empresa (opcional, gravado em E.164, nunca envia SMS) | Não |
+| POST | `/api/auth/recuperar-senha` | Com `{ "email" }`, envia por SMS ao telefone confirmado da empresa um código de 6 dígitos, com o nome e o e-mail do usuário. Responde sempre `204`, exista ou não a conta; `429` se pedir antes de 60 segundos, mais de 5 vezes por hora por e-mail ou mais de 10 por empresa (HU022) | Não |
+| POST | `/api/auth/recuperar-senha/confirmar` | Com `{ "email", "codigo", "novaSenha" }`, troca a senha (mínimo de 8 caracteres), encerra as sessões antigas e desfaz o bloqueio de login. Qualquer falha responde o mesmo `400`; código errado conta para o bloqueio de login (HU022) | Não |
 | GET | `/api/empresas/minha` | Busca a empresa do usuário logado | Sim |
 | PUT | `/api/empresas/minha` | Atualiza a empresa do usuário logado; valida o `telefone` e grava em E.164 (exige `empresa.configurar`) | Sim |
 | POST | `/api/empresas/minha/telefone/codigo` | Envia por SMS o código de 6 dígitos para confirmar o telefone da empresa; `429` se pedir antes de 60 segundos ou mais de 5 vezes por hora (exige `empresa.configurar`) | Sim |
@@ -131,7 +133,7 @@ O `ddl-auto=validate` não confere nulabilidade, CHECKs nem índices, e o CI nã
   - `categoria` e `rendimento` são `varchar(60)`: validar `@Size(max = 60)` no DTO, senão o erro do banco vira o 409 genérico.
   - O nome é único só entre as receitas ativas, e a comparação **não** diferencia maiúsculas de minúsculas: "Bolo" e "bolo" são o mesmo nome (índice `uk_receita_empresa_nome_ativa_ci`, em `lower(nome)`). Reativar uma receita cujo nome já foi usado por outra ativa dá 409, e a tela precisa tratar.
 - **`movimentacao`:** nos motivos `ajuste` e `outro`, e em `motivo_perda = outro`, a justificativa precisa ter ao menos um caractere que não seja espaço, tab ou quebra de linha (`ck_mov_justificativa`).
-- **Novas migrações:** usar **V13 ou maior**, e quem tiver uma branch com migração faz rebase depois do merge. As versões V2 a V7 são do HT035; V8 e V9 são da HU015 (receitas); V10 é da HU007 (permissões por perfil); V11 é da HU021 (telefone da empresa e códigos de verificação); V12 é da HT036 (versão do token e janela de falhas de senha).
+- **Novas migrações:** usar **V14 ou maior**, e quem tiver uma branch com migração faz rebase depois do merge. As versões V2 a V7 são do HT035; V8 e V9 são da HU015 (receitas); V10 é da HU007 (permissões por perfil); V11 é da HU021 (telefone da empresa e códigos de verificação); V12 é da HT036 (versão do token e janela de falhas de senha); V13 é da HU022 (usuário do código de recuperação de senha).
 
 ### Bancos
 
