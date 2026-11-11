@@ -53,11 +53,6 @@ export default class RecuperarAcessoPage {
     await this.helpersPage.validarTextoLocalExato(erro, mensagemEsperada);
   }
 
-  async validarAlertaReenvio(mensagemEsperada) {
-    const alerta = this.page.locator(recuperarAcessoLocators.alertaReenvio);
-    await this.helpersPage.validarTextoLocalExato(alerta, mensagemEsperada);
-  }
-
   async validarContagemDoReenvio(inicioRotulo) {
     const botao = this.page.locator(recuperarAcessoLocators.getBotaoContagem(inicioRotulo));
     await this.helpersPage.validarElementoDesabilitado(botao);
@@ -70,9 +65,5 @@ export default class RecuperarAcessoPage {
       if (rota.request().method() !== 'POST') return rota.fallback();
       await rota.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*' } });
     });
-  }
-
-  async simularPedidoBloqueado(mensagem) {
-    await this.helpersPage.mockarRespostaApi('**/api/auth/recuperar-senha', 'POST', 429, { status: 429, message: mensagem });
   }
 }

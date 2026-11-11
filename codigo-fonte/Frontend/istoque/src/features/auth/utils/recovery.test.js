@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createApiClient } from "../../../lib/api-client.js";
-import { CODIGO_INVALIDO, pedidoBloqueado } from "../../../utils/sms-code.js";
+import { CODIGO_INVALIDO } from "../../../utils/sms-code.js";
 import {
   CAMPOS_DA_TROCA,
   CAMPOS_DO_PEDIDO,
@@ -148,16 +148,4 @@ test("falha que não é do código nem de um campo da tela vira mensagem geral",
     fields: {},
     form: "O e-mail informado é inválido",
   });
-});
-
-test("o 429 do pedido é bloqueio, com a mensagem do servidor", async () => {
-  const mensagem = "Muitos pedidos de código. Aguarde para pedir um novo";
-  const { recovery } = apiFalsa({
-    [PEDIDO]: { status: 429, body: { message: mensagem } },
-  });
-  const bloqueado = await recovery
-    .requestRecoveryCode("ana@saborcaseiro.com")
-    .catch((e) => e);
-  assert.equal(pedidoBloqueado(bloqueado), true);
-  assert.equal(bloqueado.message, mensagem);
 });

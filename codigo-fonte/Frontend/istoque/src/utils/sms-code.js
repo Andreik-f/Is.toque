@@ -13,6 +13,8 @@ export const erroDoCodigo = (error) =>
 
 // 429 vale tanto para o intervalo de 60 s quanto para o limite por hora, e o
 // servidor não diz quanto falta: a tela mostra a mensagem dele e não conta.
+// Só a confirmação do telefone, que exige login, responde 429; a recuperação de
+// senha responde sempre 204, para não revelar quais contas existem.
 export const pedidoBloqueado = (error) => error?.status === 429;
 
 // Texto do botão de reenvio: `restante` são os segundos até poder pedir de novo.

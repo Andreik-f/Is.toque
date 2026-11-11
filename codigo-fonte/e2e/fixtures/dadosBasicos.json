@@ -192,7 +192,6 @@
     "codigoQualquer": "123456",
     "codigoErrado": "000000",
     "codigoInvalido": "Código inválido ou vencido.",
-    "bloqueio": "Muitos pedidos de código. Aguarde para pedir um novo",
     "novaSenha": "E2e-Recuperada-8",
     "senhaCurta": "curta12",
     "confirmacaoDiferente": "E2e-Outra-Senha-9"

@@ -186,7 +186,7 @@ O papel vem do nome do projeto do Playwright (`administrador-chromium` vira `adm
 
 ## 7. Casos de teste
 
-Numeração `[CT_#NNNN]`, sem repetição. O CT_#0022 foi removido (veja o item 11).
+Numeração `[CT_#NNNN]`, sem repetição. O CT_#0022 e o CT_#0070 foram removidos (veja o item 11).
 
 | Fluxo | CTs | Positivo / negativo |
 |---|---|---|
@@ -197,7 +197,7 @@ Numeração `[CT_#NNNN]`, sem repetição. O CT_#0022 foi removido (veja o item 
 | Modo demonstração | 0019, 0020 | 0019 / 0020 |
 | Página inicial | 0021 | 0021 / (nenhum) |
 | Página 404 | 0023, 0024 | 0024 / 0023 |
-| Recuperar acesso (HU022) | 0025, 0026, 0067 a 0070 | 0025, 0067 / 0026, 0068 a 0070 |
+| Recuperar acesso (HU022) | 0025, 0026, 0067 a 0069 | 0025, 0067 / 0026, 0068, 0069 |
 | Produto: cadastro | 0027 a 0032 | 0027, 0031 / 0028 a 0030, 0032 |
 | Produto: edição | 0033 a 0035 | 0033 / 0034, 0035 |
 | Categoria | 0036 a 0038 | 0036 / 0037, 0038 |
@@ -296,7 +296,8 @@ Depois de uma falha, abra o relatório (`npm run report`) ou o trace (`npx playw
 - **Página inicial sem teste negativo.** O CT_#0022 verificava que as perguntas frequentes não exibem texto-modelo entre colchetes (`[Definir as condições de uso...]`, `[e-mail de contato]`). Ele falhava por um bug de conteúdo real e foi removido a pedido; o fluxo da página inicial ficou só com o CT_#0021. O conteúdo ainda está no front (`features/landing/components/faq-section.jsx`).
 - **Telas sem teste e2e**: movimentação de estoque, receitas, produção, relatórios, equipe, importação de nota e navegação pelo menu. Essas telas só guardam dados em memória.
 - **HT036 sem tela de troca de senha.** O front não tem tela para trocar a senha; o CT_#0058 e o CT_#0059 trocam a senha pela API (`PATCH /api/usuarios/me/senha`) e conferem o efeito na tela de login.
-- **Recuperação de senha (HU022) com troca e bloqueio simulados.** O código real só existe no log do back, e o 429 real exige uma conta de empresa com o telefone confirmado, que também depende do código. Por isso o CT_#0067 simula o 204 da troca e o CT_#0070 simula o 429 do pedido (`page.route`). Os CTs 0025 e 0069 usam o back de verdade, com um e-mail sem conta.
+- **Recuperação de senha (HU022) com a troca simulada.** O código real só existe no log do back, então o CT_#0067 simula o 204 da troca (`page.route`). Os CTs 0025 e 0069 usam o back de verdade, com um e-mail sem conta.
+- **CT_#0070 removido.** Ele validava a mensagem de bloqueio no 429 do pedido de código. O back passou a responder sempre 204 nesse pedido, para não revelar quais contas existem, e a tela deixou de ter essa mensagem.
 - **Permissões por perfil (HU007) sem teste de tela.** O back já devolve 403 para o Funcionário em operações de gerenciamento (por exemplo criar produto ou categoria). Um teste de tela para isso ainda não existe; hoje gerente e funcionário só têm o CT_#0006.
 - **Mensagem genérica no 409.** Produto ou categoria duplicados mostram "A operação viola uma restrição de integridade dos dados". Os CTs 0030, 0035 e 0038 não fixam esse texto, só que um erro aparece e nada foi gravado. A mensagem é uma melhoria sugerida para o front/back.
 - **Sem guarda de rota.** Sem sessão, qualquer rota interna abre em modo demonstração, em vez de ir para o login. O CT_#0014 valida esse comportamento atual.

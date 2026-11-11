@@ -73,22 +73,4 @@ test.describe('[recuperar_acesso_negativo] Testes de recuperação de acesso com
     await recuperarAcessoPage.validarValorCampo(recuperacao.campoCodigo, '');
     await recuperarAcessoPage.validarModalVisivel(titulo.recuperarAcesso);
   });
-
-  test('[CT_#0070] Pedido de código bloqueado mostra a mensagem de bloqueio [recuperar_acesso]', async ({ nao_autenticado, papelAutenticado }) => {
-    console.info(`
-      ➡️ DESCRIÇÃO DO TESTE ⬅️
-      COM O PEDIDO DE CÓDIGO RESPONDENDO 429 (SIMULADO), INFORMA O E-MAIL E CLICA EM "Enviar código";
-      VALIDA A MENSAGEM DE BLOQUEIO E QUE A TELA SEGUE PARA O CAMPO DO CÓDIGO, QUE PODE SER DE UM PEDIDO ANTERIOR`);
-    test.skip(papelAutenticado !== 'administrador');
-    const loginPage = new LoginPage(nao_autenticado);
-    const recuperarAcessoPage = new RecuperarAcessoPage(nao_autenticado);
-    const { campo, recuperacao } = dados;
-    await loginPage.abrirURL(env.urlLogin);
-    await recuperarAcessoPage.simularPedidoBloqueado(recuperacao.bloqueio);
-    await loginPage.clicarLinkEsqueceuSenha();
-    await recuperarAcessoPage.preencherCampo(campo.emailRecuperacao, recuperacao.email);
-    await recuperarAcessoPage.clicarBotaoModal(recuperacao.botaoEnviarCodigo);
-    await recuperarAcessoPage.validarAlertaReenvio(recuperacao.bloqueio);
-    await recuperarAcessoPage.validarCampoVisivel(recuperacao.campoCodigo);
-  });
 });

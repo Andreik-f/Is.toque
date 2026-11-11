@@ -22,7 +22,7 @@ O login e o cadastro devolvem um `token` e o `expiraEm` (validade definida em `j
 |---|---|---|---|
 | POST | `/api/auth/login` | Entra com e-mail e senha; devolve os dados do usuário e da empresa. `401` para e-mail ou senha incorretos; `429` se a conta estiver bloqueada por tentativas (veja "Bloqueio por tentativas de senha") | Não |
 | POST | `/api/auth/cadastro` | Cria a empresa, os perfis padrão e o administrador; aceita `telefone` da empresa (opcional, gravado em E.164, nunca envia SMS) | Não |
-| POST | `/api/auth/recuperar-senha` | Com `{ "email" }`, envia por SMS ao telefone confirmado da empresa um código de 6 dígitos, com o nome e o e-mail do usuário. Responde sempre `204`, exista ou não a conta; `429` se pedir antes de 60 segundos, mais de 5 vezes por hora por e-mail ou mais de 10 por empresa (HU022) | Não |
+| POST | `/api/auth/recuperar-senha` | Com `{ "email" }`, envia por SMS ao telefone confirmado da empresa um código de 6 dígitos, com o nome e o e-mail do usuário. Responde sempre `204`, para não revelar quais contas existem: sem conta apta, antes de 60 segundos do último pedido, acima de 5 pedidos por hora por e-mail ou de 10 por empresa, ou se o SMS falhar, nada é enviado e o motivo fica só no log (HU022) | Não |
 | POST | `/api/auth/recuperar-senha/confirmar` | Com `{ "email", "codigo", "novaSenha" }`, troca a senha (mínimo de 8 caracteres), encerra as sessões antigas e desfaz o bloqueio de login. Qualquer falha responde o mesmo `400`; código errado conta para o bloqueio de login (HU022) | Não |
 | GET | `/api/empresas/minha` | Busca a empresa do usuário logado | Sim |
 | PUT | `/api/empresas/minha` | Atualiza a empresa do usuário logado; valida o `telefone` e grava em E.164 (exige `empresa.configurar`) | Sim |

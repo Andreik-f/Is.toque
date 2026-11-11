@@ -4,11 +4,7 @@ import { Field } from "@/components/ui/field.jsx";
 import { Icon } from "@/components/ui/icon.jsx";
 import { useCountdown } from "@/hooks/use-countdown.js";
 import { errorMessage } from "@/lib/api-client.js";
-import {
-  SEGUNDOS_ENTRE_CODIGOS,
-  pedidoBloqueado,
-  rotuloDoReenvio,
-} from "@/utils/sms-code.js";
+import { SEGUNDOS_ENTRE_CODIGOS, rotuloDoReenvio } from "@/utils/sms-code.js";
 import { requestRecoveryCode, resetPassword } from "../api/auth.js";
 import {
   AVISO_DO_PEDIDO,
@@ -70,13 +66,15 @@ export function PasswordRecovery({ onDone }) {
     }
   }
 
-  // Serve ao primeiro pedido e ao reenvio.
+  // Serve ao primeiro pedido e ao reenvio. O servidor responde igual com ou sem
+  // conta, e também quando o limite de pedidos estourou: a tela não tem como
+  // saber se um código foi mesmo enviado, só se a requisição falhou.
   function pedirCodigo() {
     setSendError("");
     run(
       async () => {
         await requestRecoveryCode(values.email);
-        // um novo pedido aposenta o código anterior
+        // um código novo aposenta o anterior
         change("codigo", "");
         setStep("codigo");
         iniciar(SEGUNDOS_ENTRE_CODIGOS);
@@ -85,11 +83,7 @@ export function PasswordRecovery({ onDone }) {
         // ainda não existe e recebe o foco ao montar)
         codigoRef.current?.focus();
       },
-      (error) => {
-        setSendError(errorMessage(error));
-        // bloqueado: pode haver um código válido de um pedido anterior
-        if (pedidoBloqueado(error)) setStep("codigo");
-      },
+      (error) => setSendError(errorMessage(error)),
     );
   }
 

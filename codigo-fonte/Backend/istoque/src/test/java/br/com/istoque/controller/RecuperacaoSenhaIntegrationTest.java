@@ -1,5 +1,6 @@
 package br.com.istoque.controller;
 
+import br.com.istoque.exception.FalhaNoEnvioDeSmsException;
 import br.com.istoque.infrastructure.entity.CodigoVerificacao;
 import br.com.istoque.infrastructure.entity.Empresa;
 import br.com.istoque.infrastructure.entity.Perfil;
@@ -27,10 +28,12 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -192,34 +195,47 @@ class RecuperacaoSenhaIntegrationTest {
         entrar(SENHA_NOVA).andExpect(status().isOk());
     }
 
+    // acima do limite a resposta é o mesmo 204 de um e-mail desconhecido: um 429 revelaria a conta
     @Test
-    void novoPedidoAntesDe60Segundos_responde429() throws Exception {
+    void novoPedidoAntesDe60Segundos_responde204_semEnviar_eOCodigoAnteriorContinuaValendo() throws Exception {
+        String codigo = pedirECapturar();
+
         pedir(EMAIL).andExpect(status().isNoContent());
 
-        pedir(EMAIL).andExpect(status().isTooManyRequests());
-
         verify(enviadorSms, times(1)).enviar(any(), any());
+        confirmar(EMAIL, codigo, SENHA_NOVA).andExpect(status().isNoContent());
     }
 
     @Test
-    void sextoPedidoDoEmailNaMesmaHora_responde429() throws Exception {
+    void sextoPedidoDoEmailNaMesmaHora_responde204_semEnviar() throws Exception {
         pedirCincoVezes(EMAIL);
 
-        pedir(EMAIL).andExpect(status().isTooManyRequests());
+        pedir(EMAIL).andExpect(status().isNoContent());
 
         verify(enviadorSms, times(5)).enviar(any(), any());
     }
 
     @Test
-    void decimoPrimeiroPedidoDaEmpresaNaMesmaHora_responde429() throws Exception {
+    void decimoPrimeiroPedidoDaEmpresaNaMesmaHora_responde204_semEnviar() throws Exception {
         criarUsuario("Joao", "joao@teste.com");
         criarUsuario("Ana", "ana@teste.com");
         pedirCincoVezes(EMAIL);
         pedirCincoVezes("joao@teste.com");
 
-        pedir("ana@teste.com").andExpect(status().isTooManyRequests());
+        pedir("ana@teste.com").andExpect(status().isNoContent());
 
         verify(enviadorSms, times(10)).enviar(any(), any());
+    }
+
+    @Test
+    void falhaNoSms_responde204_semGravarCodigo_eOProximoPedidoEnvia() throws Exception {
+        doThrow(new FalhaNoEnvioDeSmsException()).doNothing().when(enviadorSms).enviar(any(), any());
+
+        pedir(EMAIL).andExpect(status().isNoContent());
+        assertEquals(0, codigoRepository.count());
+
+        pedir(EMAIL).andExpect(status().isNoContent());
+        assertEquals(1, codigoRepository.count());
     }
 
     private Usuario criarUsuario(String nome, String email) {
