@@ -150,7 +150,8 @@
     "nomeResponsavelPadrao": "Responsavel E2E"
   },
   "sessao": {
-    "chaveArmazenamento": "istoque.sessao"
+    "chaveArmazenamento": "istoque.sessao",
+    "expiraEmFuturo": "2099-01-01T08:00:00-03:00"
   },
   "rota": {
     "login": "login",

@@ -22,9 +22,10 @@ function readInitial() {
 export function SessionProvider({ children }) {
   const [initial] = useState(readInitial);
   const [session, setSession] = useState(initial.session);
-  const [notice, setNotice] = useState(
-    initial.expired ? SESSION_EXPIRED_MESSAGE : null,
-  );
+  // sessão que já estava vencida ao abrir o site vai para o login sem aviso:
+  // quem volta no dia seguinte não foi interrompido. O aviso é só para a
+  // sessão que cai no meio do uso (expireSession).
+  const [notice, setNotice] = useState(null);
   const sessionRef = useRef(initial.session);
   const { closeModal } = useUiStore();
 

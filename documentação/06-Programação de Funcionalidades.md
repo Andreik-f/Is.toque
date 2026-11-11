@@ -52,7 +52,7 @@ Requisição: `email` e `senha`. Resposta `200` (`LoginResponseDTO`): `id`, `nom
 
 #### Instruções de acesso
 
-Em `#login` (botão "Entrar" da página inicial), informe e-mail e senha da empresa cadastrada. O botão "Sair" do menu lateral encerra a sessão. Quando a sessão expira (resposta 401 da API ou token vencido ao abrir o sistema), o login abre com o aviso "Sua sessão expirou. Entre novamente.".
+Em `#login` (botão "Entrar" da página inicial), informe e-mail e senha da empresa cadastrada. O botão "Sair" do menu lateral encerra a sessão. Quando a sessão cai no meio do uso (resposta 401 da API), o login abre com o aviso "Sua sessão expirou. Entre novamente."; quem abre o sistema com o token já vencido vai para o login sem aviso.
 
 #### Responsável
 
