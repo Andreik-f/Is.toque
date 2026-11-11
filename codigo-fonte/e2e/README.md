@@ -151,11 +151,14 @@ npm run local:administrador:test:chrome:headless -- e2e/modulo_ISTOQUE/z_login
 
 ### 4.4. Rodar a limpeza
 
+A limpeza **exclui fisicamente** do banco a massa dos testes. Ela precisa da connection string do banco que foi usado na execução, na variável `E2E_DATABASE_URL` (a mesma conexão do back, em formato `postgresql://usuario:senha@host/is_toque_db?sslmode=require`):
+
 ```powershell
+$env:E2E_DATABASE_URL = "postgresql://neondb_owner:<senha>@<host>/is_toque_db?sslmode=require"
 npm run local:administrador:test:chrome:headless -- --grep "\[limpeza\]"
 ```
 
-Veja o item 6.
+A limpeza recusa host de produção (`ep-super-cake`). Não grave a connection string em arquivo versionado. Veja o item 6.
 
 ## 5. Papéis e usuários de teste
 
@@ -180,9 +183,14 @@ O papel vem do nome do projeto do Playwright (`administrador-chromium` vira `adm
 - Todo dado criado recebe um código único (`E2E` + data/hora + sequência) no nome do produto, categoria, razão social e e-mail.
 - Testes que criam produtos guardam o que criaram em `testInfo['massaProduto']` e o `afterEach` desativa esses produtos pela API.
 - Testes que precisam de uma empresa limpa criam uma **empresa isolada** pela API e registram o e-mail e a senha dela em `.massa-e2e.json` (ignorado pelo git).
-- `e2e/z_clean_up/limpar_ambiente_massa_testes.spec.js` percorre a empresa da suíte e as empresas registradas, desativa os produtos ativos e confere que não sobrou nenhum. Rode-o quando uma execução for interrompida no meio.
+- `e2e/z_clean_up/limpar_ambiente_massa_testes.spec.js` faz a **limpeza física** pelo `LimpezaBancoFlows`, com uma conexão direta ao Postgres (`E2E_DATABASE_URL`) e tudo em uma transação:
+  - exclui as empresas geradas pelos testes (razão social `E2E` + data/hora) com usuários, perfis, produtos, categorias e demais dependentes;
+  - exclui os produtos e as categorias da empresa da suíte, mantendo a empresa e os três usuários;
+  - zera o `.massa-e2e.json`;
+  - confere que nada disso restou. Se algo falhar, a transação é desfeita.
+- Rode-o ao fim de cada execução, ou quando uma execução for interrompida no meio. Empresas que não seguem o padrão `E2E` + data/hora (testes manuais, por exemplo) não são tocadas.
 
-**A aplicação não tem exclusão** de empresas, usuários, categorias nem produtos (só desativar produto, e só pela API). Por isso o lixo que sobra no banco de teste é esperado. Para zerar tudo, **resete a branch `e2e-teste` a partir do pai no console do Neon**; a suíte não faz reset nem executa SQL.
+A aplicação não tem exclusão, então só essa limpeza por SQL remove o lixo. Ela vale para qualquer banco que não seja produção; para o banco compartilhado de desenvolvimento use só com cuidado e para o `e2e-teste`, se preferir zerar tudo, o reset a partir do pai no console do Neon continua valendo.
 
 ## 7. Casos de teste
 
@@ -285,7 +293,8 @@ Observação sobre locators: o front não tem `data-testid`. Onde não há `name
 | `Executable doesn't exist` (Firefox ou WebKit) | Rode `npx playwright install firefox webkit` ou use os scripts `:chrome` |
 | Porta 5173 ocupada com outro app | O `webServer` usa `--strictPort`. Pare o outro processo ou reaproveite o Vite do front |
 | Testes passam sozinhos e falham juntos | Dois Playwright rodando ao mesmo tempo (por exemplo UI aberta e terminal) compartilham a empresa da suíte e os `storageState`. Rode um por vez |
-| Falhou no meio e ficaram produtos ativos | Rode a limpeza (item 4.4) |
+| Falhou no meio e ficou massa no banco | Rode a limpeza (item 4.4) |
+| `Defina E2E_DATABASE_URL` na limpeza | Falta a variável com a connection string do banco usado (item 4.4) |
 | Sessões estranhas | Apague `storageState-*.json` e `.massa-e2e.json`; o `global-setup` recria os arquivos de sessão |
 | Mensagem de erro de API diferente da esperada | Confira se o back rodando é o da `main` atual (as permissões por perfil da HU007 mudaram as respostas 403) |
 
@@ -302,4 +311,4 @@ Depois de uma falha, abra o relatório (`npm run report`) ou o trace (`npx playw
 - **Mensagem genérica no 409.** Produto ou categoria duplicados mostram "A operação viola uma restrição de integridade dos dados". Os CTs 0030, 0035 e 0038 não fixam esse texto, só que um erro aparece e nada foi gravado. A mensagem é uma melhoria sugerida para o front/back.
 - **Sem guarda de rota.** Sem sessão, qualquer rota interna abre em modo demonstração, em vez de ir para o login. O CT_#0014 valida esse comportamento atual.
 - **Alertas sem mensagem de vazio.** O modal "Sua cozinha pede atenção" abre sem textos quando não há pendências.
-- **Sem exclusão pela aplicação** (veja o item 6).
+- **Sem exclusão pela aplicação** (veja o item 6): a limpeza física é feita por SQL direto no banco.

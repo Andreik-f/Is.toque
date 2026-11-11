@@ -6,7 +6,8 @@
   "devDependencies": {
     "@playwright/test": "1.64.1",
     "cross-env": "^10.1.0",
-    "eslint": "^10.2.1"
+    "eslint": "^10.2.1",
+    "pg": "^8.13.1"
   },
   "scripts": {
     "report": "npx playwright show-report",
