@@ -46,7 +46,7 @@ A base funcional é o documento de requisitos do projeto, com RF01–RF34. As te
 
 As ilustrações das telas operacionais foram criadas para o protótipo. O mascote é um SVG inline e a textura do acesso usa os arquivos de `features/auth/assets/`.
 
-Não foi incluído módulo de vendas nem 2FA, pois eles não constam dos requisitos disponíveis. Recuperação de senha, importação de notas, relatórios por período e a matriz de perfis abaixo são propostas para validação.
+Não foi incluído módulo de vendas nem 2FA, pois eles não constam dos requisitos disponíveis. Importação de notas, relatórios por período e a matriz de perfis abaixo são propostas para validação.
 
 ## Arquitetura das telas
 
@@ -101,7 +101,7 @@ O fluxo mostra a quantidade, o consumo total por ingrediente e o saldo após a p
 
 ### Acesso e equipe
 
-Sem login, o sistema abre na demonstração, com dados fictícios. Com login, a API verifica as credenciais. O formulário de recuperação de senha é só uma simulação e não envia mensagens. Na demonstração, os usuários criados ou desativados existem apenas na sessão local.
+Sem login, o sistema abre na demonstração, com dados fictícios. Com login, a API verifica as credenciais. Quem esqueceu a senha pede um código pelo e-mail em "Esqueci minha senha": o código chega por SMS ao telefone confirmado da empresa, o administrador o repassa e o usuário cadastra a nova senha (HU022). Na demonstração, os usuários criados ou desativados existem apenas na sessão local.
 
 | Perfil padrão | Responsabilidade sugerida |
 | --- | --- |

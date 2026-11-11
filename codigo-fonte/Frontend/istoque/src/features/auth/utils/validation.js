@@ -17,12 +17,15 @@ const REQUIRED_MESSAGES = {
   email: "Informe seu e-mail.",
   senha: "Informe sua senha.",
   confirmacao: "Confirme sua senha.",
+  codigo: "Informe o código.",
+  novaSenha: "Informe a nova senha.",
 };
 
 // Mensagem de erro de um campo das telas de acesso, ou "" se ele está certo.
 // `name` e `type` vêm da configuração do campo; `value` é o que foi digitado.
-// Em `context`: signup (cadastro, não login), senha (valor do campo senha) e
-// typeMismatch (o navegador recusou o formato do e-mail).
+// Em `context`: signup (cadastro, não login), senha (valor do campo senha, ou
+// da nova senha na recuperação) e typeMismatch (o navegador recusou o formato
+// do e-mail).
 export function fieldError(
   { name, type },
   value,
@@ -37,7 +40,12 @@ export function fieldError(
   if (name === "cnpj" && !cnpjValido(value))
     return "O CNPJ deve ter 14 caracteres, com ou sem máscara.";
   if (type === "email" && typeMismatch) return "Digite um e-mail válido.";
-  if (signup && name === "senha" && value.length < SENHA_MINIMA)
+  if (name === "codigo" && !/^\d{6}$/.test(value))
+    return "O código tem 6 dígitos.";
+  if (
+    ((signup && name === "senha") || name === "novaSenha") &&
+    value.length < SENHA_MINIMA
+  )
     return `A senha deve ter no mínimo ${SENHA_MINIMA} caracteres.`;
   if (name === "confirmacao" && value !== senha)
     return "As senhas precisam ser iguais.";

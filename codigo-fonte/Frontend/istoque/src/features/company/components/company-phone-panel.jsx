@@ -12,16 +12,17 @@ import {
   telefoneValido,
 } from "@/utils/phone.js";
 import {
+  SEGUNDOS_ENTRE_CODIGOS,
+  erroDoCodigo,
+  pedidoBloqueado,
+  rotuloDoReenvio,
+} from "@/utils/sms-code.js";
+import {
   confirmPhoneCode,
   saveCompanyPhone,
   sendPhoneCode,
 } from "../api/company.js";
-import {
-  SEGUNDOS_ENTRE_CODIGOS,
-  erroDoCodigo,
-  pedidoBloqueado,
-  telefoneConfirmado,
-} from "../utils/company-api.js";
+import { telefoneConfirmado } from "../utils/company-api.js";
 import { UnconfirmedPhoneNotice } from "./phone-notice.jsx";
 
 // initial é a empresa já carregada (GET /api/empresas/minha). O painel edita só
@@ -178,11 +179,9 @@ export function CompanyPhonePanel({ initial }) {
                 disabled={alterado || busy || restante > 0}
                 onClick={enviarCodigo}
               >
-                {restante > 0
-                  ? `Enviar novo código em ${restante}s`
-                  : codigoAberto
-                    ? "Enviar novo código"
-                    : "Enviar código"}
+                {restante > 0 || codigoAberto
+                  ? rotuloDoReenvio(restante)
+                  : "Enviar código"}
               </Button>
             ) : (
               <small>Salve o telefone para receber o código.</small>

@@ -194,7 +194,7 @@ export function AccessForm({
               style={{ "--i": fields.length + 1 }}
               href="#recuperar"
             >
-              Esqueceu a senha?
+              Esqueci minha senha
             </a>
           )}
           {waking && (

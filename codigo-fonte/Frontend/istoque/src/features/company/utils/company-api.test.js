@@ -3,10 +3,12 @@ import assert from "node:assert/strict";
 import { createApiClient } from "../../../lib/api-client.js";
 import {
   CODIGO_INVALIDO,
-  companyToApi,
-  createCompanyApi,
   erroDoCodigo,
   pedidoBloqueado,
+} from "../../../utils/sms-code.js";
+import {
+  companyToApi,
+  createCompanyApi,
   telefoneConfirmado,
 } from "./company-api.js";
 

@@ -17,8 +17,8 @@ flowchart LR
     A -->|Criar conta da empresa| C["#cadastro"]
     B -->|Cadastre-se| C
     C -->|Entrar| B
-    B -->|Esqueceu a senha?| R["#recuperar<br/>(simulação)"]
-    R --> B
+    B -->|Esqueci minha senha| R["#recuperar<br/>Código por SMS e nova senha"]
+    R -->|Senha trocada| B
     B -->|API valida e-mail e senha| D["#dashboard<br/>Visão geral"]
     C -->|API cria empresa e administrador| D
     D -->|Sair| B

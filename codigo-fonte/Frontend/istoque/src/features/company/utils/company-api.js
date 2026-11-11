@@ -1,8 +1,3 @@
-import { errorMessage } from "../../../lib/api-client.js";
-
-export const CODIGO_INVALIDO = "Código inválido ou vencido.";
-export const SEGUNDOS_ENTRE_CODIGOS = 60;
-
 // O servidor só diz que o telefone foi confirmado pela data; ela vem sem fuso,
 // então aqui só se olha se existe.
 export const telefoneConfirmado = (empresa) =>
@@ -20,15 +15,6 @@ export function companyToApi(empresa, telefone) {
     diasAlertaValidade: empresa.diasAlertaValidade,
   };
 }
-
-// Código errado, vencido, já usado ou sem tentativas: o servidor responde igual
-// e a tela também, sem dizer qual dos casos.
-export const erroDoCodigo = (error) =>
-  error?.status === 400 ? CODIGO_INVALIDO : errorMessage(error);
-
-// 429 vale tanto para o intervalo de 60 s quanto para o limite por hora, e o
-// servidor não diz quanto falta: a tela mostra a mensagem dele e não conta.
-export const pedidoBloqueado = (error) => error?.status === 429;
 
 export function createCompanyApi(api) {
   const getCompany = () => api.get("/empresas/minha");

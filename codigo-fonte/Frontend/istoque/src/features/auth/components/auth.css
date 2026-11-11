@@ -696,6 +696,28 @@
     line-height: 20px;
   }
 }
+/* Recuperação de senha, dentro do modal de #recuperar. O aviso abre o passo,
+   então perde a margem de cima que o modal dá aos avisos do fim do formulário;
+   o erro de um campo fica colado nele, sem a folga do erro geral. */
+.recovery-form > .notice:first-child {
+  margin-top: 0;
+}
+.recovery-form > .notice + .field {
+  margin-top: 20px;
+}
+.recovery-form .field + .error-text {
+  margin: -8px 0 16px;
+}
+.recovery-resend {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.recovery-resend .error-text {
+  margin: 0;
+}
 @media (prefers-reduced-motion: reduce) {
   .access-control {
     transition: none;

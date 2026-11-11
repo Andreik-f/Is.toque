@@ -36,4 +36,4 @@ As imagens abaixo são capturas do próprio Is.toque, no modo demonstração (se
 | Produção bloqueada por capacidade | mesma janela, com 13 porções (capacidade 12) | RF-27 | [desktop](desktop/18-producao-bloqueada.png) |
 | Nova ficha técnica | `#receitas`, botão "Nova receita" | RF-20, RF-21 | [desktop](desktop/19-nova-ficha-tecnica.png) |
 
-A recuperação de senha (`#recuperar`) existe como simulação e não foi capturada. Os requisitos estão descritos em [02-Especificação do Projeto](../../02-Especificação%20do%20Projeto.md).
+A recuperação de senha por SMS (`#recuperar`, HU022) ainda não foi capturada. Os requisitos estão descritos em [02-Especificação do Projeto](../../02-Especificação%20do%20Projeto.md).

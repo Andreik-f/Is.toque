@@ -1,13 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button.jsx";
-import { Field } from "@/components/ui/field.jsx";
-import { Icon } from "@/components/ui/icon.jsx";
 import { Mascot } from "@/components/ui/mascot.jsx";
 import { Modal } from "@/components/ui/modal.jsx";
 import { mascotFace } from "@/utils/mascot.js";
 import { login, signup as signupRequest } from "../api/auth.js";
 import { AccessForm } from "./access-form.jsx";
 import { AuthCurve, AuthPromo } from "./auth-controls.jsx";
+import { PasswordRecovery } from "./password-recovery.jsx";
 import "./auth.css";
 
 const NO_ACTIVITY = { focus: null, emailLength: 0, passwordVisible: false };
@@ -18,11 +16,9 @@ const sameActivity = (a, b) =>
 
 // Tela de acesso: login, cadastro e recuperação de senha (#login, #cadastro,
 // #recuperar). Login e cadastro chamam a API e entregam a sessão a
-// onAuthenticated.
+// onAuthenticated; a recuperação abre num modal sobre o login.
 export function AuthScreen({ route, go, onAuthenticated, notice }) {
   const signup = route === "cadastro";
-  const [sent, setSent] = useState(false);
-  useEffect(() => setSent(false), [route]);
   // o que a pessoa está fazendo no formulário, para o olho do mascote
   const [activity, setActivity] = useState(NO_ACTIVITY);
   // login e cadastro são formulários diferentes (o formulário remonta): ao
@@ -73,41 +69,10 @@ export function AuthScreen({ route, go, onAuthenticated, notice }) {
       {route === "recuperar" && (
         <Modal
           title="Recuperar acesso"
-          subtitle="Fluxo proposto — envio de e-mail ainda não integrado."
+          subtitle="O código chega por SMS ao administrador da empresa."
           onClose={() => go("login")}
         >
-          {sent ? (
-            <div className="notice" role="status">
-              <Icon name="check" />
-              <span>Simulação concluída. Nenhum e-mail foi enviado.</span>
-            </div>
-          ) : (
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                setSent(true);
-              }}
-            >
-              <Field
-                label="E-mail do usuário"
-                name="email"
-                type="email"
-                autoComplete="email"
-                maxLength={150}
-                required
-              />
-              <div className="modal-actions">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => go("login")}
-                >
-                  Voltar
-                </Button>
-                <Button type="submit">Simular recuperação</Button>
-              </div>
-            </form>
-          )}
+          <PasswordRecovery onDone={() => go("login")} />
         </Modal>
       )}
     </main>

@@ -29,7 +29,7 @@ A reconstrução mantém a composição de referência, com ajustes de campos e 
 
 Build de produção concluído. Bloqueio de campos vazios, confirmação divergente com foco no campo, recuperação em modal e fechamento por Escape verificados. Sem erros JavaScript nem transbordamento horizontal em 320, 375, 390, 768, 1024, 1440 e 1920 px.
 
-Submissões válidas são enviadas à API (`POST /api/auth/login` e `POST /api/auth/cadastro`, com `LoginRequestDTO` e `CadastroRequestDTO`). O cadastro cria a empresa e o administrador e já abre o sistema; o login abre o sistema com os dados da empresa do usuário. Erros da API aparecem no campo correspondente ou acima do botão. A sessão fica guardada no navegador (`istoque.sessao`), com o token e o `expiraEm` devolvidos pela API; a API ainda não separa as empresas no servidor (HT002). A recuperação de senha continua simulada.
+Submissões válidas são enviadas à API (`POST /api/auth/login` e `POST /api/auth/cadastro`, com `LoginRequestDTO` e `CadastroRequestDTO`). O cadastro cria a empresa e o administrador e já abre o sistema; o login abre o sistema com os dados da empresa do usuário. Erros da API aparecem no campo correspondente ou acima do botão. A sessão fica guardada no navegador (`istoque.sessao`), com o token e o `expiraEm` devolvidos pela API; a API ainda não separa as empresas no servidor (HT002). A recuperação de senha usa a API (`POST /api/auth/recuperar-senha` e `/recuperar-senha/confirmar`, HU022): o código chega por SMS ao administrador da empresa.
 
 ## Padronização dos campos
 

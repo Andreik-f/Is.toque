@@ -54,6 +54,33 @@ test("cada regra de campo devolve a sua mensagem", () => {
   );
 });
 
+test("a nova senha da recuperação tem o mínimo de 8 caracteres, mesmo fora do cadastro", () => {
+  const login = { ...ctx, signup: false };
+  assert.equal(
+    fieldError({ name: "novaSenha" }, "", login),
+    "Informe a nova senha.",
+  );
+  assert.match(fieldError({ name: "novaSenha" }, "1234567", login), /mínimo 8/);
+  assert.equal(fieldError({ name: "novaSenha" }, "12345678", login), "");
+});
+
+test("o código da recuperação tem exatamente 6 dígitos", () => {
+  assert.equal(fieldError({ name: "codigo" }, "", ctx), "Informe o código.");
+  assert.equal(
+    fieldError({ name: "codigo" }, "12345", ctx),
+    "O código tem 6 dígitos.",
+  );
+  assert.equal(
+    fieldError({ name: "codigo" }, "12a456", ctx),
+    "O código tem 6 dígitos.",
+  );
+  assert.equal(
+    fieldError({ name: "codigo" }, "1234567", ctx),
+    "O código tem 6 dígitos.",
+  );
+  assert.equal(fieldError({ name: "codigo" }, "123456", ctx), "");
+});
+
 test("o telefone da empresa é opcional: vazio passa, e preenchido precisa ser válido", () => {
   const telefone = { name: "telefone", type: "tel" };
   assert.equal(fieldError(telefone, "", ctx), "");
